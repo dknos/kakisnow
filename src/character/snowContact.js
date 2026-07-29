@@ -87,6 +87,9 @@ export class SnowContact {
         this._prevZ = ch.position.z;
         if (!this.enabled) return;
 
+        if (ch.landed) this._landing();
+        if (!ch.grounded) return;
+
         if (ch.surf > 0.02) this._surf(dt, moved);
         if (ch.surf < 0.98) {
             if (this.rockerActive) this._rockerDrag(moved);
@@ -136,6 +139,23 @@ export class SnowContact {
             const py = fig ? fig.plant[i * 3 + 1] : ch.position.y;
             this._kick(px, py, pz, impact);
         }
+    }
+
+    _landing() {
+        const ch = this.character;
+        const impact = ch.landingImpact;
+        this.field.brush(
+            ch.position.x, ch.position.z,
+            this.rockerActive ? 0.62 : 0.40,
+            0.20 + impact * 0.15,
+            0.16 + impact * 0.13,
+            Math.min(1, 0.72 + impact * 0.22),
+            0,
+            ch.facing,
+            1.35,
+            1.0
+        );
+        this._kick(ch.position.x, ch.position.y, ch.position.z, 0.7 + impact * 0.6);
     }
 
     _rockerDrag(moved) {

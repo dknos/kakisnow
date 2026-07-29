@@ -24,6 +24,7 @@ import { SprayField } from "./vfx/particles.js";
 import { SurfWake } from "./vfx/surfWake.js";
 import { SpellSystem } from "./spells/spellSystem.js";
 import { Overlay } from "./ui/overlay.js";
+import { CourseHud } from "./ui/courseHud.js";
 import { Sky } from "./render/sky.js";
 import { ShadowSystem } from "./render/shadows.js";
 import { Terrain } from "./terrain/terrain.js";
@@ -90,6 +91,8 @@ async function boot() {
     scene.ambientColor = new Color3(0, 0, 0);
 
     const rig = new CameraRig(scene, canvas);
+    // Summit Line runs downhill along +Z; start behind the rider looking into it.
+    rig.yaw = 0;
     scene.activeCamera = rig.camera;
 
     // ------------------------------------------------------------------ sky
@@ -193,6 +196,7 @@ async function boot() {
     const post = new PostChain(scene, rig.camera, depthPass, sky);
 
     const overlay = new Overlay({ rig, character });
+    const courseHud = new CourseHud(character);
     initInput(canvas, { onToggleOverlay: () => overlay.toggle() });
 
     // ------------------------------------------------------------- warm-up
@@ -322,6 +326,7 @@ async function boot() {
         sample(dtMs);
         checkSpike(dtMs);
         overlay.update(dtMs, engine);
+        courseHud.update(dt);
 
         endFrame();
     });
@@ -331,7 +336,7 @@ async function boot() {
 
     const api = {
         engine, scene, rig, character, figure, contact, spray, wake, spells,
-        rocker, overlay, terrain, sky, shadows, post, depthPass,
+        rocker, overlay, courseHud, terrain, sky, shadows, post, depthPass,
         S, input, perfStats: stats, set: setSetting,
         setHeroStyle(style) {
             setSetting("heroStyle", style === "rockerkaki" ? "rockerkaki" : "snowbound");

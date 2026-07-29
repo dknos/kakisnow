@@ -13,8 +13,8 @@
  * Blending between them is eased in both directions; there is no snap.
  */
 
-import { Vector3 } from "@babylonjs/core/Maths/math.vector";
-import { Scalar } from "@babylonjs/core/Maths/math.scalar";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector.js";
+import { Scalar } from "@babylonjs/core/Maths/math.scalar.js";
 import { input } from "../core/input.js";
 import { expDamp } from "../core/camera.js";
 
@@ -34,6 +34,14 @@ const SURF_THRUST = 11.0;
 const SURF_DRAG = 0.42;
 const SURF_TURN = 2.35; // rad/s at full steer
 const SURF_GRIP = 7.5;
+
+const GRAVITY = 18.5;
+const JUMP_SPEED = 7.25;
+const JUMP_BUFFER = 0.14;
+const COYOTE_TIME = 0.11;
+const NATURAL_TAKEOFF_MIN_SPEED = 7.5;
+const NATURAL_TAKEOFF_MIN_RISE = 1.15;
+const NATURAL_TAKEOFF_CLEARANCE = 0.008;
 
 /** Gait: metres of travel per full stride cycle, scaled by speed. */
 const STRIDE_BASE = 1.55;
@@ -103,6 +111,15 @@ export class CharacterController {
 
         this.groundY = 0;
         this.groundNormal = new Vector3(0, 1, 0);
+        this.grounded = true;
+        this.airborne = false;
+        this.verticalVelocity = 0;
+        this.airTime = 0;
+        this.jumpCount = 0;
+        this.landed = false;
+        this.landingImpact = 0;
+        this._jumpBuffer = 0;
+        this._coyote = COYOTE_TIME;
 
         this._prevSpeed = 0;
     }
@@ -116,6 +133,13 @@ export class CharacterController {
 
         this.prevVelocity.copyFrom(this.velocity);
         this.surfActive = input.surf;
+        this.landed = false;
+        this.landingImpact = 0;
+
+        if (input.jumpPressed) this._jumpBuffer = JUMP_BUFFER;
+        else this._jumpBuffer = Math.max(0, this._jumpBuffer - h);
+        if (this.grounded) this._coyote = COYOTE_TIME;
+        else this._coyote = Math.max(0, this._coyote - h);
 
         // Ease the surf blend — entering and exiting are transitions, not switches.
         this.surf = expDamp(this.surf, this.surfActive ? 1 : 0, this.surfActive ? 2.6 : 3.4, h);
@@ -126,14 +150,66 @@ export class CharacterController {
         if (this.surf > 0.5) this._surfStep(h, rig);
         else this._walkStep(h);
 
-        // ---------------------------------------------------- integrate + snap
+        // ------------------------------------------------ integrate + ground/air
+        const oldGround = this.terrain.heightAt(this.position.x, this.position.z);
+        const oldY = this.position.y;
         this.position.x += this.velocity.x * h;
         this.position.z += this.velocity.z * h;
 
         this.groundY = this.terrain.heightAt(this.position.x, this.position.z);
         this.terrain.normalAt(this.position.x, this.position.z, this.groundNormal);
-        // Snap with a little softness so micro-ripples don't jitter the rig.
-        this.position.y = expDamp(this.position.y, this.groundY, 26, h);
+        const groundRate = h > 0 ? (this.groundY - oldGround) / h : 0;
+
+        // A short buffer plus coyote time makes Space reliable at ramp lips and
+        // over uneven snow. The impulse keeps useful upward speed from a takeoff.
+        if (this._jumpBuffer > 0 && this._coyote > 0) {
+            this.grounded = false;
+            this.airborne = true;
+            this.verticalVelocity = Math.max(JUMP_SPEED, this.verticalVelocity + JUMP_SPEED * 0.42);
+            this._jumpBuffer = 0;
+            this._coyote = 0;
+            this.jumpCount++;
+        }
+
+        if (this.grounded) {
+            // Carry the ramp's vertical surface velocity forward. When the ground
+            // falls away after a fast rising lip, the same ballistic solve used by
+            // a Space jump takes over: authored jumps launch, they do not glue the
+            // rider to their downhill face.
+            const flightY = oldY + this.verticalVelocity * h - GRAVITY * h * h * 0.5;
+            const naturalTakeoff =
+                this.surf > 0.45 &&
+                this.speed >= NATURAL_TAKEOFF_MIN_SPEED &&
+                this.verticalVelocity >= NATURAL_TAKEOFF_MIN_RISE &&
+                this.groundY < flightY - NATURAL_TAKEOFF_CLEARANCE;
+
+            if (naturalTakeoff) {
+                this.grounded = false;
+                this.airborne = true;
+                this.position.y = flightY;
+                this.verticalVelocity -= GRAVITY * h;
+                this.jumpCount++;
+            } else {
+                this.position.y = this.groundY;
+                this.verticalVelocity = Scalar.Clamp(groundRate, -5, 9);
+            }
+        } else {
+            this.airTime += h;
+            this.verticalVelocity -= GRAVITY * h;
+            this.position.y += this.verticalVelocity * h;
+
+            if (this.position.y <= this.groundY && this.verticalVelocity <= groundRate + 0.5) {
+                const impactSpeed = Math.max(0, groundRate - this.verticalVelocity);
+                this.position.y = this.groundY;
+                this.verticalVelocity = Scalar.Clamp(groundRate, -5, 9);
+                this.grounded = true;
+                this.airborne = false;
+                this.landed = true;
+                this.landingImpact = Scalar.Clamp(impactSpeed / 10, 0.2, 1.5);
+                this.airTime = 0;
+                rig.addTrauma(Math.min(0.38, this.landingImpact * 0.22));
+            }
+        }
 
         // --------------------------------------------------------- bookkeeping
         this.speed = Math.hypot(this.velocity.x, this.velocity.z);
@@ -255,7 +331,7 @@ export class CharacterController {
         // travelling at nineteen metres a second. The gait is distance-driven, so
         // it answered that with a twelve-hertz cadence and the legs blurred. A
         // sprint is the fastest thing anyone walks at; above it, glide.
-        this.stepping = this.surf <= 0.5 && this.speed <= RUN_SPEED * 1.2;
+        this.stepping = this.grounded && this.surf <= 0.5 && this.speed <= RUN_SPEED * 1.2;
         if (!this.stepping) {
             this.gaitPhase = 0;
             return;

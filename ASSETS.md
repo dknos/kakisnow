@@ -141,6 +141,24 @@ records a Blender decimation and Draco-compression pass from 561,393 to
 `Khronos glTF Blender I/O v5.1.19`. Inspection found no embedded author,
 copyright, license, source URL, or provenance metadata in either file.
 
+A fresh Blender 5.1.1 import audit of the source GLB found one Draco-decoded
+mesh with 41,786 vertices and 120,000 indices, no armature, no actions, no
+shape keys, and no existing modifiers. `tools/rig-rockerkaki.py` now creates
+the authored derivative `art/rockerkaki-rig.blend` and exports
+`public/assets/models/rockerkaki-rigged.glb`. The editable rig has one
+non-deforming root control plus nine deform bones, deterministic spatial
+weights capped at four influences per vertex, zero bone roll, and the
+`RockerBreath` action. At runtime eight joints respond to riding, carving,
+jumping, and landing through the custom beauty, depth, prepass, and shadow WGSL
+paths. `tools/validate-rockerkaki-rig.py` is the headless Blender acceptance
+check.
+
+The current reproducible derivative hashes are:
+
+- Source GLB: `9fbf425a3d7afd2fb910acdc9faa25e7dc95cbc5b09b7288e7922073533948fe`
+- Rigged GLB: `70e9e944297398013ec65d31af9b1f082b5eb9a3b9e632ac8361961033393d7c`
+- Editable BLEND: `c839dc7d3eb1f051b1eb3bfc7ebcc20a3f94245c8e0aa4d3f19c0febbd87201a`
+
 The applicable
 [xAI terms](https://x.ai/legal/terms-of-service/previous-2026-04-10)
 state that users retain ownership of inputs and outputs and request attribution.

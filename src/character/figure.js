@@ -236,6 +236,7 @@ export class Figure {
         const surf = ch.surf;
         const speed = ch.speed;
         const run = Math.min(1, speed / 5.4);
+        const air = ch.grounded ? 0 : 1;
 
         // ---------------------------------------------------------- footfalls
         // Stance/swing is derived from the same distance-driven phase the
@@ -255,7 +256,8 @@ export class Figure {
         const pitchWant =
             0.10 * run
             + 0.012 * clamp(fwdAcc, -9, 22)
-            + surf * (0.30 + 0.16 * ch.speed01);
+            + surf * (0.30 + 0.16 * ch.speed01)
+            - air * 0.08;
         this.pitch = damp(this.pitch, pitchWant, 7, h);
 
         const rollWant = ch.lean * (0.16 + 0.34 * surf);
@@ -265,24 +267,23 @@ export class Figure {
         // supporting leg, twice per stride. Suppressed while surfing, where the
         // stance is a static crouch.
         const bobWant =
-            (1 - surf) * (-0.028 * run * (0.5 - 0.5 * Math.cos(4 * Math.PI * ch.gaitPhase)));
+            (1 - surf) * (1 - air)
+            * (-0.028 * run * (0.5 - 0.5 * Math.cos(4 * Math.PI * ch.gaitPhase)));
         this.bob = damp(this.bob, bobWant, 18, h);
 
         // Crouch: a little at running speed, a lot on the board.
-        const crouch = 0.035 * run + surf * (0.13 + 0.05 * ch.speed01);
+        const crouch = 0.035 * run + surf * (0.13 + 0.05 * ch.speed01) + air * 0.09;
         this.hipY = damp(this.hipY, HIP_HEIGHT - crouch, 9, h);
 
         // The figure settles into the snow it is standing on. Reading the real
         // depth would mean a GPU readback; this is the same number the contact
         // brushes are writing, held on the CPU.
-        this.sink = damp(this.sink, 0.045 + surf * 0.055, 4, h);
+        this.sink = damp(this.sink, air ? 0 : 0.045 + surf * 0.055, air ? 16 : 4, h);
 
         // ------------------------------------------------------------- spine
         const gx = ch.position.x;
         const gz = ch.position.z;
-        const groundY = this.terrain.heightAt(gx, gz);
-
-        const rootY = groundY - this.sink + this.hipY + this.bob;
+        const rootY = ch.position.y - this.sink + this.hipY + this.bob;
 
         composeBasis(ch.facing, this.pitch, this.roll);
         const rX = _axes[0], rY = _axes[1], rZ = _axes[2];
@@ -372,6 +373,24 @@ export class Figure {
 
         const fwdX = Math.sin(ch.facing), fwdZ = Math.cos(ch.facing);
         const rgtX = Math.cos(ch.facing), rgtZ = -Math.sin(ch.facing);
+
+        // In the air both feet stay tucked around the board/body instead of
+        // reaching back down to invisible terrain. The IK solver still owns the
+        // knees, so this works for the procedural rig without an animation clip.
+        if (!ch.grounded) {
+            for (let f = 0; f < 2; f++) {
+                const lateral = f === 0 ? -0.17 : 0.17;
+                const along = f === 0 ? 0.10 : -0.10;
+                const o = f * 3;
+                this.footPos[o] = ch.position.x + fwdX * along + rgtX * lateral;
+                this.footPos[o + 1] = ch.position.y + 0.08;
+                this.footPos[o + 2] = ch.position.z + fwdZ * along + rgtZ * lateral;
+                this.footWeight[f] = damp(this.footWeight[f], 0, 20, h);
+                this.touchdown[f] = false;
+                this._wasStance[f] = false;
+            }
+            return;
+        }
 
         // Half a stride ahead, scaled by speed — this is the step length, and it
         // has to match the controller's stride or the feet skate.

@@ -1,9 +1,9 @@
 # KAKISNOW
 
 KAKISNOW is a WebGPU-only Babylon.js snow-rendering and elemental-bending
-tech demo. It is deliberately a single scene rather than a game: walk the
-field, carve persistent trails, surf the dunes, and cast five snow-and-water
-spells.
+downhill playground. Walk the field, carve persistent trails, ride the
+520-metre Summit Line, jump its three takeoffs, carve two halfpipes, and cast
+five snow-and-water spells.
 
 The renderer includes an MIT-licensed foundation that has been substantially
 adapted for KAKISNOW. The upstream author's copyright and exact license text
@@ -34,12 +34,20 @@ npm run build
 npm run preview
 ```
 
+Rebuild and validate the editable RockerKaki Blender rig with:
+
+```bash
+blender --background --factory-startup --python tools/rig-rockerkaki.py
+blender --background --factory-startup --python tools/validate-rockerkaki-rig.py
+```
+
 ## Controls
 
 - `WASD` / arrow keys — camera-relative movement
 - Mouse drag — orbit
 - Mouse wheel — eased zoom
 - Hold right mouse button — snow-surf
+- `Space` — jump (also works at the lip with input buffering and coyote time)
 - `1` — Sweep
 - `2` — Ribbon
 - `3` — Bloom
@@ -57,6 +65,13 @@ selector.
 - One draw renders an eight-ring, player-centred geometry clipmap. The inner
   grid spacing is 8.5 cm, the field reaches roughly 870 m, and the terrain
   contributes approximately 333,000 triangles.
+- Summit Line is authored into the same heightfield as the natural terrain:
+  520 metres of directed descent, three ballistic takeoffs, and two long
+  U-profile halfpipes share the renderer's grounding, shadows, deformation,
+  camera clearance, and spell collision.
+- RockerKaki ships as an editable Blender armature with an authored breathing
+  action. Nine deform bones and eight runtime pose drivers react to riding,
+  carving, jumping, and landing in the beauty, shadow, and depth pipelines.
 - A 4096² GPU-baked heightfield combines broad dunes, medium wind lobes, and
   directional fine ridges. A procedural far-mountain field is integrated into
   the sky rather than projected from a flat card.

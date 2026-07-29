@@ -278,7 +278,7 @@ export class SurfWake {
         // Below a walking pace there is nothing being displaced, and laying
         // samples anyway leaves a knot of overlapping wall wherever the player
         // coasted to a stop.
-        const active = ch.surf > 0.06 && ch.speed > 1.6;
+        const active = ch.grounded && ch.surf > 0.06 && ch.speed > 1.6;
 
         if (active) {
             if (!this._active) this._maybeRestart();
@@ -448,7 +448,7 @@ export class SurfWake {
         const ch = this.controller;
         const sp = this.spray;
         const n = this._count;
-        if (n < 3 || ch.surf < 0.15 || ch.speed < 3.0) {
+        if (!ch.grounded || n < 3 || ch.surf < 0.15 || ch.speed < 3.0) {
             this._plumeOwed = 0;
             return;
         }

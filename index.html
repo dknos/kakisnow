@@ -171,12 +171,89 @@
     }
 
     #hint.show { opacity: 1; }
+
+    /* ------------------------------------------------------ summit line HUD */
+
+    #course-hud {
+        position: fixed;
+        top: max(24px, env(safe-area-inset-top));
+        left: max(26px, env(safe-area-inset-left));
+        z-index: 45;
+        width: min(286px, calc(100vw - 52px));
+        color: rgba(231, 242, 251, 0.86);
+        text-shadow: 0 2px 18px rgba(3, 8, 15, 0.75);
+        pointer-events: none;
+    }
+
+    .course-line {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 18px;
+    }
+
+    .course-name {
+        font: 600 10px/1 ui-monospace, "Cascadia Mono", monospace;
+        letter-spacing: 0.23em;
+        text-transform: uppercase;
+    }
+
+    #course-distance {
+        font: 500 9px/1 ui-monospace, "Cascadia Mono", monospace;
+        letter-spacing: 0.08em;
+        color: rgba(210, 228, 242, 0.50);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .course-track {
+        position: relative;
+        height: 2px;
+        margin-top: 10px;
+        overflow: hidden;
+        background: rgba(213, 232, 245, 0.14);
+    }
+
+    #course-fill {
+        position: absolute;
+        inset: 0;
+        transform: scaleX(0);
+        transform-origin: left center;
+        background: linear-gradient(90deg, #7cc0e8, #f0f8ff);
+        box-shadow: 0 0 12px rgba(124, 192, 232, 0.65);
+    }
+
+    #course-feature {
+        margin-top: 9px;
+        font-size: clamp(18px, 2vw, 27px);
+        font-weight: 250;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    @media (max-width: 680px) {
+        #course-hud { top: max(18px, env(safe-area-inset-top)); }
+        #hint {
+            width: calc(100vw - 30px);
+            bottom: max(22px, env(safe-area-inset-bottom));
+            text-align: center;
+            line-height: 1.8;
+        }
+    }
 </style>
 </head>
 <body>
     <canvas id="view" tabindex="0"></canvas>
 
-    <div id="hint">click to look &nbsp;·&nbsp; wasd to move &nbsp;·&nbsp; f1 for settings</div>
+    <div id="course-hud" aria-hidden="true">
+        <div class="course-line">
+            <span class="course-name">Summit line · black</span>
+            <span id="course-distance">0 / 520 M</span>
+        </div>
+        <div class="course-track"><div id="course-fill"></div></div>
+        <div id="course-feature">First hit</div>
+    </div>
+
+    <div id="hint">click to look &nbsp;·&nbsp; hold rmb to ride &nbsp;·&nbsp; wasd to steer &nbsp;·&nbsp; space to jump &nbsp;·&nbsp; f1 settings</div>
 
     <div id="boot">
         <div class="boot-inner">

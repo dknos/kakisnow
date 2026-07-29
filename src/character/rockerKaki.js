@@ -1,10 +1,11 @@
 /**
  * Playable RockerKaki visual adapter.
  *
- * The asset is authored static geometry rather than a rig. This adapter keeps
- * it deliberately separate from the procedural Figure. Only the selected hero
- * advances or uploads uniforms. RockerKaki receives the controller transform,
- * its own broad snow contact, and the same custom
+ * The Blender-authored asset has a compact seated-character armature. This
+ * adapter keeps it deliberately separate from the procedural Figure. Only the
+ * selected hero advances or uploads uniforms. RockerKaki receives controller
+ * motion, controller-driven bone poses, its own broad snow contact, and the same
+ * custom
  * sun/shadow/atmosphere pipeline as every native surface.
  *
  * Allocation per frame: none.
@@ -20,7 +21,9 @@ import { ShaderMaterial } from "@babylonjs/core/Materials/shaderMaterial.js";
 import { ShaderLanguage } from "@babylonjs/core/Materials/shaderLanguage.js";
 import { RawTexture } from "@babylonjs/core/Materials/Textures/rawTexture.js";
 import { Constants } from "@babylonjs/core/Engines/constants.js";
-import { Color3, Matrix, Vector3, Vector4 } from "@babylonjs/core/Maths/math.js";
+import {
+    Color3, Matrix, Quaternion, Vector3, Vector4,
+} from "@babylonjs/core/Maths/math.js";
 
 import { S } from "../core/settings.js";
 import { whenReady, bindMatrixArray } from "../core/gpuUtil.js";
@@ -79,6 +82,14 @@ export class RockerKaki {
         this._prepassMaterials = [];
         /** @type {Matrix[]} inverse-transpose world matrices, one per mesh */
         this._normalMatrices = [];
+        /** @type {(import("@babylonjs/core/Bones/skeleton").Skeleton|null)[]} */
+        this._meshSkeletons = [];
+        this._rigJoints = new Map();
+        this._poseDelta = new Quaternion();
+        this.rigged = false;
+        this.rigBoneCount = 0;
+        this.rigBoneNames = [];
+        this.rigPose = "rest";
 
         this._fallbackTexture = RawTexture.CreateRGBATexture(
             new Uint8Array([255, 255, 255, 255]),
@@ -101,7 +112,7 @@ export class RockerKaki {
         let result;
         try {
             result = await ImportMeshAsync(
-                PUBLIC_BASE + "assets/models/rockerkaki.glb", this.scene
+                PUBLIC_BASE + "assets/models/rockerkaki-rigged.glb", this.scene
             );
         } catch (error) {
             console.warn("[kakisnow] RockerKaki unavailable:", error);
@@ -119,6 +130,10 @@ export class RockerKaki {
             const node = nodes[i];
             if (!node.parent) node.parent = this.assetRoot;
         }
+        for (let i = 0; i < result.animationGroups.length; i++) {
+            result.animationGroups[i].stop();
+        }
+        this._captureRig(result.skeletons);
 
         this.assetRoot.computeWorldMatrix(true);
         let bounds = this.assetRoot.getHierarchyBoundingVectors(true);
@@ -148,7 +163,8 @@ export class RockerKaki {
                 source,
                 source && source.albedoColor ? source.albedoColor : _white,
                 source && typeof source.roughness === "number" ? source.roughness : 0.58,
-                source && typeof source.metallic === "number" ? source.metallic : 0
+                source && typeof source.metallic === "number" ? source.metallic : 0,
+                mesh
             );
             mesh.material = beauty;
             mesh.renderingGroupId = 1;
@@ -193,28 +209,70 @@ export class RockerKaki {
         return this.available;
     }
 
+    _captureRig(skeletons) {
+        const skeleton = skeletons && skeletons[0];
+        if (!skeleton) return;
+        // These custom WGSL passes intentionally use the compact uniform palette
+        // path. Babylon otherwise prefers a bone texture on WebGPU, leaving the
+        // declared mBones array unbound and collapsing every vertex to the root.
+        skeleton.useTextureToStoreBoneMatrices = false;
+        this.rigged = true;
+        this.rigBoneCount = skeleton.bones.length;
+        this.rigBoneNames = skeleton.bones.map((bone) => bone.name);
+        const poseNames = [
+            "pelvis", "spine", "chest", "head",
+            "arm.L", "arm.R", "leg.L", "leg.R",
+        ];
+        for (let i = 0; i < poseNames.length; i++) {
+            const bone = skeleton.bones.find((candidate) =>
+                candidate.name === poseNames[i]
+            );
+            if (!bone) continue;
+            const node = bone.getTransformNode();
+            if (!node) continue;
+            if (!node.rotationQuaternion) {
+                node.rotationQuaternion = Quaternion.FromEulerAngles(
+                    node.rotation.x, node.rotation.y, node.rotation.z
+                );
+                node.rotation.setAll(0);
+            }
+            this._rigJoints.set(poseNames[i], {
+                node,
+                base: node.rotationQuaternion.clone(),
+                posed: node.rotationQuaternion.clone(),
+            });
+        }
+    }
+
     _registerMesh(mesh, beauty, index) {
         this.meshes.push(mesh);
         this.beautyMaterials.push(beauty);
         this._normalMatrices.push(new Matrix());
+        this._meshSkeletons.push(mesh.skeleton || null);
         this.triangles += (mesh.getTotalIndices() / 3) | 0;
 
         this.shadows.registerCaster(
             mesh,
             (cascade) => this._makeDepthMaterial(
-                "rockerkakiDepth" + index + "_" + cascade, cascade
+                "rockerkakiDepth" + index + "_" + cascade, cascade, mesh
             ),
             ROCKER_CASCADES
         );
 
+        const skinned = !!mesh.skeleton;
         const prepass = new ShaderMaterial(
             "rockerkakiPrepass" + index,
             this.scene,
             { vertex: "staticPrepass", fragment: "prepass" },
             {
-                attributes: ["position"],
+                attributes: skinned
+                    ? ["position"]
+                    : ["position"],
                 uniforms: ["world", "viewProjection"],
                 shaderLanguage: ShaderLanguage.WGSL,
+                defines: skinned
+                    ? ["ROCKER_SKINNED"]
+                    : [],
             }
         );
         prepass.backFaceCulling = false;
@@ -222,16 +280,22 @@ export class RockerKaki {
         this.depthPass.registerCaster(mesh, prepass);
     }
 
-    _makeDepthMaterial(name, cascade) {
+    _makeDepthMaterial(name, cascade, mesh) {
+        const skinned = !!mesh.skeleton;
         const material = new ShaderMaterial(
             name,
             this.scene,
             { vertex: "staticDepth", fragment: "terrainDepth" },
             {
-                attributes: ["position"],
+                attributes: skinned
+                    ? ["position"]
+                    : ["position"],
                 uniforms: ["world", "lightViewProjection"],
                 shaderLanguage: ShaderLanguage.WGSL,
-                defines: ["ROCKER_CASCADE " + cascade],
+                defines: [
+                    "ROCKER_CASCADE " + cascade,
+                    ...(skinned ? ["ROCKER_SKINNED"] : []),
+                ],
             }
         );
         material.backFaceCulling = false;
@@ -239,13 +303,16 @@ export class RockerKaki {
         return material;
     }
 
-    _makeBeautyMaterial(name, source, color, roughness, metallic) {
+    _makeBeautyMaterial(name, source, color, roughness, metallic, mesh = null) {
+        const skinned = !!(mesh && mesh.skeleton);
         const material = new ShaderMaterial(
             name,
             this.scene,
             { vertex: "rocker", fragment: "rocker" },
             {
-                attributes: ["position", "normal", "uv"],
+                attributes: skinned
+                    ? ["position", "normal", "uv"]
+                    : ["position", "normal", "uv"],
                 uniforms: [
                     "world", "normalMatrix", "viewProjection", "cameraPos",
                     "sunDir", "sunRadiance", "shR",
@@ -263,6 +330,9 @@ export class RockerKaki {
                     "cascade0", "cascade1", "cascade2",
                 ],
                 shaderLanguage: ShaderLanguage.WGSL,
+                defines: skinned
+                    ? ["ROCKER_SKINNED"]
+                    : [],
             }
         );
         material.backFaceCulling = false;
@@ -305,14 +375,57 @@ export class RockerKaki {
         this.motionRoot.position.y += 0.012 + ch.surf * 0.04;
         this.motionRoot.rotation.y = ch.facing;
 
-        this.visualRoot.rotation.x = ch.surf * 0.13 + ch.speed * 0.003;
+        const air = ch.grounded ? 0 : 1;
+        this.visualRoot.rotation.x = ch.surf * 0.13 + ch.speed * 0.003 - air * 0.08;
         this.visualRoot.rotation.y = 0.13;
-        this.visualRoot.rotation.z = -ch.lean * (0.10 + ch.surf * 0.16);
+        this.visualRoot.rotation.z =
+            -ch.lean * (0.10 + ch.surf * 0.16)
+            + air * Math.sin(ch.airTime * 4.2) * 0.025;
 
         const stride = Math.abs(Math.sin(ch.gaitPhase * Math.PI * 2))
                      * Math.min(1, ch.speed / 5.4);
         this.assetRoot.position.y =
-            this._modelBaseY + stride * 0.006 + ch.surf * 0.045;
+            this._modelBaseY + stride * 0.006 + ch.surf * 0.045 + air * 0.035;
+
+        const landing = ch.landed ? ch.landingImpact : 0;
+        const sway = Math.sin(ch.gaitPhase * Math.PI * 2);
+        this.rigPose = air > 0
+            ? "air"
+            : landing > 0
+                ? "land"
+                : Math.abs(ch.lean) > 0.16
+                    ? "carve"
+                    : "ride";
+        this._poseJoint("pelvis", -air * 0.07 + landing * 0.10, 0, 0);
+        this._poseJoint(
+            "spine",
+            -ch.surf * 0.055 - air * 0.14 + landing * 0.12,
+            0,
+            -ch.lean * 0.035
+        );
+        this._poseJoint("chest", 0, 0, ch.lean * 0.11);
+        this._poseJoint(
+            "head",
+            ch.surf * 0.025 + air * 0.075 - landing * 0.07,
+            0,
+            -ch.lean * 0.07 + sway * 0.012
+        );
+        this._poseJoint(
+            "arm.L", 0, air * 0.16 + ch.surf * 0.04, -air * 0.08
+        );
+        this._poseJoint(
+            "arm.R", 0, -air * 0.16 - ch.surf * 0.04, air * 0.08
+        );
+        this._poseJoint("leg.L", air * 0.21 - landing * 0.08, 0, -air * 0.04);
+        this._poseJoint("leg.R", air * 0.21 - landing * 0.08, 0, air * 0.04);
+    }
+
+    _poseJoint(name, x, y, z) {
+        const joint = this._rigJoints.get(name);
+        if (!joint) return;
+        Quaternion.FromEulerAnglesToRef(x, y, z, this._poseDelta);
+        joint.base.multiplyToRef(this._poseDelta, joint.posed);
+        joint.node.rotationQuaternion.copyFrom(joint.posed);
     }
 
     /** Publish current custom-lighting uniforms after camera and cascades move. */

@@ -1,0 +1,232 @@
+const fs = require("node:fs");
+const os = require("node:os");
+const path = require("node:path");
+const { chromium } = require("playwright");
+
+const url = process.argv[2] || "http://127.0.0.1:5173";
+const output = path.resolve(process.argv[3] || "screenshots/_scratch/downhill");
+const profile = fs.mkdtempSync(path.join(os.tmpdir(), "kakisnow-downhill-"));
+fs.mkdirSync(output, { recursive: true });
+let context = null;
+
+function assert(condition, message) {
+  if (!condition) throw new Error(message);
+}
+
+(async () => {
+  context = await chromium.launchPersistentContext(profile, {
+    executablePath: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    headless: true,
+    viewport: { width: 1920, height: 1080 },
+    deviceScaleFactor: 1,
+    args: [
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--ignore-gpu-blocklist",
+      "--enable-precise-memory-info",
+    ],
+  });
+  const page = context.pages()[0] || await context.newPage();
+  const consoleErrors = [];
+  const gpuErrors = [];
+  const errorPattern =
+    /GPUValidationError|GPUInternalError|GPUOutOfMemoryError|WebGPU uncaptured error|WebGPU context lost|Validation Error|device lost/i;
+
+  page.on("console", message => {
+    const line = `${message.type()}: ${message.text()}`;
+    if (message.type() === "error") consoleErrors.push(line);
+    if (errorPattern.test(line)) gpuErrors.push(line);
+  });
+  page.on("pageerror", error => consoleErrors.push(error.stack || error.message));
+  page.on("requestfailed", request => {
+    consoleErrors.push(`${request.url()} ${request.failure()?.errorText || ""}`);
+  });
+
+  await page.goto(url, { waitUntil: "domcontentloaded", timeout: 120_000 });
+  await page.waitForFunction(
+    () => window.__KAKISNOW__?.ready === true && Boolean(window.KAKISNOW?.scene),
+    null,
+    { timeout: 240_000 },
+  );
+  await page.waitForTimeout(1200);
+
+  const rig = await page.evaluate(() => {
+    const rocker = window.KAKISNOW.rocker;
+    const skinned = rocker.meshes.find(mesh => Boolean(mesh.skeleton));
+    return {
+      rigged: rocker.rigged,
+      boneCount: rocker.rigBoneCount,
+      boneNames: rocker.rigBoneNames,
+      jointDrivers: rocker._rigJoints.size,
+      hasIndices: skinned?.isVerticesDataPresent("matricesIndices") || false,
+      hasWeights: skinned?.isVerticesDataPresent("matricesWeights") || false,
+      animationGroups: window.KAKISNOW.scene.animationGroups.map(group => group.name),
+    };
+  });
+  assert(rig.rigged, "RockerKaki GLB did not load a skeleton");
+  // Blender retains a tenth, non-deforming root control; export_def_bones keeps
+  // the runtime skin palette to the nine bones that actually influence vertices.
+  assert(rig.boneCount === 9, `expected 9 deform bones, got ${rig.boneCount}`);
+  assert(rig.jointDrivers === 8, `expected 8 runtime pose joints, got ${rig.jointDrivers}`);
+  assert(rig.hasIndices && rig.hasWeights, "skinning vertex attributes are missing");
+  assert(rig.animationGroups.includes("RockerBreath"), "Blender action is missing");
+
+  const topology = await page.evaluate(() => {
+    const terrain = window.KAKISNOW.terrain;
+    const sample = (x, z) => Number(terrain.heightAt(x, z).toFixed(3));
+    const zs = [0, 62, 76, 82, 89, 186, 205, 214, 223, 280, 320, 360, 410, 440, 472, 480, 520];
+    return {
+      centre: Object.fromEntries(zs.map(z => [z, sample(0, z)])),
+      pipes: [
+        { z: 320, left: sample(-21, 320), centre: sample(0, 320), right: sample(21, 320) },
+        { z: 430, left: sample(-21, 430), centre: sample(0, 430), right: sample(21, 430) },
+      ],
+      minHeight: terrain.heightfield.minHeight,
+      maxHeight: terrain.heightfield.maxHeight,
+    };
+  });
+  fs.writeFileSync(
+    path.join(output, "topology.json"),
+    `${JSON.stringify(topology, null, 2)}\n`,
+  );
+
+  const first = topology.centre;
+  assert(first[89] < first[82] - 2.2, "first jump does not have a launch break");
+  assert(first[223] < first[214] - 3.4, "big table does not have a launch break");
+  for (const pipe of topology.pipes) {
+    assert(pipe.left > pipe.centre + 4, `left wall is too low at z=${pipe.z}`);
+    assert(pipe.right > pipe.centre + 4, `right wall is too low at z=${pipe.z}`);
+  }
+
+  const setPose = (z, options = {}) => page.evaluate(({ z, options }) => {
+    const app = window.KAKISNOW;
+    const ch = app.character;
+    const y = app.terrain.heightAt(options.x || 0, z);
+    ch.position.set(options.x || 0, y, z);
+    ch.velocity.set(0, 0, options.speed || 0);
+    ch.prevVelocity.copyFrom(ch.velocity);
+    ch.acceleration.setAll(0);
+    ch.facing = 0;
+    ch.groundY = y;
+    ch.grounded = true;
+    ch.airborne = false;
+    ch.verticalVelocity = 0;
+    ch.airTime = 0;
+    app.input.surf = Boolean(options.surf);
+    ch.surf = options.surf ? 1 : 0;
+    app.rig._first = true;
+    app.rig.groundLift = 0;
+    app.rig.yaw = 0;
+    app.rig.pitch = options.pitch || 0.20;
+    app.rig.distance = options.distance || 10.5;
+    app.rig.distanceTarget = app.rig.distance;
+  }, { z, options });
+
+  await setPose(56, { pitch: 0.24, distance: 10.8 });
+  await page.waitForTimeout(700);
+  await page.screenshot({ path: path.join(output, "01-first-hit.png") });
+
+  await page.keyboard.press("Space");
+  await page.waitForTimeout(310);
+  const spaceJump = await page.evaluate(() => {
+    const ch = window.KAKISNOW.character;
+    const spine = window.KAKISNOW.rocker._rigJoints.get("spine");
+    const leg = window.KAKISNOW.rocker._rigJoints.get("leg.L");
+    const angleFromBase = joint => {
+      const a = joint.base;
+      const b = joint.node.rotationQuaternion;
+      const dot = Math.min(1, Math.abs(a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w));
+      return 2 * Math.acos(dot);
+    };
+    return {
+      grounded: ch.grounded,
+      airborne: ch.airborne,
+      clearance: ch.position.y - ch.groundY,
+      verticalVelocity: ch.verticalVelocity,
+      hud: document.getElementById("course-feature")?.textContent || "",
+      rigPose: window.KAKISNOW.rocker.rigPose,
+      spinePoseRadians: angleFromBase(spine),
+      legPoseRadians: angleFromBase(leg),
+    };
+  });
+  assert(spaceJump.airborne, "Space did not put the rider airborne");
+  assert(spaceJump.clearance > 0.8, "Space jump clearance is not visually readable");
+  assert(spaceJump.spinePoseRadians > 0.1, "air pose did not rotate the spine");
+  assert(spaceJump.legPoseRadians > 0.16, "air pose did not tuck the legs");
+  await page.screenshot({ path: path.join(output, "02-space-air.png") });
+
+  await setPose(55, { speed: 15, surf: true, pitch: 0.16, distance: 9.5 });
+  await page.waitForFunction(() => {
+    const ch = window.KAKISNOW.character;
+    return ch.position.z > 80 && !ch.grounded;
+  }, null, { timeout: 12_000 });
+  // Let the ballistic path separate visibly from the lip; the first airborne
+  // frame is intentionally only millimetres above the reconstructed surface.
+  await page.waitForTimeout(180);
+  const naturalJump = await page.evaluate(() => {
+    const ch = window.KAKISNOW.character;
+    return {
+      z: ch.position.z,
+      y: ch.position.y,
+      groundY: ch.groundY,
+      clearance: ch.position.y - ch.groundY,
+      verticalVelocity: ch.verticalVelocity,
+      speed: ch.speed,
+      jumpCount: ch.jumpCount,
+    };
+  });
+  assert(naturalJump.clearance > 0.03, "ramp takeoff remained glued to terrain");
+  await page.screenshot({ path: path.join(output, "03-natural-takeoff.png") });
+
+  await setPose(316, { pitch: 0.18, distance: 10.8 });
+  await page.waitForTimeout(700);
+  await page.screenshot({ path: path.join(output, "04-north-pipe.png") });
+
+  const runtime = await page.evaluate(async () => {
+    const adapter = await navigator.gpu.requestAdapter({ powerPreference: "high-performance" });
+    const app = window.KAKISNOW;
+    return {
+      adapter: adapter?.info || null,
+      fps: app.engine.getFps(),
+      render: [app.engine.getRenderWidth(), app.engine.getRenderHeight()],
+      hero: app.S.heroStyle,
+      hud: {
+        feature: document.getElementById("course-feature")?.textContent || "",
+        distance: document.getElementById("course-distance")?.textContent || "",
+      },
+    };
+  });
+
+  const report = {
+    url,
+    topology,
+    rig,
+    spaceJump,
+    naturalJump,
+    runtime,
+    consoleErrors,
+    gpuErrors,
+  };
+  fs.writeFileSync(
+    path.join(output, "report.json"),
+    `${JSON.stringify(report, null, 2)}\n`,
+  );
+  console.log(JSON.stringify(report, null, 2));
+
+  assert(consoleErrors.length === 0, `browser errors: ${consoleErrors.join("\n")}`);
+  assert(gpuErrors.length === 0, `WebGPU errors: ${gpuErrors.join("\n")}`);
+})()
+  .catch(error => {
+    console.error(error);
+    process.exitCode = 1;
+  })
+  .finally(() => {
+    const close = context ? context.close().catch(() => {}) : Promise.resolve();
+    return close.then(() => {
+      try {
+        fs.rmSync(profile, { recursive: true, force: true, maxRetries: 4, retryDelay: 150 });
+      } catch {
+        // Chrome can retain its Windows crash-report directory briefly after exit.
+      }
+    });
+  });

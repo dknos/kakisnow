@@ -20,6 +20,8 @@ export const input = {
 
     surf: false, // RMB held
     sprint: false, // shift
+    /** Set for one frame on Space keydown. Buffered by the character controller. */
+    jumpPressed: false,
 
     /** @type {number} 0 = none, else 1..5 — set on keydown, cleared each frame */
     spellPressed: 0,
@@ -94,6 +96,11 @@ export function initInput(canvas, hooks) {
         if (e.repeat) return;
         keys[e.code] = true;
 
+        if (e.code === "Space") {
+            e.preventDefault();
+            input.jumpPressed = true;
+        }
+
         const n = SPELL_KEYS[e.code];
         if (n) {
             input.spellPressed = n;
@@ -148,6 +155,7 @@ export function endFrame() {
     input.lookY = 0;
     input.zoomDelta = 0;
     input.spellPressed = 0;
+    input.jumpPressed = false;
 }
 
 export function isDown(code) {

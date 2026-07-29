@@ -10,9 +10,9 @@
  * itself pushes the arm up, which buys a rig that never pops through a drift.
  */
 
-import { Vector3, Matrix, Quaternion } from "@babylonjs/core/Maths/math.vector";
-import { Scalar } from "@babylonjs/core/Maths/math.scalar";
-import { UniversalCamera } from "@babylonjs/core/Cameras/universalCamera";
+import { Vector3, Matrix, Quaternion } from "@babylonjs/core/Maths/math.vector.js";
+import { Scalar } from "@babylonjs/core/Maths/math.scalar.js";
+import { UniversalCamera } from "@babylonjs/core/Cameras/universalCamera.js";
 import { input } from "./input.js";
 
 // ------------------------------------------------------- module-scope scratch
