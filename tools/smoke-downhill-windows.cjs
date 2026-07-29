@@ -5,6 +5,7 @@ const { chromium } = require("playwright");
 
 const url = process.argv[2] || "http://127.0.0.1:5173";
 const output = path.resolve(process.argv[3] || "screenshots/_scratch/downhill");
+const faceOnly = process.argv.includes("--face-only");
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), "kakisnow-downhill-"));
 fs.mkdirSync(output, { recursive: true });
 let context = null;
@@ -128,11 +129,45 @@ function assert(condition, message) {
     ch.surf = options.surf ? 1 : 0;
     app.rig._first = true;
     app.rig.groundLift = 0;
-    app.rig.yaw = 0;
+    app.rig.yaw = options.yaw ?? 0;
     app.rig.pitch = options.pitch || 0.20;
     app.rig.distance = options.distance || 10.5;
     app.rig.distanceTarget = app.rig.distance;
   }, { z, options });
+
+  if (faceOnly) {
+    await setPose(10, {
+      yaw: Math.PI, pitch: 0.04, distance: 5.4,
+    });
+    await page.waitForTimeout(700);
+    await page.screenshot({ path: path.join(output, "face-rest.png") });
+
+    await setPose(10, {
+      yaw: Math.PI, pitch: 0.04, distance: 5.4,
+    });
+    await page.keyboard.press("Space");
+    await page.waitForTimeout(300);
+    await page.screenshot({ path: path.join(output, "face-air.png") });
+
+    const faceReport = await page.evaluate(() => ({
+      meshes: window.KAKISNOW.rocker.meshes.map(mesh => mesh.name),
+      pose: window.KAKISNOW.rocker.rigPose,
+      skeletons: window.KAKISNOW.scene.skeletons.map(skeleton => ({
+        name: skeleton.name,
+        bones: skeleton.bones.map(bone => bone.name),
+      })),
+    }));
+    fs.writeFileSync(
+      path.join(output, "face-report.json"),
+      `${JSON.stringify(faceReport, null, 2)}\n`,
+    );
+    assert(
+      faceReport.meshes.length === 1 && faceReport.meshes[0] === "RockerKaki",
+      `unexpected under-character geometry: ${faceReport.meshes.join(", ")}`
+    );
+    console.log(JSON.stringify(faceReport, null, 2));
+    return;
+  }
 
   await setPose(36, { speed: 10, surf: true, pitch: 0.24, distance: 8.8 });
   await page.waitForTimeout(120);
@@ -168,7 +203,7 @@ function assert(condition, message) {
     rootTravel: Math.abs(ridePoseA.rootY - ridePoseB.rootY),
     rollTravel: Math.abs(ridePoseA.visualRoll - ridePoseB.visualRoll),
   };
-  assert(rideAnimation.armRadians > 0.05, "grounded ride arms are visually static");
+  assert(rideAnimation.rootTravel > 0.015, "grounded ride bounce is visually static");
   assert(rideAnimation.rollTravel > 0.025, "grounded ride body is visually static");
 
   await setPose(36, { pitch: 0.24, distance: 10.8 });
@@ -179,29 +214,22 @@ function assert(condition, message) {
   await page.waitForTimeout(310);
   const spaceJump = await page.evaluate(() => {
     const ch = window.KAKISNOW.character;
-    const spine = window.KAKISNOW.rocker._rigJoints.get("spine");
-    const leg = window.KAKISNOW.rocker._rigJoints.get("leg.L");
-    const angleFromBase = joint => {
-      const a = joint.base;
-      const b = joint.node.rotationQuaternion;
-      const dot = Math.min(1, Math.abs(a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w));
-      return 2 * Math.acos(dot);
-    };
+    const rocker = window.KAKISNOW.rocker;
     return {
       grounded: ch.grounded,
       airborne: ch.airborne,
       clearance: ch.position.y - ch.groundY,
       verticalVelocity: ch.verticalVelocity,
       hud: document.getElementById("course-feature")?.textContent || "",
-      rigPose: window.KAKISNOW.rocker.rigPose,
-      spinePoseRadians: angleFromBase(spine),
-      legPoseRadians: angleFromBase(leg),
+      rigPose: rocker.rigPose,
+      visualPitch: rocker.visualRoot.rotation.x,
+      visualYaw: rocker.visualRoot.rotation.y,
+      visualRoll: rocker.visualRoot.rotation.z,
     };
   });
   assert(spaceJump.airborne, "Space did not put the rider airborne");
   assert(spaceJump.clearance > 0.8, "Space jump clearance is not visually readable");
-  assert(spaceJump.spinePoseRadians > 0.1, "air pose did not rotate the spine");
-  assert(spaceJump.legPoseRadians > 0.16, "air pose did not tuck the legs");
+  assert(spaceJump.visualPitch < -0.12, "air pose did not pitch the rider visibly");
   await page.screenshot({ path: path.join(output, "02-space-air.png") });
   await page.waitForFunction(() =>
     window.KAKISNOW.character.grounded

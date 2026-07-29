@@ -1,5 +1,5 @@
 // Imported RockerKaki vertex path. The Blender-authored character uses the
-// skinned branch; the procedural saucer and copper rim share the static branch.
+// compact skinned branch.
 
 attribute position: vec3f;
 attribute normal: vec3f;

@@ -148,10 +148,12 @@ the authored derivative `art/rockerkaki-rig.blend` and exports
 `public/assets/models/rockerkaki-rigged.glb`. The editable rig has one
 non-deforming root control plus nine deform bones, deterministic spatial
 weights capped at four influences per vertex, zero bone roll, and the
-`RockerBreath` action. At runtime eight joints respond to riding, carving,
-jumping, and landing through the custom beauty, depth, prepass, and shadow WGSL
-paths. `tools/validate-rockerkaki-rig.py` is the headless Blender acceptance
-check.
+`RockerBreath` action. Because the source is built from 1,901 disconnected
+surface islands, runtime holds those deform bones in their authored pose and
+applies ride, carve, jump, and landing motion to the complete model. That keeps
+the face and guitar intact through the custom beauty, depth, prepass, and shadow
+WGSL paths. `tools/validate-rockerkaki-rig.py` is the headless Blender
+acceptance check.
 
 The current reproducible derivative hashes are:
 

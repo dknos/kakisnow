@@ -71,8 +71,9 @@ selector.
   and two local U-profile halfpipes share the renderer's grounding, shadows,
   deformation, camera clearance, and spell collision.
 - RockerKaki ships as an editable Blender armature with an authored breathing
-  action. Nine deform bones and eight runtime pose drivers react to riding,
-  carving, jumping, and landing in the beauty, shadow, and depth pipelines.
+  action. Nine deform bones remain embedded for future authored animation;
+  runtime ride, carve, jump, and landing poses move the complete authored model
+  rigidly so its disconnected face and guitar surfaces never stretch.
 - A 4096² GPU-baked heightfield combines broad dunes, medium wind lobes, and
   directional fine ridges. A procedural far-mountain field is integrated into
   the sky rather than projected from a flat card.

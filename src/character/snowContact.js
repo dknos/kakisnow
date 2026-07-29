@@ -61,7 +61,7 @@ export class SnowContact {
         this._sinceSplat = 0;
         this._prevX = character.position.x;
         this._prevZ = character.position.z;
-        /** RockerKaki rides a snow saucer instead of planting procedural boots. */
+        /** Seated RockerKaki leaves one broad contact instead of invisible boots. */
         this.rockerActive = false;
         this.enabled = true;
     }
@@ -96,8 +96,8 @@ export class SnowContact {
             else this._walk(dt, moved);
         }
 
-        // The optional authored model is seated and unrigged. Its contact is a
-        // continuous saucer trough, never a pair of invisible boot prints.
+        // The authored model is seated. Its contact is one continuous trough,
+        // never a pair of invisible procedural boot prints.
         if (this.rockerActive) return;
 
         // Footfalls fire regardless of mode; the gait suppresses them while

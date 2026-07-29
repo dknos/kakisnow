@@ -4,9 +4,8 @@
  * The Blender-authored asset has a compact seated-character armature. This
  * adapter keeps it deliberately separate from the procedural Figure. Only the
  * selected hero advances or uploads uniforms. RockerKaki receives controller
- * motion, controller-driven bone poses, its own broad snow contact, and the same
- * custom
- * sun/shadow/atmosphere pipeline as every native surface.
+ * motion, silhouette-safe whole-character poses, its own broad snow contact,
+ * and the same custom sun/shadow/atmosphere pipeline as every native surface.
  *
  * Allocation per frame: none.
  */
@@ -16,7 +15,6 @@ import "@babylonjs/loaders/glTF";
 import { ImportMeshAsync } from "@babylonjs/core/Loading/sceneLoader.js";
 import { DracoDecoder } from "@babylonjs/core/Meshes/Compression/dracoDecoder.js";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode.js";
-import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder.js";
 import { ShaderMaterial } from "@babylonjs/core/Materials/shaderMaterial.js";
 import { ShaderLanguage } from "@babylonjs/core/Materials/shaderLanguage.js";
 import { RawTexture } from "@babylonjs/core/Materials/Textures/rawTexture.js";
@@ -44,8 +42,6 @@ const MODEL_CLEARANCE = 0.008;
 const ROCKER_CASCADES = 2;
 
 const _white = new Color3(1, 1, 1);
-const _snowBed = new Color3(0.46, 0.59, 0.69);
-const _copper = new Color3(0.19, 0.052, 0.014);
 
 export class RockerKaki {
     /**
@@ -174,39 +170,7 @@ export class RockerKaki {
             this._registerMesh(mesh, beauty, i);
         }
 
-        // The source character is seated. A compact snow saucer gives that pose
-        // an intentional contact shape and a readable reason to glide.
-        const saucer = MeshBuilder.CreateSphere(
-            "rockerkakiSnowSaucer", { diameter: 1, segments: 48 }, this.scene
-        );
-        saucer.parent = this.visualRoot;
-        saucer.position.set(0, -0.012, -0.03);
-        saucer.scaling.set(1.10, 0.028, 1.32);
-        const saucerMat = this._makeBeautyMaterial(
-            "rockerkakiSnowSaucerBeauty", null, _snowBed, 0.76, 0.01
-        );
-        saucer.material = saucerMat;
-        saucer.renderingGroupId = 1;
-        saucer.isPickable = false;
-        this._registerMesh(saucer, saucerMat, this.meshes.length);
-
-        const rim = MeshBuilder.CreateTorus(
-            "rockerkakiCopperRim",
-            { diameter: 1, thickness: 0.018, tessellation: 72 },
-            this.scene
-        );
-        rim.parent = this.visualRoot;
-        rim.position.set(0, 0.09, -0.03);
-        rim.scaling.set(1.36, 1, 1.66);
-        const rimMat = this._makeBeautyMaterial(
-            "rockerkakiCopperRimBeauty", null, _copper, 0.24, 0.76
-        );
-        rim.material = rimMat;
-        rim.renderingGroupId = 1;
-        rim.isPickable = false;
-        this._registerMesh(rim, rimMat, this.meshes.length);
-
-        this.available = this.meshes.length > 2;
+        this.available = this.meshes.length > 0;
         this.setActive(false);
         return this.available;
     }
@@ -374,31 +338,6 @@ export class RockerKaki {
         if (!this.active) return;
         const ch = this.controller;
         this._animTime += dt;
-        this.motionRoot.position.copyFrom(ch.position);
-        this.motionRoot.position.y += 0.012 + ch.surf * 0.04;
-        this.motionRoot.rotation.y = ch.facing;
-
-        const air = ch.grounded ? 0 : 1;
-        this.visualRoot.rotation.x = ch.surf * 0.13 + ch.speed * 0.003 - air * 0.08;
-        this.visualRoot.rotation.y = 0.13;
-        const rideCycle = Math.sin(
-            this._animTime * (2.8 + Math.min(ch.speed, 18) * 0.16)
-        );
-        const rideMotion = ch.grounded ? ch.surf : 0;
-        this.visualRoot.rotation.z =
-            -ch.lean * (0.10 + ch.surf * 0.16)
-            + rideCycle * rideMotion * 0.045
-            + air * Math.sin(ch.airTime * 4.2) * 0.045;
-
-        const stride = Math.abs(Math.sin(ch.gaitPhase * Math.PI * 2))
-                     * Math.min(1, ch.speed / 5.4);
-        this.assetRoot.position.y =
-            this._modelBaseY
-            + stride * 0.006
-            + ch.surf * 0.045
-            + rideCycle * rideMotion * 0.018
-            + air * 0.045;
-
         if (ch.landed) {
             this._landingPose = Math.max(
                 this._landingPose, Math.min(1, ch.landingImpact)
@@ -407,7 +346,36 @@ export class RockerKaki {
             this._landingPose *= Math.exp(-dt * 7.5);
         }
         const landing = this._landingPose;
-        const sway = Math.sin(ch.gaitPhase * Math.PI * 2);
+
+        this.motionRoot.position.copyFrom(ch.position);
+        this.motionRoot.position.y += 0.012 + ch.surf * 0.04;
+        this.motionRoot.rotation.y = ch.facing;
+
+        const air = ch.grounded ? 0 : 1;
+        const rideCycle = Math.sin(
+            this._animTime * (2.8 + Math.min(ch.speed, 18) * 0.16)
+        );
+        const rideMotion = ch.grounded ? ch.surf : 0;
+        this.visualRoot.rotation.x =
+            ch.surf * 0.13 + ch.speed * 0.003 - air * 0.18
+            + landing * 0.11;
+        this.visualRoot.rotation.y =
+            0.13 + air * Math.sin(ch.airTime * 2.2) * 0.055;
+        this.visualRoot.rotation.z =
+            -ch.lean * (0.10 + ch.surf * 0.16)
+            + rideCycle * rideMotion * 0.065
+            + air * Math.sin(ch.airTime * 4.2) * 0.060;
+
+        const stride = Math.abs(Math.sin(ch.gaitPhase * Math.PI * 2))
+                     * Math.min(1, ch.speed / 5.4);
+        this.assetRoot.position.y =
+            this._modelBaseY
+            + stride * 0.006
+            + ch.surf * 0.045
+            + rideCycle * rideMotion * 0.018
+            + air * 0.045
+            - landing * 0.09;
+
         this.rigPose = air > 0
             ? "air"
             : landing > 0
@@ -415,41 +383,18 @@ export class RockerKaki {
                 : Math.abs(ch.lean) > 0.16
                     ? "carve"
                     : "ride";
-        this._poseJoint("pelvis", -air * 0.12 + landing * 0.18, 0, 0);
-        this._poseJoint(
-            "spine",
-            -ch.surf * 0.075 - air * 0.25 + landing * 0.22
-                + rideCycle * rideMotion * 0.035,
-            0,
-            -ch.lean * 0.055
-        );
-        this._poseJoint(
-            "chest",
-            rideCycle * rideMotion * 0.045,
-            0,
-            ch.lean * 0.16
-        );
-        this._poseJoint(
-            "head",
-            ch.surf * 0.035 + air * 0.13 - landing * 0.12,
-            0,
-            -ch.lean * 0.11 + sway * 0.018
-                - rideCycle * rideMotion * 0.045
-        );
-        this._poseJoint(
-            "arm.L",
-            rideCycle * rideMotion * 0.07,
-            air * 0.31 + ch.surf * (0.10 + rideCycle * 0.07),
-            -air * 0.15 - rideCycle * rideMotion * 0.08
-        );
-        this._poseJoint(
-            "arm.R",
-            -rideCycle * rideMotion * 0.07,
-            -air * 0.31 - ch.surf * (0.10 + rideCycle * 0.07),
-            air * 0.15 + rideCycle * rideMotion * 0.08
-        );
-        this._poseJoint("leg.L", air * 0.40 - landing * 0.15, 0, -air * 0.08);
-        this._poseJoint("leg.R", air * 0.40 - landing * 0.15, 0, air * 0.08);
+        // RockerKaki's face, hair, guitar and body are many disconnected
+        // surfaces whose automatic-looking blended weights stretch visibly.
+        // Preserve every authored island exactly. The skeleton remains embedded
+        // and validated, while safe runtime animation lives on visualRoot.
+        this._poseJoint("pelvis", 0, 0, 0);
+        this._poseJoint("spine", 0, 0, 0);
+        this._poseJoint("chest", 0, 0, 0);
+        this._poseJoint("head", 0, 0, 0);
+        this._poseJoint("arm.L", 0, 0, 0);
+        this._poseJoint("arm.R", 0, 0, 0);
+        this._poseJoint("leg.L", 0, 0, 0);
+        this._poseJoint("leg.R", 0, 0, 0);
     }
 
     _poseJoint(name, x, y, z) {
