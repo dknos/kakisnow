@@ -27,25 +27,23 @@ fn courseJump(z: f32, lip: f32, runIn: f32, drop: f32, height: f32) -> f32 {
     return rise * fall * height;
 }
 
-// Summit Line is authored into the same R32F bake as the natural field. That
-// gives the course one source of truth for rendering, collision, shadows,
-// camera clearance, deformation and spell impacts.
-fn summitLine(p: vec2f, naturalHeight: f32) -> vec2f {
+// Summit Line is a light-touch layer on the original rolling snowfield. It
+// adds readable lips and pipe walls without replacing the terrain with a
+// separate constant downhill plane.
+fn summitLine(
+    p: vec2f,
+    naturalHeight: f32,
+    centreHeight: f32
+) -> vec2f {
     let zGate = smoothstep(-72.0, -28.0, p.y)
               * (1.0 - smoothstep(520.0, 585.0, p.y));
-    let centre = 1.0 - smoothstep(48.0, 112.0, abs(p.x));
-    let blend = zGate * centre;
+    let lane = 1.0 - smoothstep(34.0, 68.0, abs(p.x));
+    var added = 0.0;
 
-    // A 74 m vertical drop over the playable run, softened with long snow rolls.
-    var shaped = 52.0 - p.y * 0.132;
-    shaped += sin((p.y + 18.0) * 0.022) * 1.15;
-    shaped += sin((p.y - 42.0) * 0.057) * 0.38;
-
-    // Three progression jumps: a friendly first hit, a longer table, then the
-    // finish-line kicker. Their short back faces create real ballistic takeoff.
-    shaped += courseJump(p.y, 82.0, 20.0, 7.0, 3.2);
-    shaped += courseJump(p.y, 214.0, 28.0, 9.0, 5.1);
-    shaped += courseJump(p.y, 472.0, 24.0, 8.0, 4.3);
+    // Long backsides retain a clear release but land as snow rolls, not cliffs.
+    added += lane * courseJump(p.y, 50.0, 22.0, 20.0, 1.55);
+    added += lane * courseJump(p.y, 184.0, 26.0, 24.0, 1.80);
+    added += lane * courseJump(p.y, 496.0, 26.0, 24.0, 1.75);
 
     // Two halfpipes. The longitudinal gates feather them into the piste while
     // the quadratic cross-section keeps the centre fast and lifts both walls.
@@ -55,14 +53,19 @@ fn summitLine(p: vec2f, naturalHeight: f32) -> vec2f {
               * (1.0 - smoothstep(450.0, 470.0, p.y));
     let wallT = smoothstep(5.0, 21.0, abs(p.x));
     let walls = wallT * wallT;
-    shaped += pipeA * walls * 6.8;
-    shaped += pipeB * walls * 5.4;
+    let pipeShape = pipeA * walls * 4.4 + pipeB * walls * 4.0;
 
     // Slight centre packing makes the intended line legible without erasing the
     // snow material's fine ridges or turning the course into a smooth plastic tube.
-    shaped -= exp(-p.x * p.x * 0.008) * (pipeA + pipeB) * 0.45;
+    let centrePack =
+        exp(-p.x * p.x * 0.008) * (pipeA + pipeB) * 0.24;
 
-    return vec2f(mix(naturalHeight, shaped, blend), blend);
+    var shaped = naturalHeight + added * zGate;
+    let pipeGate = max(pipeA, pipeB)
+        * (1.0 - smoothstep(27.0, 40.0, abs(p.x)));
+    let pipeTarget = centreHeight + pipeShape - centrePack;
+    shaped = mix(shaped, pipeTarget, pipeGate);
+    return vec2f(shaped, pipeGate);
 }
 
 @fragment
@@ -70,7 +73,10 @@ fn main(input: FragmentInputs) -> FragmentOutputs {
     let p = uniforms.worldOrigin + input.vUV * uniforms.worldSize;
 
     var h = terrainMacro(p, uniforms.windAngle, uniforms.heightAmp);
-    let course = summitLine(p, h);
+    let centreHeight = terrainMacro(
+        vec2f(0.0, p.y), uniforms.windAngle, uniforms.heightAmp
+    );
+    let course = summitLine(p, h, centreHeight);
     h = course.x;
 
     // Rock displaces snow upward; snow then re-accumulates on the flatter faces,

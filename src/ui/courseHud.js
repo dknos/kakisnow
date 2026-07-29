@@ -2,11 +2,11 @@ const COURSE_START = 0;
 const COURSE_FINISH = 520;
 
 const FEATURES = [
-    [82, "FIRST HIT"],
-    [214, "BIG TABLE"],
+    [50, "FIRST HIT"],
+    [184, "RIDGELINE HIT"],
     [292, "NORTH PIPE"],
     [410, "SOUTH PIPE"],
-    [472, "FINISH KICKER"],
+    [496, "FINISH KICKER"],
     [520, "RUNOUT"],
 ];
 

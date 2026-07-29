@@ -90,6 +90,8 @@ export class RockerKaki {
         this.rigBoneCount = 0;
         this.rigBoneNames = [];
         this.rigPose = "rest";
+        this._animTime = 0;
+        this._landingPose = 0;
 
         this._fallbackTexture = RawTexture.CreateRGBATexture(
             new Uint8Array([255, 255, 255, 255]),
@@ -368,9 +370,10 @@ export class RockerKaki {
     }
 
     /** Copy controller motion without allocating. */
-    update() {
+    update(dt = 0) {
         if (!this.active) return;
         const ch = this.controller;
+        this._animTime += dt;
         this.motionRoot.position.copyFrom(ch.position);
         this.motionRoot.position.y += 0.012 + ch.surf * 0.04;
         this.motionRoot.rotation.y = ch.facing;
@@ -378,16 +381,32 @@ export class RockerKaki {
         const air = ch.grounded ? 0 : 1;
         this.visualRoot.rotation.x = ch.surf * 0.13 + ch.speed * 0.003 - air * 0.08;
         this.visualRoot.rotation.y = 0.13;
+        const rideCycle = Math.sin(
+            this._animTime * (2.8 + Math.min(ch.speed, 18) * 0.16)
+        );
+        const rideMotion = ch.grounded ? ch.surf : 0;
         this.visualRoot.rotation.z =
             -ch.lean * (0.10 + ch.surf * 0.16)
-            + air * Math.sin(ch.airTime * 4.2) * 0.025;
+            + rideCycle * rideMotion * 0.045
+            + air * Math.sin(ch.airTime * 4.2) * 0.045;
 
         const stride = Math.abs(Math.sin(ch.gaitPhase * Math.PI * 2))
                      * Math.min(1, ch.speed / 5.4);
         this.assetRoot.position.y =
-            this._modelBaseY + stride * 0.006 + ch.surf * 0.045 + air * 0.035;
+            this._modelBaseY
+            + stride * 0.006
+            + ch.surf * 0.045
+            + rideCycle * rideMotion * 0.018
+            + air * 0.045;
 
-        const landing = ch.landed ? ch.landingImpact : 0;
+        if (ch.landed) {
+            this._landingPose = Math.max(
+                this._landingPose, Math.min(1, ch.landingImpact)
+            );
+        } else {
+            this._landingPose *= Math.exp(-dt * 7.5);
+        }
+        const landing = this._landingPose;
         const sway = Math.sin(ch.gaitPhase * Math.PI * 2);
         this.rigPose = air > 0
             ? "air"
@@ -396,28 +415,41 @@ export class RockerKaki {
                 : Math.abs(ch.lean) > 0.16
                     ? "carve"
                     : "ride";
-        this._poseJoint("pelvis", -air * 0.07 + landing * 0.10, 0, 0);
+        this._poseJoint("pelvis", -air * 0.12 + landing * 0.18, 0, 0);
         this._poseJoint(
             "spine",
-            -ch.surf * 0.055 - air * 0.14 + landing * 0.12,
+            -ch.surf * 0.075 - air * 0.25 + landing * 0.22
+                + rideCycle * rideMotion * 0.035,
             0,
-            -ch.lean * 0.035
+            -ch.lean * 0.055
         );
-        this._poseJoint("chest", 0, 0, ch.lean * 0.11);
+        this._poseJoint(
+            "chest",
+            rideCycle * rideMotion * 0.045,
+            0,
+            ch.lean * 0.16
+        );
         this._poseJoint(
             "head",
-            ch.surf * 0.025 + air * 0.075 - landing * 0.07,
+            ch.surf * 0.035 + air * 0.13 - landing * 0.12,
             0,
-            -ch.lean * 0.07 + sway * 0.012
+            -ch.lean * 0.11 + sway * 0.018
+                - rideCycle * rideMotion * 0.045
         );
         this._poseJoint(
-            "arm.L", 0, air * 0.16 + ch.surf * 0.04, -air * 0.08
+            "arm.L",
+            rideCycle * rideMotion * 0.07,
+            air * 0.31 + ch.surf * (0.10 + rideCycle * 0.07),
+            -air * 0.15 - rideCycle * rideMotion * 0.08
         );
         this._poseJoint(
-            "arm.R", 0, -air * 0.16 - ch.surf * 0.04, air * 0.08
+            "arm.R",
+            -rideCycle * rideMotion * 0.07,
+            -air * 0.31 - ch.surf * (0.10 + rideCycle * 0.07),
+            air * 0.15 + rideCycle * rideMotion * 0.08
         );
-        this._poseJoint("leg.L", air * 0.21 - landing * 0.08, 0, -air * 0.04);
-        this._poseJoint("leg.R", air * 0.21 - landing * 0.08, 0, air * 0.04);
+        this._poseJoint("leg.L", air * 0.40 - landing * 0.15, 0, -air * 0.08);
+        this._poseJoint("leg.R", air * 0.40 - landing * 0.15, 0, air * 0.08);
     }
 
     _poseJoint(name, x, y, z) {

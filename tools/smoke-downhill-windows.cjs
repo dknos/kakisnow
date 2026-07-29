@@ -77,6 +77,10 @@ function assert(condition, message) {
     const zs = [0, 62, 76, 82, 89, 186, 205, 214, 223, 280, 320, 360, 410, 440, 472, 480, 520];
     return {
       centre: Object.fromEntries(zs.map(z => [z, sample(0, z)])),
+      profile: Array.from({ length: 261 }, (_, index) => {
+        const z = index * 2;
+        return [z, sample(0, z)];
+      }),
       pipes: [
         { z: 320, left: sample(-21, 320), centre: sample(0, 320), right: sample(21, 320) },
         { z: 430, left: sample(-21, 430), centre: sample(0, 430), right: sample(21, 430) },
@@ -90,9 +94,13 @@ function assert(condition, message) {
     `${JSON.stringify(topology, null, 2)}\n`,
   );
 
-  const first = topology.centre;
-  assert(first[89] < first[82] - 2.2, "first jump does not have a launch break");
-  assert(first[223] < first[214] - 3.4, "big table does not have a launch break");
+  const profileDrops = topology.profile.slice(1).map((point, index) =>
+    topology.profile[index][1] - point[1]
+  );
+  assert(
+    Math.max(...profileDrops) < 1.8,
+    `course contains a cliff-like 2 m drop: ${Math.max(...profileDrops).toFixed(2)} m`
+  );
   for (const pipe of topology.pipes) {
     assert(pipe.left > pipe.centre + 4, `left wall is too low at z=${pipe.z}`);
     assert(pipe.right > pipe.centre + 4, `right wall is too low at z=${pipe.z}`);
@@ -112,6 +120,10 @@ function assert(condition, message) {
     ch.airborne = false;
     ch.verticalVelocity = 0;
     ch.airTime = 0;
+    ch.jumpCount = 0;
+    ch.landed = false;
+    ch.landingImpact = 0;
+    app.rocker._landingPose = 0;
     app.input.surf = Boolean(options.surf);
     ch.surf = options.surf ? 1 : 0;
     app.rig._first = true;
@@ -122,7 +134,44 @@ function assert(condition, message) {
     app.rig.distanceTarget = app.rig.distance;
   }, { z, options });
 
-  await setPose(56, { pitch: 0.24, distance: 10.8 });
+  await setPose(36, { speed: 10, surf: true, pitch: 0.24, distance: 8.8 });
+  await page.waitForTimeout(120);
+  const ridePoseA = await page.evaluate(() => {
+    const rocker = window.KAKISNOW.rocker;
+    const arm = rocker._rigJoints.get("arm.L").node.rotationQuaternion;
+    return {
+      arm: [arm.x, arm.y, arm.z, arm.w],
+      rootY: rocker.assetRoot.position.y,
+      visualRoll: rocker.visualRoot.rotation.z,
+    };
+  });
+  await page.screenshot({ path: path.join(output, "01-ride-motion-a.png") });
+  await page.waitForTimeout(260);
+  const ridePoseB = await page.evaluate(() => {
+    const rocker = window.KAKISNOW.rocker;
+    const arm = rocker._rigJoints.get("arm.L").node.rotationQuaternion;
+    return {
+      arm: [arm.x, arm.y, arm.z, arm.w],
+      rootY: rocker.assetRoot.position.y,
+      visualRoll: rocker.visualRoot.rotation.z,
+    };
+  });
+  await page.screenshot({ path: path.join(output, "01-ride-motion-b.png") });
+  const poseAngle = (a, b) => {
+    const dot = Math.min(1, Math.abs(
+      a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3]
+    ));
+    return 2 * Math.acos(dot);
+  };
+  const rideAnimation = {
+    armRadians: poseAngle(ridePoseA.arm, ridePoseB.arm),
+    rootTravel: Math.abs(ridePoseA.rootY - ridePoseB.rootY),
+    rollTravel: Math.abs(ridePoseA.visualRoll - ridePoseB.visualRoll),
+  };
+  assert(rideAnimation.armRadians > 0.05, "grounded ride arms are visually static");
+  assert(rideAnimation.rollTravel > 0.025, "grounded ride body is visually static");
+
+  await setPose(36, { pitch: 0.24, distance: 10.8 });
   await page.waitForTimeout(700);
   await page.screenshot({ path: path.join(output, "01-first-hit.png") });
 
@@ -154,11 +203,21 @@ function assert(condition, message) {
   assert(spaceJump.spinePoseRadians > 0.1, "air pose did not rotate the spine");
   assert(spaceJump.legPoseRadians > 0.16, "air pose did not tuck the legs");
   await page.screenshot({ path: path.join(output, "02-space-air.png") });
+  await page.waitForFunction(() =>
+    window.KAKISNOW.character.grounded
+      && window.KAKISNOW.rocker._landingPose > 0.1,
+  null, { timeout: 4_000 });
+  const landingAnimation = await page.evaluate(() => ({
+    pose: window.KAKISNOW.rocker._landingPose,
+    state: window.KAKISNOW.rocker.rigPose,
+  }));
+  assert(landingAnimation.pose > 0.1, "landing compression was not held visibly");
+  await page.screenshot({ path: path.join(output, "02b-landing-compression.png") });
 
-  await setPose(55, { speed: 15, surf: true, pitch: 0.16, distance: 9.5 });
+  await setPose(32, { speed: 15, surf: true, pitch: 0.16, distance: 9.5 });
   await page.waitForFunction(() => {
     const ch = window.KAKISNOW.character;
-    return ch.position.z > 80 && !ch.grounded;
+    return ch.position.z > 50 && !ch.grounded;
   }, null, { timeout: 12_000 });
   // Let the ballistic path separate visibly from the lip; the first airborne
   // frame is intentionally only millimetres above the reconstructed surface.
@@ -182,6 +241,49 @@ function assert(condition, message) {
   await page.waitForTimeout(700);
   await page.screenshot({ path: path.join(output, "04-north-pipe.png") });
 
+  // A real end-to-end traverse catches the reported failure mode: on the old
+  // artificial cliffs, slope assist could reverse and then strand the rider.
+  await setPose(0, { speed: 12, surf: true, pitch: 0.18, distance: 10.2 });
+  const traverse = [];
+  let stalledSamples = 0;
+  let maxStalledSamples = 0;
+  let previousZ = 0;
+  for (let i = 0; i < 80; i++) {
+    await page.waitForTimeout(500);
+    const sample = await page.evaluate(() => {
+      const ch = window.KAKISNOW.character;
+      const forwardX = Math.sin(ch.facing);
+      const forwardZ = Math.cos(ch.facing);
+      return {
+        z: ch.position.z,
+        y: ch.position.y,
+        speed: ch.speed,
+        forwardSpeed: ch.velocity.x * forwardX + ch.velocity.z * forwardZ,
+        grounded: ch.grounded,
+        jumpCount: ch.jumpCount,
+      };
+    });
+    traverse.push(sample);
+    assert(
+      sample.forwardSpeed > -0.25,
+      `rider reversed during traverse at z=${sample.z.toFixed(1)}`
+    );
+    if (sample.z - previousZ < 0.4) stalledSamples++;
+    else stalledSamples = 0;
+    maxStalledSamples = Math.max(maxStalledSamples, stalledSamples);
+    previousZ = sample.z;
+    if (sample.z >= 520) break;
+  }
+  const traverseResult = {
+    finishZ: traverse.at(-1).z,
+    minForwardSpeed: Math.min(...traverse.map(sample => sample.forwardSpeed)),
+    maxStalledSeconds: maxStalledSamples * 0.5,
+    jumps: traverse.at(-1).jumpCount,
+    samples: traverse.length,
+  };
+  assert(traverseResult.finishZ >= 520, "full course traverse did not reach the runout");
+  assert(traverseResult.maxStalledSeconds < 1.5, "rider became stuck during traverse");
+
   const runtime = await page.evaluate(async () => {
     const adapter = await navigator.gpu.requestAdapter({ powerPreference: "high-performance" });
     const app = window.KAKISNOW;
@@ -197,12 +299,22 @@ function assert(condition, message) {
     };
   });
 
+  const topologySummary = {
+    centre: topology.centre,
+    pipes: topology.pipes,
+    minHeight: topology.minHeight,
+    maxHeight: topology.maxHeight,
+    maxTwoMetreDrop: Math.max(...profileDrops),
+  };
   const report = {
     url,
-    topology,
+    topology: topologySummary,
     rig,
+    rideAnimation,
     spaceJump,
+    landingAnimation,
     naturalJump,
+    traverse: traverseResult,
     runtime,
     consoleErrors,
     gpuErrors,

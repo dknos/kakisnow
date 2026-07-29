@@ -285,9 +285,14 @@ export class CharacterController {
 
         // Slope: heading downhill adds speed, uphill scrubs it.
         this.terrain.normalAt(this.position.x, this.position.z, _n);
-        const slopeAssist = -(_n.x * fx + _n.z * fz) * 26;
+        // The horizontal normal points downhill. Project it onto the rider's
+        // forward direction: downhill adds thrust, uphill removes it.
+        const slopeAssist = (_n.x * fx + _n.z * fz) * 26;
 
-        let thrust = SURF_THRUST + slopeAssist;
+        // A steep uphill can slow the ride, but must never turn engine assist
+        // into reverse thrust. Pulling back remains the explicit brake/reverse
+        // intent; terrain alone always leaves enough drive to crest a roll.
+        let thrust = Math.max(3.2, SURF_THRUST + slopeAssist);
         if (input.moveZ < 0) thrust -= 14; // pull back to scrub speed
 
         this.velocity.x += fx * thrust * h;

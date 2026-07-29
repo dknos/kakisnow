@@ -2,7 +2,8 @@
 
 KAKISNOW is a WebGPU-only Babylon.js snow-rendering and elemental-bending
 downhill playground. Walk the field, carve persistent trails, ride the
-520-metre Summit Line, jump its three takeoffs, carve two halfpipes, and cast
+520-metre Summit Line through the original rolling snowfield, jump its three
+takeoffs, carve two halfpipes, and cast
 five snow-and-water spells.
 
 The renderer includes an MIT-licensed foundation that has been substantially
@@ -66,9 +67,9 @@ selector.
   grid spacing is 8.5 cm, the field reaches roughly 870 m, and the terrain
   contributes approximately 333,000 triangles.
 - Summit Line is authored into the same heightfield as the natural terrain:
-  520 metres of directed descent, three ballistic takeoffs, and two long
-  U-profile halfpipes share the renderer's grounding, shadows, deformation,
-  camera clearance, and spell collision.
+  the original rolling dunes remain the base while three gentle ballistic lips
+  and two local U-profile halfpipes share the renderer's grounding, shadows,
+  deformation, camera clearance, and spell collision.
 - RockerKaki ships as an editable Blender armature with an authored breathing
   action. Nine deform bones and eight runtime pose drivers react to riding,
   carving, jumping, and landing in the beauty, shadow, and depth pipelines.

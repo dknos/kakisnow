@@ -211,7 +211,7 @@ async function boot() {
     figure.sync(rig.camera.position);
     await figure.warmUp();
     rocker.setActive(true);
-    rocker.update();
+    rocker.update(0);
     rocker.sync(rig.camera.position);
     await rocker.warmUp();
     applyHeroStyle();
@@ -280,7 +280,7 @@ async function boot() {
         // at the boot's actual planted position, which only exists once the
         // figure has been solved.
         if (usingSnowbound) figure.update(dt);
-        if (usingRocker) rocker.update();
+        if (usingRocker) rocker.update(dt);
         contact.update(dt);
         const tChar = performance.now();
 

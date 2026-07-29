@@ -30,6 +30,16 @@ class KickerTerrain {
     }
 }
 
+class SteepDownhillTerrain {
+    heightAt(_x, z) {
+        return -z * 1.2;
+    }
+
+    normalAt(_x, _z, out) {
+        return out.set(0, 1, 1.2).normalize();
+    }
+}
+
 const rig = {
     yaw: 0,
     trauma: 0,
@@ -115,4 +125,25 @@ test("airborne riders do not emit gait footfalls", () => {
 
     assert.equal(controller.stepping, false);
     assert.equal(controller.footfall, false);
+});
+
+test("downhill slope assist accelerates forward instead of reversing", () => {
+    resetInput();
+    const terrain = new SteepDownhillTerrain();
+    const controller = new CharacterController(terrain);
+    controller.position.set(0, terrain.heightAt(0, 0), 0);
+    controller.velocity.set(0, 0, 8);
+    controller.surf = 1;
+    input.surf = true;
+
+    for (let i = 0; i < 120; i++) {
+        controller.update(1 / 60, rig);
+        assert.ok(
+            controller.velocity.z > 0,
+            `rider reversed on downhill at frame ${i}`
+        );
+    }
+
+    assert.ok(controller.position.z > 25);
+    assert.ok(controller.velocity.z > 12);
 });
