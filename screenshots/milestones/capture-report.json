@@ -1,0 +1,2271 @@
+{
+  "url": "http://127.0.0.1:4195",
+  "capturedAt": "2026-07-29T15:33:00.348Z",
+  "runtime": {
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+    "platform": "Win32",
+    "hardwareConcurrency": 32,
+    "deviceMemory": 32,
+    "crossOriginIsolated": false,
+    "devicePixelRatio": 1,
+    "webgpu": true,
+    "adapter": {
+      "vendor": "nvidia",
+      "architecture": "blackwell",
+      "device": "",
+      "description": "",
+      "subgroupMinSize": 32,
+      "subgroupMaxSize": 128,
+      "isFallbackAdapter": false
+    },
+    "engineAdapter": {
+      "vendor": "nvidia",
+      "architecture": "blackwell",
+      "device": "",
+      "description": "",
+      "subgroupMinSize": 32,
+      "subgroupMaxSize": 128,
+      "isFallbackAdapter": false
+    },
+    "features": [
+      "bgra8unorm-storage",
+      "clip-distances",
+      "core-features-and-limits",
+      "depth-clip-control",
+      "depth32float-stencil8",
+      "dual-source-blending",
+      "float32-blendable",
+      "float32-filterable",
+      "indirect-first-instance",
+      "primitive-index",
+      "rg11b10ufloat-renderable",
+      "shader-f16",
+      "subgroups",
+      "texture-component-swizzle",
+      "texture-compression-bc",
+      "texture-compression-bc-sliced-3d",
+      "texture-formats-tier1",
+      "texture-formats-tier2",
+      "timestamp-query"
+    ],
+    "limits": {
+      "maxTextureDimension1D": 16384,
+      "maxTextureDimension2D": 16384,
+      "maxTextureDimension3D": 2048,
+      "maxTextureArrayLayers": 2048,
+      "maxBindGroups": 4,
+      "maxBindingsPerBindGroup": 1000,
+      "maxBufferSize": 2147483648,
+      "maxUniformBufferBindingSize": 65536,
+      "maxStorageBufferBindingSize": 2147483644,
+      "maxComputeWorkgroupStorageSize": 32768,
+      "maxComputeInvocationsPerWorkgroup": 1024,
+      "maxComputeWorkgroupSizeX": 1024,
+      "maxComputeWorkgroupSizeY": 1024,
+      "maxComputeWorkgroupSizeZ": 64,
+      "maxColorAttachments": 8
+    },
+    "engine": {
+      "name": "WebGPU",
+      "version": 1,
+      "renderWidth": 2560,
+      "renderHeight": 1440,
+      "hardwareScalingLevel": 1,
+      "fps": 397.3509933774858,
+      "caps": {
+        "maxTextureSize": 16384,
+        "maxCubemapTextureSize": 16384,
+        "maxRenderTextureSize": 16384,
+        "maxMSAASamples": 4,
+        "textureFloat": true,
+        "textureFloatLinearFiltering": true,
+        "textureHalfFloat": true,
+        "textureHalfFloatLinearFiltering": true,
+        "parallelShaderCompile": null,
+        "supportComputeShaders": true,
+        "supportSRGBBuffers": true,
+        "timerQuery": true
+      }
+    }
+  },
+  "host": {
+    "platform": "win32",
+    "release": "10.0.26200",
+    "arch": "x64"
+  },
+  "headed": false,
+  "viewport": {
+    "width": 2560,
+    "height": 1440
+  },
+  "flatSite": {
+    "x": 6,
+    "y": 3.2276704836999666,
+    "z": 6,
+    "score": 0.001515936801643962
+  },
+  "rockerAvailable": true,
+  "surfProof": {
+    "heroStyle": "rockerkaki",
+    "settings": {
+      "preset": "ultra",
+      "resolutionScale": 1,
+      "showTerrain": true,
+      "showCharacter": true,
+      "showWake": true,
+      "showSpells": true,
+      "debugView": "beauty"
+    },
+    "character": {
+      "position": [
+        36.10197458152232,
+        1.2918371139443585,
+        34.10887161819647
+      ],
+      "velocity": [
+        14.982017820925329,
+        0,
+        8.254955837656702
+      ],
+      "facing": 1.0682356384280878,
+      "speed": 17.105705301687696,
+      "speed01": 0.8772156564968049,
+      "surf": 0.9997614806216507,
+      "surfActive": true,
+      "lean": 0.009995278884770958,
+      "carve": 0.008045975706929463,
+      "gaitPhase": 0
+    },
+    "camera": {
+      "position": [
+        26.888050948106095,
+        8.834017810076851,
+        28.08105602805683
+      ],
+      "yaw": 1.0699999999999998,
+      "pitch": 0.36,
+      "distance": 8.8,
+      "distanceTarget": 8.8,
+      "fov": 1.188360854220587
+    },
+    "heroes": {
+      "snowboundVisible": false,
+      "snowboundTriangles": 20374,
+      "rockerAvailable": true,
+      "rockerActive": true,
+      "rockerTriangles": 60658
+    },
+    "wake": {
+      "visible": true,
+      "enabled": true,
+      "points": 49,
+      "triangles": 8636
+    },
+    "spells": {
+      "activeCount": 0,
+      "active": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "ribbonHeld": false,
+      "debugRibbon": false,
+      "waterStrands": 0,
+      "crystalCount": 0,
+      "triangles": 0
+    },
+    "particles": {
+      "liveCount": 994
+    },
+    "render": {
+      "width": 2560,
+      "height": 1440,
+      "fps": 464.3962848324027,
+      "sceneMeshes": 13,
+      "enabledMeshes": 13,
+      "visibleMeshes": 8,
+      "totalVertices": 331747,
+      "totalIndices": 1496952
+    },
+    "stats": {
+      "last": 1.199999999254942,
+      "median": 2.200000047683716,
+      "mean": 2.4843749867286533,
+      "p95": 4.199999809265137,
+      "p99": 4.699999809265137,
+      "max": 5.699999809265137,
+      "fps": 454.54544469344734,
+      "fpsLow": 212.76596608125266,
+      "drawCalls": 33,
+      "triangles": 1952128,
+      "gpuMs": null
+    },
+    "memory": {
+      "usedJSHeapSize": 53723328,
+      "totalJSHeapSize": 91850620,
+      "jsHeapSizeLimit": 4395630592
+    }
+  },
+  "frameIntervals": {
+    "intervals": [
+      2.400000000001455,
+      1.5999999999985448,
+      2.3000000000029104,
+      2.099999999998545,
+      2.400000000001455,
+      2.1999999999970896,
+      2.1999999999970896,
+      2.1000000000058208,
+      2.3999999999941792,
+      2.3000000000029104,
+      2.099999999998545,
+      2,
+      2.2000000000043656,
+      2.1999999999970896,
+      2.099999999998545,
+      2.099999999998545,
+      2.900000000001455,
+      2.400000000001455,
+      1.9000000000014552,
+      1.7999999999956344,
+      1.8000000000029104,
+      2.3000000000029104,
+      4.19999999999709,
+      2,
+      3.099999999998545,
+      3.599999999998545,
+      2.400000000001455,
+      1.3000000000029104,
+      1.9000000000014552,
+      2.2999999999956344,
+      2.8000000000029104,
+      1.9000000000014552,
+      1.7999999999956344,
+      2,
+      2,
+      2,
+      2.7000000000043656,
+      1.8999999999941792,
+      2.5,
+      2.1000000000058208,
+      1.7999999999956344,
+      1.8000000000029104,
+      1.9000000000014552,
+      2.099999999998545,
+      2.099999999998545,
+      2.599999999998545,
+      2.3000000000029104,
+      2.099999999998545,
+      2,
+      2,
+      2.1999999999970896,
+      3.2000000000043656,
+      2.5,
+      3.7999999999956344,
+      2.400000000001455,
+      2.2000000000043656,
+      2.5,
+      2.099999999998545,
+      1.9000000000014552,
+      2.2999999999956344,
+      2.400000000001455,
+      2.1999999999970896,
+      2,
+      1.7000000000043656,
+      2.2999999999956344,
+      2,
+      2.6000000000058208,
+      2.6999999999970896,
+      2.099999999998545,
+      2,
+      2.2000000000043656,
+      1.8999999999941792,
+      2.1000000000058208,
+      1.8999999999941792,
+      2.2000000000043656,
+      2.5,
+      2.400000000001455,
+      2,
+      1.3999999999941792,
+      2.2000000000043656,
+      2.5,
+      3.099999999998545,
+      2.1999999999970896,
+      3.7000000000043656,
+      2.2999999999956344,
+      2.2000000000043656,
+      2.099999999998545,
+      2.5,
+      2.1999999999970896,
+      2.5,
+      2.1000000000058208,
+      1.8999999999941792,
+      1.9000000000014552,
+      1.9000000000014552,
+      2.400000000001455,
+      2,
+      2.2999999999956344,
+      2.400000000001455,
+      2.099999999998545,
+      1.8000000000029104,
+      1.8000000000029104,
+      1.7999999999956344,
+      2.3000000000029104,
+      2.2999999999956344,
+      2.1000000000058208,
+      2.8999999999941792,
+      2.1000000000058208,
+      2.099999999998545,
+      1.7999999999956344,
+      2.2000000000043656,
+      3.1999999999970896,
+      2,
+      3.8000000000029104,
+      2.7999999999956344,
+      1.7000000000043656,
+      2.5,
+      2,
+      2.400000000001455,
+      2.3999999999941792,
+      2.1000000000058208,
+      2.1999999999970896,
+      1.9000000000014552,
+      1.9000000000014552,
+      1.7999999999956344,
+      2.2000000000043656,
+      2.099999999998545,
+      2,
+      2.400000000001455,
+      2.3999999999941792,
+      2,
+      1.8000000000029104,
+      2.099999999998545,
+      2.5,
+      2,
+      2.900000000001455,
+      2,
+      2,
+      2,
+      1.6999999999970896,
+      2.2000000000043656,
+      3.5,
+      1.9000000000014552,
+      4.099999999998545,
+      2.2999999999956344,
+      2.2000000000043656,
+      2.1999999999970896,
+      1.8000000000029104,
+      2.6999999999970896,
+      2.400000000001455,
+      2.599999999998545,
+      1.8000000000029104,
+      1.9000000000014552,
+      1.7999999999956344,
+      2.2000000000043656,
+      2.1999999999970896,
+      1.8000000000029104,
+      2.099999999998545,
+      2.099999999998545,
+      2.400000000001455,
+      2.099999999998545,
+      1.9000000000014552,
+      2.2999999999956344,
+      2.2000000000043656,
+      2,
+      3.099999999998545,
+      2,
+      2,
+      1.6999999999970896,
+      1.8000000000029104,
+      2.400000000001455,
+      4.69999999999709,
+      2.400000000001455,
+      3.1999999999970896,
+      3.2000000000043656,
+      2.1999999999970896,
+      2.5,
+      2.2000000000043656,
+      2.3999999999941792,
+      2.400000000001455,
+      1.5,
+      1.8000000000029104,
+      1.7999999999956344,
+      2.2000000000043656,
+      2,
+      2.1999999999970896,
+      2.3000000000029104,
+      2.2999999999956344,
+      2.2000000000043656,
+      1.7999999999956344,
+      1.6000000000058208,
+      2.3999999999941792,
+      2.1000000000058208,
+      1.6999999999970896,
+      2.8000000000029104,
+      2.3999999999941792,
+      2.2000000000043656,
+      1.9000000000014552,
+      1.7999999999956344,
+      2.3000000000029104,
+      3.1999999999970896,
+      2.099999999998545,
+      3.8000000000029104,
+      2.1999999999970896,
+      2.5,
+      1.9000000000014552,
+      2.099999999998545,
+      2.6000000000058208,
+      2.099999999998545,
+      2.900000000001455,
+      2.1999999999970896,
+      1.8000000000029104,
+      1.7999999999956344,
+      2.400000000001455,
+      2.099999999998545,
+      2.7000000000043656,
+      2,
+      2.099999999998545,
+      1.9000000000014552,
+      1.8999999999941792,
+      1.8000000000029104,
+      2.400000000001455,
+      2.099999999998545,
+      1.9000000000014552,
+      2.400000000001455,
+      2.3999999999941792,
+      2.2000000000043656,
+      1.7999999999956344,
+      2.1000000000058208,
+      2.099999999998545,
+      3.2999999999956344,
+      2,
+      4.700000000004366,
+      2.099999999998545,
+      1.6999999999970896,
+      2.5,
+      2.5,
+      2.400000000001455,
+      1.9000000000014552,
+      2.1999999999970896,
+      2,
+      2,
+      1.8000000000029104,
+      2.1999999999970896,
+      2,
+      3.2000000000043656,
+      2,
+      2.099999999998545,
+      1.9000000000014552,
+      1.7999999999956344,
+      2.400000000001455,
+      2.099999999998545,
+      2.2000000000043656,
+      1.9000000000014552,
+      1.8999999999941792,
+      2.8000000000029104,
+      1.9000000000014552,
+      1.7999999999956344,
+      2.400000000001455,
+      3,
+      2.5,
+      2.599999999998545,
+      4.600000000005821,
+      1.2999999999956344,
+      2.900000000001455,
+      3.099999999998545,
+      2.2000000000043656,
+      2.099999999998545,
+      2.2999999999956344,
+      1.6000000000058208,
+      1.7999999999956344,
+      1.8000000000029104,
+      2.1999999999970896,
+      2.5,
+      2.3000000000029104,
+      2.599999999998545,
+      1.5,
+      1.6999999999970896,
+      1.9000000000014552,
+      2,
+      2.400000000001455,
+      2.1999999999970896,
+      2.900000000001455,
+      2.3000000000029104,
+      2.2999999999956344,
+      2,
+      1.8000000000029104,
+      2.400000000001455,
+      3.099999999998545,
+      1.8000000000029104,
+      4.799999999995634,
+      1.8000000000029104,
+      2.1999999999970896,
+      2.099999999998545,
+      2.3000000000029104,
+      1.5999999999985448,
+      2.8000000000029104,
+      2.400000000001455,
+      2,
+      1.7999999999956344,
+      1.9000000000014552,
+      2.1999999999970896,
+      2,
+      2.3000000000029104,
+      2.400000000001455,
+      2.099999999998545,
+      1.9000000000014552,
+      1.7999999999956344,
+      1.8000000000029104,
+      1.9000000000014552,
+      2.599999999998545,
+      2.599999999998545,
+      2.7000000000043656,
+      2,
+      2.3999999999941792,
+      1.6000000000058208,
+      2.099999999998545,
+      2.2999999999956344,
+      1.6000000000058208,
+      4.399999999994179,
+      2.2000000000043656,
+      2,
+      3.6999999999970896,
+      2.3000000000029104,
+      2.5,
+      1.7999999999956344,
+      2.5,
+      2,
+      1.8000000000029104,
+      1.9000000000014552,
+      1.7999999999956344,
+      2.3000000000029104,
+      2.400000000001455,
+      2.2999999999956344,
+      2.1000000000058208,
+      1.8999999999941792,
+      1.8000000000029104,
+      2.099999999998545,
+      2,
+      2.2000000000043656,
+      2.2999999999956344,
+      2.2000000000043656,
+      2.8999999999941792,
+      1.7000000000043656,
+      1.9000000000014552,
+      1.7999999999956344,
+      1.8000000000029104,
+      2.2999999999956344,
+      3.2000000000043656,
+      1.9000000000014552,
+      4.5,
+      1.7999999999956344,
+      2.400000000001455,
+      2.1999999999970896,
+      2.6000000000058208,
+      2.2999999999956344,
+      2,
+      2.2000000000043656,
+      1.8999999999941792,
+      1.8000000000029104,
+      2.099999999998545
+    ],
+    "summary": {
+      "samples": 360,
+      "median": 2.1999999999970896,
+      "p95": 3.2000000000043656,
+      "p99": 4.600000000005821,
+      "max": 4.799999999995634,
+      "medianPlus4": 6.19999999999709,
+      "aboveMedianPlus4": 0
+    }
+  },
+  "firstCastIntervals": [
+    {
+      "spell": 1,
+      "name": "sweep",
+      "method": "KAKISNOW.spells.cast(1)",
+      "intervals": [
+        2.099999999998545,
+        2.400000000001455,
+        1.7999999999992724,
+        1.7000000000007276,
+        1.7000000000007276,
+        1.8999999999978172,
+        2.400000000001455,
+        2.400000000001455,
+        2.899999999997817,
+        2.100000000002183,
+        1.8999999999978172,
+        1.7999999999992724,
+        2.600000000002183,
+        1.5999999999985448,
+        2.2999999999992724,
+        4.80000000000291,
+        2.599999999998545,
+        4.099999999998545,
+        2.8000000000029104,
+        2.399999999997817,
+        1.7000000000007276,
+        2.7999999999992724,
+        2.2999999999992724,
+        1.9000000000014552,
+        2.2999999999992724,
+        2.2999999999992724,
+        1.9000000000014552,
+        2.900000000001455,
+        3.399999999997817,
+        2,
+        2.2000000000007276,
+        1.7999999999992724,
+        1.7000000000007276,
+        2.2999999999992724,
+        2.2999999999992724,
+        3.2000000000007276
+      ],
+      "summary": {
+        "samples": 36,
+        "median": 2.2999999999992724,
+        "p95": 4.099999999998545,
+        "p99": 4.80000000000291,
+        "max": 4.80000000000291,
+        "medianPlus4": 6.299999999999272,
+        "aboveMedianPlus4": 0
+      }
+    },
+    {
+      "spell": 2,
+      "name": "ribbon",
+      "method": "KAKISNOW.spells.cast(2) + debugRibbon",
+      "intervals": [
+        1.7999999999992724,
+        2,
+        1.1000000000021828,
+        1.5,
+        1.7000000000007276,
+        2.099999999998545,
+        2,
+        2.2999999999992724,
+        2,
+        2.2000000000007276,
+        0.7000000000007276,
+        1.7999999999992724,
+        1.5999999999985448,
+        1.7000000000007276,
+        2.2999999999992724,
+        2.5,
+        2.100000000002183,
+        2.099999999998545,
+        1.9000000000014552,
+        1.8999999999978172,
+        1.8000000000029104,
+        1.8999999999978172,
+        2.7000000000007276,
+        3.400000000001455,
+        2.7999999999992724,
+        4.200000000000728,
+        2.1999999999970896,
+        2.5,
+        2.5,
+        2,
+        2,
+        3.100000000002183,
+        1.2000000000007276,
+        1.3999999999978172,
+        1.7000000000007276,
+        1.9000000000014552
+      ],
+      "summary": {
+        "samples": 36,
+        "median": 2,
+        "p95": 3.400000000001455,
+        "p99": 4.200000000000728,
+        "max": 4.200000000000728,
+        "medianPlus4": 6,
+        "aboveMedianPlus4": 0
+      }
+    },
+    {
+      "spell": 3,
+      "name": "bloom",
+      "method": "KAKISNOW.spells.cast(3)",
+      "intervals": [
+        1.4000000000014552,
+        3.2999999999992724,
+        0.8999999999978172,
+        1.2000000000007276,
+        0.7000000000007276,
+        1.9000000000014552,
+        3.399999999997817,
+        1.1000000000021828,
+        2.1999999999970896,
+        1.9000000000014552,
+        1.7999999999992724,
+        1.4000000000014552,
+        1.5999999999985448,
+        1.9000000000014552,
+        1.8999999999978172,
+        3.3000000000029104,
+        1.7999999999992724,
+        2.099999999998545,
+        1.7999999999992724,
+        0.9000000000014552,
+        1.4000000000014552,
+        2.1999999999970896,
+        3.100000000002183,
+        2.2999999999992724,
+        3.400000000001455,
+        3.099999999998545,
+        0.7000000000007276,
+        1.5999999999985448,
+        1.9000000000014552,
+        3.2000000000007276,
+        1.8999999999978172,
+        1.9000000000014552,
+        2,
+        1.7000000000007276,
+        0.5,
+        1.2999999999992724
+      ],
+      "summary": {
+        "samples": 36,
+        "median": 1.8999999999978172,
+        "p95": 3.399999999997817,
+        "p99": 3.400000000001455,
+        "max": 3.400000000001455,
+        "medianPlus4": 5.899999999997817,
+        "aboveMedianPlus4": 0
+      }
+    },
+    {
+      "spell": 4,
+      "name": "crystallize",
+      "method": "KAKISNOW.spells.cast(4)",
+      "intervals": [
+        1.9000000000014552,
+        4.700000000000728,
+        2,
+        4,
+        1.8999999999978172,
+        3,
+        2.600000000002183,
+        2,
+        2,
+        1.7000000000007276,
+        3.599999999998545,
+        2.5,
+        2.099999999998545,
+        2.600000000002183,
+        2.2000000000007276,
+        1.8999999999978172,
+        2.100000000002183,
+        3.099999999998545,
+        3.900000000001455,
+        2.1999999999970896,
+        2.3000000000029104,
+        1.8999999999978172,
+        1.9000000000014552,
+        3,
+        2.399999999997817,
+        3.400000000001455,
+        2.599999999998545,
+        5.5,
+        1.7000000000007276,
+        2.2000000000007276,
+        3.599999999998545,
+        2.8000000000029104,
+        1.6999999999970896,
+        2.600000000002183,
+        2.2000000000007276,
+        2
+      ],
+      "summary": {
+        "samples": 36,
+        "median": 2.3000000000029104,
+        "p95": 4.700000000000728,
+        "p99": 5.5,
+        "max": 5.5,
+        "medianPlus4": 6.30000000000291,
+        "aboveMedianPlus4": 0
+      }
+    },
+    {
+      "spell": 5,
+      "name": "vortex",
+      "method": "KAKISNOW.spells.cast(5)",
+      "intervals": [
+        1.7999999999956344,
+        2.7000000000043656,
+        2.3999999999941792,
+        1.8000000000029104,
+        1.6999999999970896,
+        0.5,
+        2.3000000000029104,
+        1.8000000000029104,
+        3.099999999998545,
+        3.6999999999970896,
+        2.8000000000029104,
+        2.5,
+        2.1999999999970896,
+        2.2000000000043656,
+        2.1999999999970896,
+        2.099999999998545,
+        2.5,
+        2.400000000001455,
+        2.099999999998545,
+        1.9000000000014552,
+        2.1999999999970896,
+        2.2000000000043656,
+        2.1999999999970896,
+        2.5,
+        2.3000000000029104,
+        2.099999999998545,
+        1.9000000000014552,
+        1.7999999999956344,
+        3.400000000001455,
+        2,
+        2.099999999998545,
+        3.3000000000029104,
+        2.099999999998545,
+        2,
+        1.5999999999985448,
+        3.3000000000029104
+      ],
+      "summary": {
+        "samples": 36,
+        "median": 2.1999999999970896,
+        "p95": 3.400000000001455,
+        "p99": 3.6999999999970896,
+        "max": 3.6999999999970896,
+        "medianPlus4": 6.19999999999709,
+        "aboveMedianPlus4": 0
+      }
+    }
+  ],
+  "stats": {
+    "last": 2.100000001490116,
+    "median": 2.200000047683716,
+    "mean": 2.260546865640208,
+    "p95": 3.5,
+    "p99": 4.800000190734863,
+    "max": 9.399999618530273,
+    "fps": 454.54544469344734,
+    "fpsLow": 208.33332505491077,
+    "drawCalls": 29,
+    "triangles": 1917584,
+    "gpuMs": null
+  },
+  "state": {
+    "heroStyle": "rockerkaki",
+    "settings": {
+      "preset": "ultra",
+      "resolutionScale": 1,
+      "showTerrain": true,
+      "showCharacter": true,
+      "showWake": true,
+      "showSpells": true,
+      "debugView": "beauty"
+    },
+    "character": {
+      "position": [
+        44.6835505903256,
+        2.45462765917499,
+        38.82497943716005
+      ],
+      "velocity": [
+        0,
+        0,
+        0
+      ],
+      "facing": 1.069042094616877,
+      "speed": 0,
+      "speed01": 0,
+      "surf": 1.1957747461914887e-32,
+      "surfActive": false,
+      "lean": 7.261699666392688e-63,
+      "carve": 1.5799050275715644e-85,
+      "gaitPhase": 0.48820430876918464
+    },
+    "camera": {
+      "position": [
+        37.722666538215734,
+        5.905175891980892,
+        34.036860142441576
+      ],
+      "yaw": 1.069042094616877,
+      "pitch": 0.24,
+      "distance": 8.6,
+      "distanceTarget": 8.6,
+      "fov": 1.0200000000000031
+    },
+    "heroes": {
+      "snowboundVisible": false,
+      "snowboundTriangles": 20374,
+      "rockerAvailable": true,
+      "rockerActive": true,
+      "rockerTriangles": 60658
+    },
+    "wake": {
+      "visible": false,
+      "enabled": true,
+      "points": 0,
+      "triangles": 8636
+    },
+    "spells": {
+      "activeCount": 0,
+      "active": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "ribbonHeld": false,
+      "debugRibbon": false,
+      "waterStrands": 0,
+      "crystalCount": 0,
+      "triangles": 0
+    },
+    "particles": {
+      "liveCount": 0
+    },
+    "render": {
+      "width": 2560,
+      "height": 1440,
+      "fps": 451.80722891312877,
+      "sceneMeshes": 13,
+      "enabledMeshes": 13,
+      "visibleMeshes": 7,
+      "totalVertices": 331747,
+      "totalIndices": 1496952
+    },
+    "stats": {
+      "last": 2.100000001490116,
+      "median": 2.200000047683716,
+      "mean": 2.260546865640208,
+      "p95": 3.5,
+      "p99": 4.800000190734863,
+      "max": 9.399999618530273,
+      "fps": 454.54544469344734,
+      "fpsLow": 208.33332505491077,
+      "drawCalls": 29,
+      "triangles": 1917584,
+      "gpuMs": null
+    },
+    "memory": {
+      "usedJSHeapSize": 62892051,
+      "totalJSHeapSize": 90277759,
+      "jsHeapSizeLimit": 4395630592
+    }
+  },
+  "milestones": [
+    {
+      "name": "loading",
+      "file": "00-loading-1440p.png",
+      "state": {
+        "phase": "integrating atmosphere",
+        "progress": "20%",
+        "visible": true,
+        "ready": false
+      }
+    },
+    {
+      "name": "foundation",
+      "file": "01-foundation-1440p.png",
+      "state": {
+        "heroStyle": "rockerkaki",
+        "settings": {
+          "preset": "ultra",
+          "resolutionScale": 1,
+          "showTerrain": true,
+          "showCharacter": true,
+          "showWake": true,
+          "showSpells": true,
+          "debugView": "beauty"
+        },
+        "character": {
+          "position": [
+            0,
+            -0.022413691296844392,
+            0
+          ],
+          "velocity": [
+            0,
+            0,
+            0
+          ],
+          "facing": 0,
+          "speed": 0,
+          "speed01": 0,
+          "surf": 0,
+          "surfActive": false,
+          "lean": 0,
+          "carve": 0,
+          "gaitPhase": 0
+        },
+        "camera": {
+          "position": [
+            -4.7794280491095975,
+            2.429688224198428,
+            3.9592390589118924
+          ],
+          "yaw": 2.4,
+          "pitch": 0.17,
+          "distance": 6.2,
+          "distanceTarget": 6.2,
+          "fov": 1.02
+        },
+        "heroes": {
+          "snowboundVisible": false,
+          "snowboundTriangles": 20374,
+          "rockerAvailable": true,
+          "rockerActive": true,
+          "rockerTriangles": 60658
+        },
+        "wake": {
+          "visible": false,
+          "enabled": true,
+          "points": 0,
+          "triangles": 8636
+        },
+        "spells": {
+          "activeCount": 0,
+          "active": [
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "ribbonHeld": false,
+          "debugRibbon": false,
+          "waterStrands": 0,
+          "crystalCount": 0,
+          "triangles": 0
+        },
+        "particles": {
+          "liveCount": 0
+        },
+        "render": {
+          "width": 2560,
+          "height": 1440,
+          "fps": 374.5318352077361,
+          "sceneMeshes": 13,
+          "enabledMeshes": 13,
+          "visibleMeshes": 7,
+          "totalVertices": 331747,
+          "totalIndices": 1496952
+        },
+        "stats": {
+          "last": 1.599999999627471,
+          "median": 2.0999999046325684,
+          "mean": 2.2455077982740477,
+          "p95": 3.799999952316284,
+          "p99": 4.400000095367432,
+          "max": 4.699999809265137,
+          "fps": 476.1904978157451,
+          "fpsLow": 227.27272234672367,
+          "drawCalls": 29,
+          "triangles": 1917584,
+          "gpuMs": null
+        },
+        "memory": {
+          "usedJSHeapSize": 64036416,
+          "totalJSHeapSize": 90560604,
+          "jsHeapSizeLimit": 4395630592
+        }
+      }
+    },
+    {
+      "name": "terrain-only",
+      "file": "02-terrain-snow-1440p.png",
+      "state": {
+        "heroStyle": "rockerkaki",
+        "settings": {
+          "preset": "ultra",
+          "resolutionScale": 1,
+          "showTerrain": true,
+          "showCharacter": false,
+          "showWake": true,
+          "showSpells": true,
+          "debugView": "beauty"
+        },
+        "character": {
+          "position": [
+            6,
+            3.2276704836999666,
+            6
+          ],
+          "velocity": [
+            0,
+            0,
+            0
+          ],
+          "facing": 0.35,
+          "speed": 0,
+          "speed01": 0,
+          "surf": 0,
+          "surfActive": false,
+          "lean": 0,
+          "carve": 0,
+          "gaitPhase": 0
+        },
+        "camera": {
+          "position": [
+            1.707827535590697,
+            6.892151080290298,
+            -2.2715327857617913
+          ],
+          "yaw": 0.57,
+          "pitch": 0.24,
+          "distance": 9.5,
+          "distanceTarget": 9.5,
+          "fov": 1.02
+        },
+        "heroes": {
+          "snowboundVisible": false,
+          "snowboundTriangles": 20374,
+          "rockerAvailable": true,
+          "rockerActive": false,
+          "rockerTriangles": 60658
+        },
+        "wake": {
+          "visible": false,
+          "enabled": true,
+          "points": 0,
+          "triangles": 8636
+        },
+        "spells": {
+          "activeCount": 0,
+          "active": [
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "ribbonHeld": false,
+          "debugRibbon": false,
+          "waterStrands": 0,
+          "crystalCount": 0,
+          "triangles": 0
+        },
+        "particles": {
+          "liveCount": 0
+        },
+        "render": {
+          "width": 2560,
+          "height": 1440,
+          "fps": 431.65467625899623,
+          "sceneMeshes": 13,
+          "enabledMeshes": 10,
+          "visibleMeshes": 4,
+          "totalVertices": 331747,
+          "totalIndices": 1496952
+        },
+        "stats": {
+          "last": 2.199999999254942,
+          "median": 2.0999999046325684,
+          "mean": 2.3800781158497557,
+          "p95": 3.9000000953674316,
+          "p99": 4.599999904632568,
+          "max": 5,
+          "fps": 476.1904978157451,
+          "fpsLow": 217.39130885479364,
+          "drawCalls": 17,
+          "triangles": 1674952,
+          "gpuMs": null
+        },
+        "memory": {
+          "usedJSHeapSize": 55396495,
+          "totalJSHeapSize": 90277727,
+          "jsHeapSizeLimit": 4395630592
+        }
+      }
+    },
+    {
+      "name": "snowbound hero",
+      "file": "03-character-snowbound-1440p.png",
+      "state": {
+        "heroStyle": "snowbound",
+        "settings": {
+          "preset": "ultra",
+          "resolutionScale": 1,
+          "showTerrain": true,
+          "showCharacter": true,
+          "showWake": true,
+          "showSpells": true,
+          "debugView": "beauty"
+        },
+        "character": {
+          "position": [
+            6,
+            3.2276704836999666,
+            6
+          ],
+          "velocity": [
+            0,
+            0,
+            0
+          ],
+          "facing": 0.35,
+          "speed": 0,
+          "speed01": 0,
+          "surf": 0,
+          "surfActive": false,
+          "lean": 0,
+          "carve": 0,
+          "gaitPhase": 0
+        },
+        "camera": {
+          "position": [
+            5.20242744679156,
+            5.257741672078942,
+            11.246819955251945
+          ],
+          "yaw": 3.1515926535897933,
+          "pitch": 0.12,
+          "distance": 5.25,
+          "distanceTarget": 5.25,
+          "fov": 1.02
+        },
+        "heroes": {
+          "snowboundVisible": true,
+          "snowboundTriangles": 20374,
+          "rockerAvailable": true,
+          "rockerActive": false,
+          "rockerTriangles": 60658
+        },
+        "wake": {
+          "visible": false,
+          "enabled": true,
+          "points": 0,
+          "triangles": 8636
+        },
+        "spells": {
+          "activeCount": 0,
+          "active": [
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "ribbonHeld": false,
+          "debugRibbon": false,
+          "waterStrands": 0,
+          "crystalCount": 0,
+          "triangles": 0
+        },
+        "particles": {
+          "liveCount": 0
+        },
+        "render": {
+          "width": 2560,
+          "height": 1440,
+          "fps": 409.8360655779445,
+          "sceneMeshes": 13,
+          "enabledMeshes": 10,
+          "visibleMeshes": 7,
+          "totalVertices": 331747,
+          "totalIndices": 1496952
+        },
+        "stats": {
+          "last": 1.799999998882413,
+          "median": 2,
+          "mean": 2.362109367735684,
+          "p95": 4.199999809265137,
+          "p99": 5.699999809265137,
+          "max": 8.300000190734863,
+          "fps": 500,
+          "fpsLow": 175.4386023617996,
+          "drawCalls": 26,
+          "triangles": 1732352,
+          "gpuMs": null
+        },
+        "memory": {
+          "usedJSHeapSize": 65963425,
+          "totalJSHeapSize": 90801961,
+          "jsHeapSizeLimit": 4395630592
+        }
+      }
+    },
+    {
+      "name": "RockerKaki",
+      "file": "04-character-rockerkaki-1440p.png",
+      "state": {
+        "heroStyle": "rockerkaki",
+        "settings": {
+          "preset": "ultra",
+          "resolutionScale": 1,
+          "showTerrain": true,
+          "showCharacter": true,
+          "showWake": true,
+          "showSpells": true,
+          "debugView": "beauty"
+        },
+        "character": {
+          "position": [
+            6,
+            3.2276704836999666,
+            6
+          ],
+          "velocity": [
+            0,
+            0,
+            0
+          ],
+          "facing": 0.35,
+          "speed": 0,
+          "speed01": 0,
+          "surf": 0,
+          "surfActive": false,
+          "lean": 0,
+          "carve": 0,
+          "gaitPhase": 0
+        },
+        "camera": {
+          "position": [
+            5.584450862253309,
+            5.371468269003415,
+            12.226062543392024
+          ],
+          "yaw": 3.2115926535897934,
+          "pitch": 0.12,
+          "distance": 6.2,
+          "distanceTarget": 6.2,
+          "fov": 1.02
+        },
+        "heroes": {
+          "snowboundVisible": false,
+          "snowboundTriangles": 20374,
+          "rockerAvailable": true,
+          "rockerActive": true,
+          "rockerTriangles": 60658
+        },
+        "wake": {
+          "visible": false,
+          "enabled": true,
+          "points": 0,
+          "triangles": 8636
+        },
+        "spells": {
+          "activeCount": 0,
+          "active": [
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "ribbonHeld": false,
+          "debugRibbon": false,
+          "waterStrands": 0,
+          "crystalCount": 0,
+          "triangles": 0
+        },
+        "particles": {
+          "liveCount": 0
+        },
+        "render": {
+          "width": 2560,
+          "height": 1440,
+          "fps": 425.53191489361853,
+          "sceneMeshes": 13,
+          "enabledMeshes": 13,
+          "visibleMeshes": 7,
+          "totalVertices": 331747,
+          "totalIndices": 1496952
+        },
+        "stats": {
+          "last": 3.600000001490116,
+          "median": 2.200000047683716,
+          "mean": 2.4464843636378646,
+          "p95": 4,
+          "p99": 4.900000095367432,
+          "max": 6.599999904632568,
+          "fps": 454.54544469344734,
+          "fpsLow": 204.0816286810733,
+          "drawCalls": 29,
+          "triangles": 1917584,
+          "gpuMs": null
+        },
+        "memory": {
+          "usedJSHeapSize": 68854769,
+          "totalJSHeapSize": 90801961,
+          "jsHeapSizeLimit": 4395630592
+        }
+      }
+    },
+    {
+      "name": "snow surf",
+      "file": "05-snow-surf-1440p.png",
+      "state": {
+        "heroStyle": "rockerkaki",
+        "settings": {
+          "preset": "ultra",
+          "resolutionScale": 1,
+          "showTerrain": true,
+          "showCharacter": true,
+          "showWake": true,
+          "showSpells": true,
+          "debugView": "beauty"
+        },
+        "character": {
+          "position": [
+            36.048060537395784,
+            1.2932243618318706,
+            34.07916498503727
+          ],
+          "velocity": [
+            14.95563311333237,
+            0,
+            8.241027761991614
+          ],
+          "facing": 1.0682168256737,
+          "speed": 17.075874806126922,
+          "speed01": 0.8756858874936884,
+          "surf": 0.9997592375993009,
+          "surfActive": true,
+          "lean": 0.01010472259193368,
+          "carve": 0.008134010280955208,
+          "gaitPhase": 0
+        },
+        "camera": {
+          "position": [
+            26.8358110487375,
+            8.864606001566223,
+            28.052105566019566
+          ],
+          "yaw": 1.0699999999999998,
+          "pitch": 0.36,
+          "distance": 8.8,
+          "distanceTarget": 8.8,
+          "fov": 1.1883425771919596
+        },
+        "heroes": {
+          "snowboundVisible": false,
+          "snowboundTriangles": 20374,
+          "rockerAvailable": true,
+          "rockerActive": true,
+          "rockerTriangles": 60658
+        },
+        "wake": {
+          "visible": true,
+          "enabled": true,
+          "points": 49,
+          "triangles": 8636
+        },
+        "spells": {
+          "activeCount": 0,
+          "active": [
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "ribbonHeld": false,
+          "debugRibbon": false,
+          "waterStrands": 0,
+          "crystalCount": 0,
+          "triangles": 0
+        },
+        "particles": {
+          "liveCount": 996
+        },
+        "render": {
+          "width": 2560,
+          "height": 1440,
+          "fps": 465.8385093140788,
+          "sceneMeshes": 13,
+          "enabledMeshes": 13,
+          "visibleMeshes": 8,
+          "totalVertices": 331747,
+          "totalIndices": 1496952
+        },
+        "stats": {
+          "last": 2.099999999627471,
+          "median": 2.200000047683716,
+          "mean": 2.4843749867286533,
+          "p95": 4.199999809265137,
+          "p99": 4.699999809265137,
+          "max": 5.699999809265137,
+          "fps": 454.54544469344734,
+          "fpsLow": 212.76596608125266,
+          "drawCalls": 33,
+          "triangles": 1952128,
+          "gpuMs": null
+        },
+        "memory": {
+          "usedJSHeapSize": 53577048,
+          "totalJSHeapSize": 91850620,
+          "jsHeapSizeLimit": 4395630592
+        }
+      }
+    },
+    {
+      "name": "persistent deformation",
+      "file": "06-deformation-1440p.png",
+      "state": {
+        "heroStyle": "rockerkaki",
+        "settings": {
+          "preset": "ultra",
+          "resolutionScale": 1,
+          "showTerrain": true,
+          "showCharacter": false,
+          "showWake": false,
+          "showSpells": true,
+          "debugView": "beauty"
+        },
+        "character": {
+          "position": [
+            44.6835505903256,
+            2.454627659174989,
+            38.82497943716005
+          ],
+          "velocity": [
+            0,
+            0,
+            0
+          ],
+          "facing": 1.069042094616877,
+          "speed": 0,
+          "speed01": 0,
+          "surf": 0.000002154966577112892,
+          "surfActive": false,
+          "lean": 1.1374521889158644e-12,
+          "carve": 5.003278109532545e-16,
+          "gaitPhase": 0.48820430876918464
+        },
+        "camera": {
+          "position": [
+            52.999232065261324,
+            8.277561067855906,
+            44.35631682628673
+          ],
+          "yaw": 4.210634748206671,
+          "pitch": 0.42,
+          "distance": 10.8,
+          "distanceTarget": 10.8,
+          "fov": 1.0200053441078076
+        },
+        "heroes": {
+          "snowboundVisible": false,
+          "snowboundTriangles": 20374,
+          "rockerAvailable": true,
+          "rockerActive": false,
+          "rockerTriangles": 60658
+        },
+        "wake": {
+          "visible": false,
+          "enabled": false,
+          "points": 0,
+          "triangles": 8636
+        },
+        "spells": {
+          "activeCount": 0,
+          "active": [
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "ribbonHeld": false,
+          "debugRibbon": false,
+          "waterStrands": 0,
+          "crystalCount": 0,
+          "triangles": 0
+        },
+        "particles": {
+          "liveCount": 0
+        },
+        "render": {
+          "width": 2560,
+          "height": 1440,
+          "fps": 444.444444444447,
+          "sceneMeshes": 13,
+          "enabledMeshes": 10,
+          "visibleMeshes": 4,
+          "totalVertices": 331747,
+          "totalIndices": 1496952
+        },
+        "stats": {
+          "last": 4.099999999627471,
+          "median": 2,
+          "mean": 2.249999988474883,
+          "p95": 3.9000000953674316,
+          "p99": 4.599999904632568,
+          "max": 7.099999904632568,
+          "fps": 500,
+          "fpsLow": 217.39130885479364,
+          "drawCalls": 17,
+          "triangles": 1674952,
+          "gpuMs": null
+        },
+        "memory": {
+          "usedJSHeapSize": 59707156,
+          "totalJSHeapSize": 90015444,
+          "jsHeapSizeLimit": 4395630592
+        }
+      }
+    },
+    {
+      "name": "spell 1: sweep",
+      "file": "07-spell-1-1440p.png",
+      "state": {
+        "heroStyle": "rockerkaki",
+        "settings": {
+          "preset": "ultra",
+          "resolutionScale": 1,
+          "showTerrain": true,
+          "showCharacter": true,
+          "showWake": true,
+          "showSpells": true,
+          "debugView": "beauty"
+        },
+        "character": {
+          "position": [
+            44.6835505903256,
+            2.454627659174989,
+            38.82497943716005
+          ],
+          "velocity": [
+            0,
+            0,
+            0
+          ],
+          "facing": 1.069042094616877,
+          "speed": 0,
+          "speed01": 0,
+          "surf": 3.894072736705173e-10,
+          "surfActive": false,
+          "lean": 7.945625957169673e-20,
+          "carve": 6.18325139893577e-26,
+          "gaitPhase": 0.48820430876918464
+        },
+        "camera": {
+          "position": [
+            37.72266653821564,
+            5.905175891981749,
+            34.03686014244149
+          ],
+          "yaw": 1.069042094616877,
+          "pitch": 0.24,
+          "distance": 8.6,
+          "distanceTarget": 8.6,
+          "fov": 1.0200000016033097
+        },
+        "heroes": {
+          "snowboundVisible": false,
+          "snowboundTriangles": 20374,
+          "rockerAvailable": true,
+          "rockerActive": true,
+          "rockerTriangles": 60658
+        },
+        "wake": {
+          "visible": false,
+          "enabled": true,
+          "points": 0,
+          "triangles": 8636
+        },
+        "spells": {
+          "activeCount": 1,
+          "active": [
+            true,
+            false,
+            false,
+            false,
+            false
+          ],
+          "ribbonHeld": false,
+          "debugRibbon": false,
+          "waterStrands": 1,
+          "crystalCount": 0,
+          "triangles": 8050
+        },
+        "particles": {
+          "liveCount": 257
+        },
+        "render": {
+          "width": 2560,
+          "height": 1440,
+          "fps": 438.59649122568277,
+          "sceneMeshes": 13,
+          "enabledMeshes": 13,
+          "visibleMeshes": 8,
+          "totalVertices": 331747,
+          "totalIndices": 1496952
+        },
+        "stats": {
+          "last": 2.300000000745058,
+          "median": 2.0999999046325684,
+          "mean": 2.341796863824129,
+          "p95": 4,
+          "p99": 5.099999904632568,
+          "max": 8.699999809265137,
+          "fps": 476.1904978157451,
+          "fpsLow": 196.078435039117,
+          "drawCalls": 30,
+          "triangles": 1981984,
+          "gpuMs": null
+        },
+        "memory": {
+          "usedJSHeapSize": 58577385,
+          "totalJSHeapSize": 90277781,
+          "jsHeapSizeLimit": 4395630592
+        }
+      }
+    },
+    {
+      "name": "spell 2: ribbon",
+      "file": "08-spell-2-1440p.png",
+      "state": {
+        "heroStyle": "rockerkaki",
+        "settings": {
+          "preset": "ultra",
+          "resolutionScale": 1,
+          "showTerrain": true,
+          "showCharacter": true,
+          "showWake": true,
+          "showSpells": true,
+          "debugView": "beauty"
+        },
+        "character": {
+          "position": [
+            44.6835505903256,
+            2.454627659174989,
+            38.82497943716005
+          ],
+          "velocity": [
+            0,
+            0,
+            0
+          ],
+          "facing": 1.069042094616877,
+          "speed": 0,
+          "speed01": 0,
+          "surf": 1.690181564756109e-14,
+          "surfActive": false,
+          "lean": 3.631705334755781e-28,
+          "carve": 1.7518638396503088e-37,
+          "gaitPhase": 0.48820430876918464
+        },
+        "camera": {
+          "position": [
+            37.7226665382157,
+            5.905175891980886,
+            34.03686014244154
+          ],
+          "yaw": 1.069042094616877,
+          "pitch": 0.24,
+          "distance": 8.6,
+          "distanceTarget": 8.6,
+          "fov": 1.0200000000001246
+        },
+        "heroes": {
+          "snowboundVisible": false,
+          "snowboundTriangles": 20374,
+          "rockerAvailable": true,
+          "rockerActive": true,
+          "rockerTriangles": 60658
+        },
+        "wake": {
+          "visible": false,
+          "enabled": true,
+          "points": 0,
+          "triangles": 8636
+        },
+        "spells": {
+          "activeCount": 1,
+          "active": [
+            false,
+            true,
+            false,
+            false,
+            false
+          ],
+          "ribbonHeld": true,
+          "debugRibbon": true,
+          "waterStrands": 1,
+          "crystalCount": 0,
+          "triangles": 8050
+        },
+        "particles": {
+          "liveCount": 67
+        },
+        "render": {
+          "width": 2560,
+          "height": 1440,
+          "fps": 437.31778425893555,
+          "sceneMeshes": 13,
+          "enabledMeshes": 13,
+          "visibleMeshes": 8,
+          "totalVertices": 331747,
+          "totalIndices": 1496952
+        },
+        "stats": {
+          "last": 2.199999999254942,
+          "median": 2.0999999046325684,
+          "mean": 2.250390618108213,
+          "p95": 3.799999952316284,
+          "p99": 6,
+          "max": 10.600000381469727,
+          "fps": 476.1904978157451,
+          "fpsLow": 166.66666666666666,
+          "drawCalls": 30,
+          "triangles": 1981984,
+          "gpuMs": null
+        },
+        "memory": {
+          "usedJSHeapSize": 65125221,
+          "totalJSHeapSize": 89753493,
+          "jsHeapSizeLimit": 4395630592
+        }
+      }
+    },
+    {
+      "name": "spell 3: bloom",
+      "file": "09-spell-3-1440p.png",
+      "state": {
+        "heroStyle": "rockerkaki",
+        "settings": {
+          "preset": "ultra",
+          "resolutionScale": 1,
+          "showTerrain": true,
+          "showCharacter": true,
+          "showWake": true,
+          "showSpells": true,
+          "debugView": "beauty"
+        },
+        "character": {
+          "position": [
+            44.6835505903256,
+            2.454627659174989,
+            38.82497943716005
+          ],
+          "velocity": [
+            0,
+            0,
+            0
+          ],
+          "facing": 1.069042094616877,
+          "speed": 0,
+          "speed01": 0,
+          "surf": 5.377783658494025e-18,
+          "surfActive": false,
+          "lean": 7.482357963765936e-35,
+          "carve": 9.679702838739596e-47,
+          "gaitPhase": 0.48820430876918464
+        },
+        "camera": {
+          "position": [
+            37.7226665382157,
+            5.905175891980886,
+            34.03686014244154
+          ],
+          "yaw": 1.069042094616877,
+          "pitch": 0.24,
+          "distance": 8.6,
+          "distanceTarget": 8.6,
+          "fov": 1.020000000000007
+        },
+        "heroes": {
+          "snowboundVisible": false,
+          "snowboundTriangles": 20374,
+          "rockerAvailable": true,
+          "rockerActive": true,
+          "rockerTriangles": 60658
+        },
+        "wake": {
+          "visible": false,
+          "enabled": true,
+          "points": 0,
+          "triangles": 8636
+        },
+        "spells": {
+          "activeCount": 1,
+          "active": [
+            false,
+            false,
+            true,
+            false,
+            false
+          ],
+          "ribbonHeld": false,
+          "debugRibbon": false,
+          "waterStrands": 0,
+          "crystalCount": 0,
+          "triangles": 0
+        },
+        "particles": {
+          "liveCount": 466
+        },
+        "render": {
+          "width": 2560,
+          "height": 1440,
+          "fps": 513.6986301500947,
+          "sceneMeshes": 13,
+          "enabledMeshes": 13,
+          "visibleMeshes": 7,
+          "totalVertices": 331747,
+          "totalIndices": 1496952
+        },
+        "stats": {
+          "last": 0.6999999992549419,
+          "median": 2.200000047683716,
+          "mean": 2.3408203024882823,
+          "p95": 3.799999952316284,
+          "p99": 4.800000190734863,
+          "max": 5.5,
+          "fps": 454.54544469344734,
+          "fpsLow": 208.33332505491077,
+          "drawCalls": 29,
+          "triangles": 1917584,
+          "gpuMs": null
+        },
+        "memory": {
+          "usedJSHeapSize": 60189721,
+          "totalJSHeapSize": 89753577,
+          "jsHeapSizeLimit": 4395630592
+        }
+      }
+    },
+    {
+      "name": "spell 4: crystallize",
+      "file": "10-spell-4-1440p.png",
+      "state": {
+        "heroStyle": "rockerkaki",
+        "settings": {
+          "preset": "ultra",
+          "resolutionScale": 1,
+          "showTerrain": true,
+          "showCharacter": true,
+          "showWake": true,
+          "showSpells": true,
+          "debugView": "beauty"
+        },
+        "character": {
+          "position": [
+            44.6835505903256,
+            2.4546276591749896,
+            38.82497943716005
+          ],
+          "velocity": [
+            0,
+            0,
+            0
+          ],
+          "facing": 1.069042094616877,
+          "speed": 0,
+          "speed01": 0,
+          "surf": 2.2030807063170576e-22,
+          "surfActive": false,
+          "lean": 3.0621850263951855e-43,
+          "carve": 2.3534144363257034e-58,
+          "gaitPhase": 0.48820430876918464
+        },
+        "camera": {
+          "position": [
+            37.722666538215705,
+            5.905175891980888,
+            34.03686014244155
+          ],
+          "yaw": 1.069042094616877,
+          "pitch": 0.24,
+          "distance": 8.6,
+          "distanceTarget": 8.6,
+          "fov": 1.020000000000005
+        },
+        "heroes": {
+          "snowboundVisible": false,
+          "snowboundTriangles": 20374,
+          "rockerAvailable": true,
+          "rockerActive": true,
+          "rockerTriangles": 60658
+        },
+        "wake": {
+          "visible": false,
+          "enabled": true,
+          "points": 0,
+          "triangles": 8636
+        },
+        "spells": {
+          "activeCount": 0,
+          "active": [
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "ribbonHeld": false,
+          "debugRibbon": false,
+          "waterStrands": 0,
+          "crystalCount": 34,
+          "triangles": 612
+        },
+        "particles": {
+          "liveCount": 0
+        },
+        "render": {
+          "width": 2560,
+          "height": 1440,
+          "fps": 434.7826086956539,
+          "sceneMeshes": 13,
+          "enabledMeshes": 13,
+          "visibleMeshes": 8,
+          "totalVertices": 331747,
+          "totalIndices": 1496952
+        },
+        "stats": {
+          "last": 2.5,
+          "median": 2.0999999046325684,
+          "mean": 2.295312490372453,
+          "p95": 3.9000000953674316,
+          "p99": 5.199999809265137,
+          "max": 7.900000095367432,
+          "fps": 476.1904978157451,
+          "fpsLow": 192.30769936149667,
+          "drawCalls": 33,
+          "triangles": 1924496,
+          "gpuMs": null
+        },
+        "memory": {
+          "usedJSHeapSize": 63846080,
+          "totalJSHeapSize": 91588416,
+          "jsHeapSizeLimit": 4395630592
+        }
+      }
+    },
+    {
+      "name": "spell 5: vortex",
+      "file": "11-spell-5-1440p.png",
+      "state": {
+        "heroStyle": "rockerkaki",
+        "settings": {
+          "preset": "ultra",
+          "resolutionScale": 1,
+          "showTerrain": true,
+          "showCharacter": true,
+          "showWake": true,
+          "showSpells": true,
+          "debugView": "beauty"
+        },
+        "character": {
+          "position": [
+            44.6835505903256,
+            2.4546276591749896,
+            38.82497943716005
+          ],
+          "velocity": [
+            0,
+            0,
+            0
+          ],
+          "facing": 1.069042094616877,
+          "speed": 0,
+          "speed01": 0,
+          "surf": 5.826037375773945e-26,
+          "surfActive": false,
+          "lean": 4.429888316484712e-50,
+          "carve": 7.969471306913022e-68,
+          "gaitPhase": 0.48820430876918464
+        },
+        "camera": {
+          "position": [
+            37.722666538215705,
+            5.905175891980888,
+            34.03686014244155
+          ],
+          "yaw": 1.069042094616877,
+          "pitch": 0.24,
+          "distance": 8.6,
+          "distanceTarget": 8.6,
+          "fov": 1.020000000000005
+        },
+        "heroes": {
+          "snowboundVisible": false,
+          "snowboundTriangles": 20374,
+          "rockerAvailable": true,
+          "rockerActive": true,
+          "rockerTriangles": 60658
+        },
+        "wake": {
+          "visible": false,
+          "enabled": true,
+          "points": 0,
+          "triangles": 8636
+        },
+        "spells": {
+          "activeCount": 1,
+          "active": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ],
+          "ribbonHeld": false,
+          "debugRibbon": false,
+          "waterStrands": 3,
+          "crystalCount": 0,
+          "triangles": 24150
+        },
+        "particles": {
+          "liveCount": 1092
+        },
+        "render": {
+          "width": 2560,
+          "height": 1440,
+          "fps": 424.3281471048964,
+          "sceneMeshes": 13,
+          "enabledMeshes": 13,
+          "visibleMeshes": 8,
+          "totalVertices": 331747,
+          "totalIndices": 1496952
+        },
+        "stats": {
+          "last": 1.900000000372529,
+          "median": 2.200000047683716,
+          "mean": 2.3611328023835085,
+          "p95": 4.199999809265137,
+          "p99": 5.599999904632568,
+          "max": 6.900000095367432,
+          "fps": 454.54544469344734,
+          "fpsLow": 178.57143161248192,
+          "drawCalls": 30,
+          "triangles": 1981984,
+          "gpuMs": null
+        },
+        "memory": {
+          "usedJSHeapSize": 66626597,
+          "totalJSHeapSize": 91588585,
+          "jsHeapSizeLimit": 4395630592
+        }
+      }
+    },
+    {
+      "name": "performance overlay",
+      "file": "12-performance-overlay-1440p.png",
+      "state": {
+        "heroStyle": "rockerkaki",
+        "settings": {
+          "preset": "ultra",
+          "resolutionScale": 1,
+          "showTerrain": true,
+          "showCharacter": true,
+          "showWake": true,
+          "showSpells": true,
+          "debugView": "beauty"
+        },
+        "character": {
+          "position": [
+            44.6835505903256,
+            2.45462765917499,
+            38.82497943716005
+          ],
+          "velocity": [
+            0,
+            0,
+            0
+          ],
+          "facing": 1.069042094616877,
+          "speed": 0,
+          "speed01": 0,
+          "surf": 1.9682192609217493e-31,
+          "surfActive": false,
+          "lean": 1.536579183568555e-60,
+          "carve": 2.6216645936704577e-82,
+          "gaitPhase": 0.48820430876918464
+        },
+        "camera": {
+          "position": [
+            37.722666538215734,
+            5.905175891980892,
+            34.036860142441576
+          ],
+          "yaw": 1.069042094616877,
+          "pitch": 0.24,
+          "distance": 8.6,
+          "distanceTarget": 8.6,
+          "fov": 1.0200000000000031
+        },
+        "heroes": {
+          "snowboundVisible": false,
+          "snowboundTriangles": 20374,
+          "rockerAvailable": true,
+          "rockerActive": true,
+          "rockerTriangles": 60658
+        },
+        "wake": {
+          "visible": false,
+          "enabled": true,
+          "points": 0,
+          "triangles": 8636
+        },
+        "spells": {
+          "activeCount": 0,
+          "active": [
+            false,
+            false,
+            false,
+            false,
+            false
+          ],
+          "ribbonHeld": false,
+          "debugRibbon": false,
+          "waterStrands": 0,
+          "crystalCount": 0,
+          "triangles": 0
+        },
+        "particles": {
+          "liveCount": 0
+        },
+        "render": {
+          "width": 2560,
+          "height": 1440,
+          "fps": 436.0465116231859,
+          "sceneMeshes": 13,
+          "enabledMeshes": 13,
+          "visibleMeshes": 7,
+          "totalVertices": 331747,
+          "totalIndices": 1496952
+        },
+        "stats": {
+          "last": 4,
+          "median": 2.0999999046325684,
+          "mean": 2.2712890489492565,
+          "p95": 3.9000000953674316,
+          "p99": 5.300000190734863,
+          "max": 9.399999618530273,
+          "fps": 476.1904978157451,
+          "fpsLow": 188.67923849288513,
+          "drawCalls": 29,
+          "triangles": 1917584,
+          "gpuMs": null
+        },
+        "memory": {
+          "usedJSHeapSize": 67691099,
+          "totalJSHeapSize": 90277759,
+          "jsHeapSizeLimit": 4395630592
+        }
+      }
+    }
+  ],
+  "diagnostics": null,
+  "errors": [],
+  "validationWarnings": [],
+  "gpuMonitor": {
+    "installed": true,
+    "uncapturedErrors": [],
+    "deviceLost": []
+  },
+  "messages": [
+    "log: BJS - [10:32:19]: Babylon.js v9.18.1 - WebGPU1 engine",
+    "warning: The powerPreference option is currently ignored when calling requestAdapter() on Windows. See https://crbug.com/369219127",
+    "warning: The powerPreference option is currently ignored when calling requestAdapter() on Windows. See https://crbug.com/369219127"
+  ]
+}

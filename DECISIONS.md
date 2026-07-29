@@ -1,0 +1,25 @@
+# Visual and technical decisions
+
+Each entry records a deliberate departure or clarification against the
+implementation brief.
+
+| Decision | Rationale |
+| --- | --- |
+| Adapt the strongest available MIT-licensed renderer foundation, retain its exact copyright and license notice, and brand the product KAKISNOW. | The imported renderer provides the strongest technical and visual foundation while the shipped product maintains one cohesive identity. |
+| Ship WebGPU only, with a single explanatory stop when `navigator.gpu` is unavailable. | The target is current Windows Chrome on a discrete GPU; WebGL, mobile, and feature-downgrade paths are outside the brief. |
+| Use an eight-ring, one-draw geometry clipmap with 8.5 cm inner spacing, roughly 870 m reach, and approximately 333,000 terrain triangles. | This exceeds the requested near-field density while preserving a continuous horizon at low draw-call cost. |
+| Bake the procedural 4096² terrain heightfield on the GPU before the loading screen dismisses. | Broad dunes, medium wind forms, and directional fine ridges are stable in world space and do not consume per-frame noise evaluation. |
+| Use a 2048² RGBA16F ping-pong state field over 80 m instead of the suggested 4096² R16F starting point. | Approximately 3.9 cm texels retain convincing trail edges and displaced mass at substantially lower persistent render-target cost. |
+| Pack depression, displaced mass, compression, and ice into the terrain state; omit a separate wetness channel. | The current spell-water response is transient, while compression and ice provide the persistent shading states that materially affect the captured frame. |
+| Scroll the deformation window in snapped world-space texel increments and accumulate brush splats through a GPU simulation pass. | This keeps persistent marks stable under player movement without rebuilding them from event history. |
+| Use three custom WGSL PCSS-style shadow cascades rather than Babylon's stock cascaded-shadow material path. | Terrain, procedural heroes, RockerKaki, spell geometry, and deformation can share the same raw-WGSL lighting conventions and pipeline warm-up. |
+| Generate the distant mountain field procedurally in the custom sky rather than render the retained mountain paintings. | The procedural ridgeline holds up around unrestricted camera orbit and integrates directly with aerial perspective; the older mattes remain vendored only as archival assets. |
+| Keep the retained Poly Haven HDRI and Snow 02 maps archival rather than sample them in the current renderer. | The active custom sky and procedural snow surface are more controllable and avoid runtime texture dependency; the CC0 sources remain documented and available for future art studies. |
+| Make RockerKaki the default playable hero and retain Snowbound as the selectable articulated variant. | The project-owner character gives the public demo its identity; the shared controller, surf lean, spell handoff, and snow contact keep it fully playable without fabricating a weak skeletal walk cycle. |
+| Give RockerKaki a native custom beauty/depth/shadow treatment rather than a stock PBR material. | Shared sun, cascades, fog, spell light, and snow contact make the authored model belong to the scene. |
+| Use preallocated swept meshes and pooled particles rather than full screen-space fluid rendering. | Coherent silhouettes, refraction cues, spray, and persistent snow writes produce more useful pixels within the frame budget. |
+| Keep Ribbon as a held stream while driving its tip through a camera-relative, momentum-smoothed figure-eight. | It preserves the requested continuous control while remaining legible without a crosshair; release throws and retires the existing body instead of despawning it. |
+| Represent Vortex surface stripping through its shared deformation mark and timed refill rather than maintain a separate airborne-mass reservoir. | The visible ground-to-air-to-ground handoff remains readable without another persistent simulation volume. |
+| Warm materials, render targets, shadows, post stages, hero variants, and all five spell pipelines before fade-in. | A longer intentional load is preferable to first-use WebGPU pipeline compilation hitches. |
+| Keep runtime captures and profiles explicit about their hardware and measurement limits. | Headless or audit-machine data demonstrates regressions and hitch behavior but cannot certify the specified RTX 5070 Ti target by itself. |
+| Keep RockerKaki available locally but gate commercial redistribution. | Its AI-generation lineage is documented, but the remove.bg account tier in the source chain cannot currently be verified. |
