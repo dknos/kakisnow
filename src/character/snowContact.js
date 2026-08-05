@@ -17,8 +17,16 @@
  *   surf wake  a deep continuous groove with berms thrown to the outside of the
  *              turn. This is the centrepiece's mark on the world.
  *
+ * Every board-shaped brush here takes its footprint from `boardSpec.js` rather
+ * than from a number chosen to look right. The board is a visible object now,
+ * and a trench that is not the board's own size and heading reads as a decal
+ * sliding along underneath it — which is the one thing this file exists to
+ * prevent.
+ *
  * Zero allocation: brushes are pushed straight into the field's staging array.
  */
+
+import { HALF_EDGE, HALF_WAIST } from "./boardSpec.js";
 
 /**
  * Boot geometry, metres. `WIDTH` is the short-axis radius, so the print is
@@ -29,9 +37,50 @@
 const BOOT_WIDTH = 0.10;
 const BOOT_ELONG = 1.7;
 
-/** Surf groove geometry, metres. */
-const SURF_WIDTH = 0.30;
-const SURF_ELONG = 2.6;
+/**
+ * Surf groove geometry, taken from the board rather than chosen.
+ *
+ * The short axis is the waist, not the widest point: sidecut means the tips are
+ * 40% wider than the section actually pressed into the snow, and cutting at the
+ * tip width leaves the board sitting in a groove half again too wide for it.
+ * The long axis is the effective edge — the run between the contact points,
+ * which is all that reaches the snow at all.
+ */
+const SURF_WIDTH = HALF_WAIST;
+const SURF_ELONG = HALF_EDGE / HALF_WAIST;
+
+/**
+ * Depression written per metre travelled.
+ *
+ * Lower than the figure this replaced, and for an arithmetic reason rather than
+ * a taste one. A texel sits under the brush for `2 * longAxis / moved` frames,
+ * so lengthening the brush from a 78 cm half-axis to the board's 102 cm
+ * lengthens that dwell by the same third. Holding the old rate would have made
+ * the trench a third deeper per metre — the same run, cut deeper, purely
+ * because the brush that cuts it got longer.
+ */
+const SURF_DEPTH_RATE = 0.92;
+
+/**
+ * The deformation brush's yaw convention, from the controller's.
+ *
+ * `DeformationField.brush` orients its long axis along `(cos yaw, sin yaw)` in
+ * world XZ — the mathematical convention, and the one every spell in
+ * `src/spells/` already resolves its arcs and its ejecta in. The controller's
+ * `facing` is a *heading*: forward is `(sin f, cos f)`. The two agree at 45
+ * degrees and nowhere else, and the mismatch is not a constant offset — it
+ * mirrors the long axis about world X, so it rotates the wrong way as the rider
+ * turns.
+ *
+ * Passing `facing` straight through was silently wrong here for the whole life
+ * of this file. Heading down the Summit Line — `facing = 0`, which is where the
+ * demo opens — every brush came out elongated *across* travel: a two-metre
+ * trench laid sideways under a board pointing the other way. Nothing had to sit
+ * in the groove before, so nothing showed it. A board does.
+ */
+function brushYaw(facing) {
+    return Math.PI * 0.5 - facing;
+}
 
 export class SnowContact {
     /**
@@ -61,7 +110,7 @@ export class SnowContact {
         this._sinceSplat = 0;
         this._prevX = character.position.x;
         this._prevZ = character.position.z;
-        /** Seated RockerKaki leaves one broad contact instead of invisible boots. */
+        /** RockerKaki rides a board, so her contact is the base — never boots. */
         this.rockerActive = false;
         this.enabled = true;
     }
@@ -96,8 +145,9 @@ export class SnowContact {
             else this._walk(dt, moved);
         }
 
-        // The authored model is seated. Its contact is one continuous trough,
-        // never a pair of invisible procedural boot prints.
+        // The authored model is seated on a board. Its contact is the base's
+        // one continuous trough, never a pair of procedural boot prints under
+        // a rider whose feet are on the deck.
         if (this.rockerActive) return;
 
         // Footfalls fire regardless of mode; the gait suppresses them while
@@ -131,7 +181,7 @@ export class SnowContact {
                 0.10 + 0.08 * impact,
                 0.9,                    // compression: trodden snow is dense
                 0,                      // no ice
-                ch.facing,
+                brushYaw(ch.facing),
                 BOOT_ELONG,
                 1.0                     // full rim roughness — boots tear edges
             );
@@ -141,37 +191,56 @@ export class SnowContact {
         }
     }
 
+    /**
+     * A landing.
+     *
+     * On the board this is a base slap, not a pair of boots: the whole
+     * effective edge arrives at once and prints its own footprint, so the mark
+     * is the board's shape rather than a round crater at the rider's feet. It
+     * is shallower than the boot version at the same impact for the reason a
+     * flat base is shallower than a heel — the load is spread over two square
+     * metres instead of two boot soles.
+     */
     _landing() {
         const ch = this.character;
         const impact = ch.landingImpact;
+        const board = this.rockerActive;
         this.field.brush(
             ch.position.x, ch.position.z,
-            this.rockerActive ? 0.62 : 0.40,
-            0.20 + impact * 0.15,
-            0.16 + impact * 0.13,
+            board ? SURF_WIDTH * 1.15 : 0.40,
+            (board ? 0.13 : 0.20) + impact * (board ? 0.11 : 0.15),
+            (board ? 0.13 : 0.16) + impact * 0.13,
             Math.min(1, 0.72 + impact * 0.22),
             0,
-            ch.facing,
-            1.35,
-            1.0
+            brushYaw(ch.facing),
+            board ? SURF_ELONG * 0.85 : 1.35,
+            board ? 0.6 : 1.0
         );
         this._kick(ch.position.x, ch.position.y, ch.position.z, 0.7 + impact * 0.6);
     }
 
+    /**
+     * The board sliding without carving.
+     *
+     * The rider is seated on it at all times, so there is always a base on the
+     * snow — this is the mark it leaves when it is skidding flat rather than
+     * held on an edge. Same footprint as the carve, a fraction of the depth,
+     * and a soft rim, because a flat base smears snow where an edge slices it.
+     */
     _rockerDrag(moved) {
         const ch = this.character;
         if (ch.speed < 0.15) return;
         const k = Math.min(moved, 0.35) * (1 - ch.surf);
         this.field.brush(
             ch.position.x, ch.position.z,
-            0.54,
-            0.15 * k,
-            0.20 * k,
+            SURF_WIDTH,
+            0.16 * k,
+            0.18 * k,
             0.82 * k,
             0,
-            ch.facing,
-            1.65,
-            0.55
+            brushYaw(ch.facing),
+            SURF_ELONG,
+            0.5
         );
     }
 
@@ -250,7 +319,7 @@ export class SnowContact {
             0.22 * k * w,
             0.8 * k * w,
             0,
-            ch.facing,
+            brushYaw(ch.facing),
             1.5,
             0.85
         );
@@ -287,20 +356,26 @@ export class SnowContact {
         const rz = -Math.sin(yaw);
 
         // --- the groove ------------------------------------------------------
-        // The board rides the inside edge in a turn, so the trench offsets
-        // slightly toward the lean.
+        // The board rides its inside edge in a turn, so the trench offsets
+        // toward the lean. The offset is most of the way to the edge itself:
+        // a carve is cut by one rail, not by the middle of the base, and a
+        // groove that stayed under the centreline would have the board pivoting
+        // about a trench it was never standing in.
         const lean = ch.carve;
-        const gx = ch.position.x + rx * lean * 0.12;
-        const gz = ch.position.z + rz * lean * 0.12;
+        const edge = Math.min(1, Math.abs(lean));
+        const gx = ch.position.x + rx * lean * SURF_WIDTH * 0.85;
+        const gz = ch.position.z + rz * lean * SURF_WIDTH * 0.85;
 
         f.brush(
             gx, gz,
-            SURF_WIDTH * (1 + 0.35 * fast),
-            1.20 * k,   // deep — a run should be visible from across the field
+            // On edge the board presents a rail rather than a base, so the cut
+            // narrows as the carve commits even while it deepens.
+            SURF_WIDTH * (1 + 0.35 * fast) * (1 - 0.3 * edge),
+            SURF_DEPTH_RATE * k * (1 + 0.35 * edge),
             0.30 * k,
             4.0 * k,    // the board packs the trench floor hard
             0,
-            yaw,
+            brushYaw(yaw),
             SURF_ELONG,
             0.55        // the board's edge is cleaner than a boot's
         );
@@ -314,24 +389,26 @@ export class SnowContact {
         //
         // The wake mesh in `src/vfx/surfWake.js` resolves its sides from the same
         // sign, so the airborne wave and the mark it leaves agree.
-        const outside = Math.min(1, Math.abs(lean));
+        const outside = edge;
         const sideL = 0.5 + lean * 0.5; // weight on the left berm
         const sideR = 0.5 - lean * 0.5;
 
-        const off = SURF_WIDTH * (1.5 + 0.5 * fast);
+        // Just clear of the rail that cut the groove: the wall stands where the
+        // snow the edge displaced came to rest, which is at the trench rim.
+        const off = SURF_WIDTH * (1.9 + 0.6 * fast);
         const throwK = 0.75 * k * (0.55 + 0.9 * outside) * (1 + 0.5 * fast);
 
         f.brush(
             ch.position.x - rx * off, ch.position.z - rz * off,
             SURF_WIDTH * 0.95,
             0, throwK * sideL * 2.0, 0, 0,
-            yaw, SURF_ELONG * 0.8, 1.0
+            brushYaw(yaw), SURF_ELONG * 0.8, 1.0
         );
         f.brush(
             ch.position.x + rx * off, ch.position.z + rz * off,
             SURF_WIDTH * 0.95,
             0, throwK * sideR * 2.0, 0, 0,
-            yaw, SURF_ELONG * 0.8, 1.0
+            brushYaw(yaw), SURF_ELONG * 0.8, 1.0
         );
     }
 }

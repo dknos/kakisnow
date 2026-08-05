@@ -161,36 +161,51 @@ function assert(condition, message) {
       path.join(output, "face-report.json"),
       `${JSON.stringify(faceReport, null, 2)}\n`,
     );
+    // The guard's intent is that nothing *unaccounted for* is standing under
+    // the character — it was written when a stray import would have been the
+    // only way to get a second mesh here. The board is now one of the two
+    // things that belong, so the check names both rather than forbidding any
+    // second mesh, and asserting the board is present is a stronger statement
+    // than asserting nothing extra is.
+    const expectedMeshes = ["RockerKaki", "Object_2"];
     assert(
-      faceReport.meshes.length === 1 && faceReport.meshes[0] === "RockerKaki",
+      faceReport.meshes.length === expectedMeshes.length &&
+        expectedMeshes.every(name => faceReport.meshes.includes(name)),
       `unexpected under-character geometry: ${faceReport.meshes.join(", ")}`
     );
     console.log(JSON.stringify(faceReport, null, 2));
     return;
   }
 
+  /**
+   * The rider's orientation in the world, as her own up axis.
+   *
+   * This used to read `visualRoot.rotation.z` directly, which was her world
+   * roll for as long as that node hung off the motion root. It does not any
+   * more: she rides on `boardRoot` now, so her local roll is what she does
+   * *relative to the board* and most of her actual motion has moved into the
+   * parent. Reading a basis vector out of the composed world matrix asks the
+   * question the check was always trying to ask — is the rider visibly moving —
+   * and keeps asking it however the hierarchy is arranged next.
+   */
+  const ridePose = () => page.evaluate(() => {
+    const rocker = window.KAKISNOW.rocker;
+    const arm = rocker._rigJoints.get("arm.L").node.rotationQuaternion;
+    const m = rocker.visualRoot.getWorldMatrix().m;
+    const len = Math.hypot(m[4], m[5], m[6]) || 1;
+    return {
+      arm: [arm.x, arm.y, arm.z, arm.w],
+      rootY: rocker.assetRoot.position.y,
+      up: [m[4] / len, m[5] / len, m[6] / len],
+    };
+  });
+
   await setPose(36, { speed: 10, surf: true, pitch: 0.24, distance: 8.8 });
   await page.waitForTimeout(120);
-  const ridePoseA = await page.evaluate(() => {
-    const rocker = window.KAKISNOW.rocker;
-    const arm = rocker._rigJoints.get("arm.L").node.rotationQuaternion;
-    return {
-      arm: [arm.x, arm.y, arm.z, arm.w],
-      rootY: rocker.assetRoot.position.y,
-      visualRoll: rocker.visualRoot.rotation.z,
-    };
-  });
+  const ridePoseA = await ridePose();
   await page.screenshot({ path: path.join(output, "01-ride-motion-a.png") });
   await page.waitForTimeout(260);
-  const ridePoseB = await page.evaluate(() => {
-    const rocker = window.KAKISNOW.rocker;
-    const arm = rocker._rigJoints.get("arm.L").node.rotationQuaternion;
-    return {
-      arm: [arm.x, arm.y, arm.z, arm.w],
-      rootY: rocker.assetRoot.position.y,
-      visualRoll: rocker.visualRoot.rotation.z,
-    };
-  });
+  const ridePoseB = await ridePose();
   await page.screenshot({ path: path.join(output, "01-ride-motion-b.png") });
   const poseAngle = (a, b) => {
     const dot = Math.min(1, Math.abs(
@@ -198,13 +213,16 @@ function assert(condition, message) {
     ));
     return 2 * Math.acos(dot);
   };
+  const axisAngle = (a, b) => Math.acos(
+    Math.min(1, Math.max(-1, a[0] * b[0] + a[1] * b[1] + a[2] * b[2]))
+  );
   const rideAnimation = {
     armRadians: poseAngle(ridePoseA.arm, ridePoseB.arm),
     rootTravel: Math.abs(ridePoseA.rootY - ridePoseB.rootY),
-    rollTravel: Math.abs(ridePoseA.visualRoll - ridePoseB.visualRoll),
+    tiltTravel: axisAngle(ridePoseA.up, ridePoseB.up),
   };
   assert(rideAnimation.rootTravel > 0.015, "grounded ride bounce is visually static");
-  assert(rideAnimation.rollTravel > 0.025, "grounded ride body is visually static");
+  assert(rideAnimation.tiltTravel > 0.025, "grounded ride body is visually static");
 
   await setPose(36, { pitch: 0.24, distance: 10.8 });
   await page.waitForTimeout(700);

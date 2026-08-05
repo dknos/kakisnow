@@ -7,9 +7,10 @@ rights.
 
 The current procedural renderer does not sample the retained Poly Haven HDRI,
 Snow 02 scans, or generated mountain mattes. They remain vendored as archival
-art-study inputs and are not deleted or relicensed. RockerKaki and its Draco
-decoder are the only assets in this inventory loaded by the current runtime;
-RockerKaki is initialized during loading as the default playable hero.
+art-study inputs and are not deleted or relicensed. RockerKaki, the snowboard
+she rides, and the shared Draco decoder are the only assets in this inventory
+loaded by the current runtime; RockerKaki is initialized during loading as the
+default playable hero.
 
 ## Imported renderer source — MIT
 
@@ -175,6 +176,52 @@ demo records the generator disclosure and keeps commercial redistribution
 gated on confirming a qualifying remove.bg plan or replacing that uncertain
 step. Do not describe RockerKaki as CC0 or extract it as a generally licensed
 asset.
+
+## Snowboard — CC BY 4.0, runtime
+
+Status: third-party download, redistributed under a licence that permits it.
+
+This is the board RockerKaki sits on. Unlike RockerKaki itself, it carries no
+redistribution caveat: CC BY 4.0 grants commercial use, modification, and
+redistribution, and asks only for credit and an indication of changes. Both are
+given in `public/THIRD_PARTY_NOTICES.txt`, which ships with the production
+build.
+
+Provenance was not reconstructed. The glTF carries it in `asset.extras`, written
+by Sketchfab's exporter, and the fields below are copied from the shipped file
+rather than inferred:
+
+- Title: "Intermediate Advanced Snowboard".
+- Author: Final Render Animation Studio
+  ([sketchfab.com/cleowillo](https://sketchfab.com/cleowillo)).
+- Source:
+  [Sketchfab model `267e04a0…`](https://sketchfab.com/3d-models/intermediate-advanced-snowboard-267e04a025434d7d8587ec2ee60ad62e).
+- License: [CC BY 4.0](http://creativecommons.org/licenses/by/4.0/).
+- Generator: `Sketchfab-12.66.0`.
+
+| Local file | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `public/assets/models/snowboard.glb` | 1,884,020 | `8c5b2781afbbeea9103678b089e5ff7b4fa14d589824a4f06ff08e017b62efc0` |
+
+The distributed file is byte-identical to the download; no geometry, texture, or
+UV data was altered. What the runtime does to it is transform and shading only:
+the mesh is re-centred, grounded on its own contact points rather than its
+bounding box, and re-shaded by the application's `rocker` WGSL material instead
+of its authored `KHR_materials_pbrSpecularGlossiness` one.
+
+Measured contents, 1,664 triangles and 906 vertices in one primitive:
+
+- Authored at real-world scale — 2.524 m tip to tail, 0.533 m at the widest
+  point, 0.382 m at the waist, 0.076 m thick.
+- Cambered: the base at the waist stands 0.025 m above its two contact patches,
+  and the effective edge between them is 2.04 m, or 81% of the length.
+- `POSITION`, `NORMAL`, `TANGENT`, `TEXCOORD_0`; three 1024² PNG maps (diffuse,
+  specular-glossiness, normal).
+
+Those measurements are not decoration. `src/character/boardSpec.js` is their
+single record, and both the visual placement and the trench the board cuts are
+derived from it, so the groove is the board's own footprint rather than a shape
+chosen to look right.
 
 ## Draco decoder runtime
 

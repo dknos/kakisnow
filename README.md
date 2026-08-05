@@ -74,6 +74,16 @@ selector.
   action. Nine deform bones remain embedded for future authored animation;
   runtime ride, carve, jump, and landing poses move the complete authored model
   rigidly so its disconnected face and guitar surfaces never stretch.
+- She rides a real snowboard, and the board is solved against the snow rather
+  than parented to her. Its pitch is fitted to the terrain sampled at the nose
+  and the tail, so it spans ground the way a stiff board does instead of
+  following every ripple; its roll comes from the ground normal plus the carve's
+  edge angle; and it sinks into the trench it is cutting, planing its nose back
+  out of undisturbed snow. The rider hangs off the board and takes part of its
+  attitude back toward vertical, because a passenger held square to a board on a
+  43-degree face is reclining into the hill. The groove the board leaves is cut
+  from the mesh's own measured waist and effective edge — see
+  `src/character/boardSpec.js`.
 - A 4096² GPU-baked heightfield combines broad dunes, medium wind lobes, and
   directional fine ridges. A procedural far-mountain field is integrated into
   the sky rather than projected from a flat card.
@@ -127,6 +137,11 @@ selector.
 - `public/THIRD_PARTY_NOTICES.txt` ships dependency and imported-code notices.
 - `screenshots/milestones/` contains the committed 2560×1440 runtime capture
   sequence.
+- `screenshots/board/` holds the board evidence, kept out of the numbered
+  milestone sequence because `capture-report.json` describes that sequence and
+  these did not come from it. The two straight-line trench shots are at headings
+  ninety degrees apart on purpose: a mirrored brush axis looks correct at
+  forty-five degrees, so one heading cannot show it.
 
 The automated Windows capture can be reproduced from WSL with:
 
@@ -140,13 +155,25 @@ This drives the installed Windows Chrome and its WebGPU/D3D backend. It is
 visual and regression evidence, not a substitute for an interactive profile
 on the specified RTX 5070 Ti target.
 
+The board and the groove it cuts have their own capture, because the thing it
+has to show is heading-dependent and one screenshot cannot show it. The run
+drives the same straight descent at two headings ninety degrees apart and
+photographs the trench from behind each time:
+
+```bash
+"/mnt/c/Program Files/nodejs/node.exe" tools/capture-board-windows.cjs \
+  --url http://127.0.0.1:5173 --out screenshots/_scratch/board
+```
+
 ## Hero selection
 
 RockerKaki is the playable default and Snowbound can be selected from the F1
 overlay. The supplied seated RockerKaki asset has no skeleton, skin, morphs,
 or animation clips, so its movement is driven by the shared player controller,
 terrain contact, surf lean, and effects rather than a fabricated skeletal walk
-cycle.
+cycle. The snowboard belongs to RockerKaki: she is authored seated, and the
+board is what she is seated on. Snowbound stands and keeps its planted-foot
+gait.
 
 [ASSETS.md](./ASSETS.md) records the recovered Grok Imagine to Tencent HY 3D
 provenance and required AI disclosure. Do not publish a commercial build

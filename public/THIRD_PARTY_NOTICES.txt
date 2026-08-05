@@ -39,6 +39,26 @@ Copyright (c) 2016-2026 Arseny Kapoulkine
 Licensed under the MIT License
 
 
+Intermediate Advanced Snowboard
+-------------------------------
+
+The board RockerKaki rides is redistributed in this build as
+assets/models/snowboard.glb.
+
+  Title:   "Intermediate Advanced Snowboard"
+  Author:  Final Render Animation Studio (https://sketchfab.com/cleowillo)
+  Source:  https://sketchfab.com/3d-models/intermediate-advanced-snowboard-267e04a025434d7d8587ec2ee60ad62e
+  License: CC BY 4.0 (http://creativecommons.org/licenses/by/4.0/)
+
+CC BY 4.0 permits redistribution, including commercially, and permits
+modification, provided the author is credited and changes are indicated.
+
+Changes made by KAKISNOW: the model is unmodified. It is re-centred, grounded
+on its own contact points and re-shaded at runtime by the application's own
+WGSL material; no geometry, texture, or UV data in the distributed file was
+altered.
+
+
 Apache License
 Version 2.0, January 2004
 http://www.apache.org/licenses/
