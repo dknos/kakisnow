@@ -3,3 +3,11 @@ dist/
 .vite/
 *.log
 screenshots/_scratch/
+
+# Snow-Burgers source assets: 176 MB of supplied GLBs. Preserved locally and
+# hashed in art/source-assets/snow-burgers/IMPORT_AUDIT.json; deliberately not
+# committed, because this repository publishes to GitHub Pages and a binary of
+# that size is permanent in its history.
+art/source-assets/snow-burgers/*.glb
+# Decimation sweep candidates: evidence, reproducible from optimize-assets.mjs.
+screenshots/snow-burgers/sweep/*.glb

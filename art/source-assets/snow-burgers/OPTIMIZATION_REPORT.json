@@ -1,0 +1,771 @@
+{
+  "generatedBy": "tools/snow-burgers/optimize-assets.mjs",
+  "toolVersions": {
+    "@gltf-transform/core": "4.3.0",
+    "@gltf-transform/extensions": "4.3.0",
+    "@gltf-transform/functions": "4.3.0"
+  },
+  "node": "v22.22.1",
+  "totalRuntimeBytes": 3469544,
+  "preferredTotalBytes": 11534336,
+  "hardCeilingBytes": 15728640,
+  "assets": [
+    {
+      "key": "cheese",
+      "role": "ingredient",
+      "source": "art/source-assets/snow-burgers/cheese-source.glb",
+      "runtime": "public/assets/models/snow-burgers/ingredient-cheese.glb",
+      "profile": {
+        "target": 1.1,
+        "axis": "longest",
+        "pivot": "base",
+        "triangles": null,
+        "textures": {
+          "baseColor": 512,
+          "normal": 512,
+          "other": 512
+        }
+      },
+      "steps": [
+        "pruned unused nodes/materials/textures and deduplicated",
+        "scaled ×1.10958 to 1.1 m (longest); pivot → base",
+        "stripped TANGENT from 1 primitive(s) — shader derives TBN",
+        "textures → WebP at {\"baseColor\":512,\"normal\":512,\"other\":512}",
+        "Draco edgebreaker, position 12 bits"
+      ],
+      "simplify": "not simplified",
+      "placement": {
+        "sourceSize": [
+          0.733211,
+          0.50167,
+          0.991364
+        ],
+        "measuredAxis": "longest",
+        "measured": 0.991364,
+        "scaleApplied": 1.10958235,
+        "finalMin": [
+          -0.406779,
+          -0.290502,
+          -0.815042
+        ],
+        "finalMax": [
+          0.406779,
+          0.266142,
+          0.284959
+        ],
+        "finalSize": [
+          0.813558,
+          0.556644,
+          1.1
+        ]
+      },
+      "original": {
+        "bytes": 144548,
+        "sha256": "990470f82f79e53e246a82960fc462d101124e2044270608dcdaa9a0ed42987d",
+        "triangles": 316,
+        "vertices": 233,
+        "textureBytes": 126877,
+        "textures": [
+          {
+            "name": null,
+            "mimeType": "image/png",
+            "width": 256,
+            "height": 256,
+            "bytes": 51386
+          },
+          {
+            "name": null,
+            "mimeType": "image/png",
+            "width": 256,
+            "height": 256,
+            "bytes": 75491
+          }
+        ]
+      },
+      "optimized": {
+        "bytes": 18404,
+        "sha256": "239ef0903b1754207bb2a05dab150480fb873491727660d506b629a6949c6a67",
+        "triangles": 316,
+        "vertices": 233,
+        "textureBytes": 14614,
+        "textures": [
+          {
+            "name": null,
+            "mimeType": "image/webp",
+            "width": 256,
+            "height": 256,
+            "bytes": 5548
+          },
+          {
+            "name": null,
+            "mimeType": "image/webp",
+            "width": 256,
+            "height": 256,
+            "bytes": 9066
+          }
+        ],
+        "extensions": [
+          "EXT_texture_webp",
+          "KHR_draco_mesh_compression"
+        ]
+      },
+      "budgetBytes": 1310720,
+      "withinBudget": true,
+      "reduction": 87.27
+    },
+    {
+      "key": "patty",
+      "role": "ingredient",
+      "source": "art/source-assets/snow-burgers/patty-source.glb",
+      "runtime": "public/assets/models/snow-burgers/ingredient-patty.glb",
+      "profile": {
+        "target": 1.25,
+        "axis": "longest",
+        "pivot": "base",
+        "triangles": null,
+        "textures": {
+          "baseColor": 1024,
+          "normal": 1024,
+          "other": 512
+        }
+      },
+      "steps": [
+        "pruned unused nodes/materials/textures and deduplicated",
+        "scaled ×0.62663 to 1.25 m (longest); pivot → base",
+        "textures → WebP at {\"baseColor\":1024,\"normal\":1024,\"other\":512}",
+        "Draco edgebreaker, position 12 bits"
+      ],
+      "simplify": "not simplified",
+      "placement": {
+        "sourceSize": [
+          1.994797,
+          0.700881,
+          1.989391
+        ],
+        "measuredAxis": "longest",
+        "measured": 1.994797,
+        "scaleApplied": 0.62663018,
+        "finalMin": [
+          -0.625,
+          0,
+          -0.623306
+        ],
+        "finalMax": [
+          0.625,
+          0.439193,
+          0.623306
+        ],
+        "finalSize": [
+          1.25,
+          0.439193,
+          1.246612
+        ]
+      },
+      "original": {
+        "bytes": 2380180,
+        "sha256": "1ffee654a21562a05d818506c7656e1620ae779fee292292c4138a8d526f2c2b",
+        "triangles": 19628,
+        "vertices": 13226,
+        "textureBytes": 1719038,
+        "textures": [
+          {
+            "name": null,
+            "mimeType": "image/jpeg",
+            "width": 2048,
+            "height": 2048,
+            "bytes": 1719038
+          }
+        ]
+      },
+      "optimized": {
+        "bytes": 213024,
+        "sha256": "aa6246abd1e0125d36a59e68a158aff59334fe776030029a6674fd56a2ba9134",
+        "triangles": 19628,
+        "vertices": 13226,
+        "textureBytes": 152366,
+        "textures": [
+          {
+            "name": null,
+            "mimeType": "image/webp",
+            "width": 1024,
+            "height": 1024,
+            "bytes": 152366
+          }
+        ],
+        "extensions": [
+          "EXT_texture_webp",
+          "KHR_draco_mesh_compression"
+        ]
+      },
+      "budgetBytes": 1310720,
+      "withinBudget": true,
+      "reduction": 91.05
+    },
+    {
+      "key": "tomato",
+      "role": "ingredient",
+      "source": "art/source-assets/snow-burgers/tomato-source.glb",
+      "runtime": "public/assets/models/snow-burgers/ingredient-tomato.glb",
+      "profile": {
+        "target": 1,
+        "axis": "longest",
+        "pivot": "base",
+        "triangles": null,
+        "textures": {
+          "baseColor": 1024,
+          "normal": 1024,
+          "other": 512
+        }
+      },
+      "steps": [
+        "converted KHR_materials_pbrSpecularGlossiness → metallic-roughness",
+        "pruned unused nodes/materials/textures and deduplicated",
+        "scaled ×0.17686 to 1 m (longest); pivot → base",
+        "textures → WebP at {\"baseColor\":1024,\"normal\":1024,\"other\":512}",
+        "Draco edgebreaker, position 12 bits"
+      ],
+      "simplify": "not simplified",
+      "placement": {
+        "sourceSize": [
+          5.29268,
+          5.654117,
+          5.29268
+        ],
+        "measuredAxis": "longest",
+        "measured": 5.654117,
+        "scaleApplied": 0.17686227,
+        "finalMin": [
+          -0.515772,
+          0,
+          -0.468038
+        ],
+        "finalMax": [
+          0.420303,
+          1,
+          0.468038
+        ],
+        "finalSize": [
+          0.936075,
+          1,
+          0.936075
+        ]
+      },
+      "original": {
+        "bytes": 582620,
+        "sha256": "33f8f0d8e32f1552840e1fada383a3be5a1029efd6cb5d3a13425b83123f3239",
+        "triangles": 1310,
+        "vertices": 922,
+        "textureBytes": 524759,
+        "textures": [
+          {
+            "name": null,
+            "mimeType": "image/png",
+            "width": 512,
+            "height": 512,
+            "bytes": 274867
+          },
+          {
+            "name": null,
+            "mimeType": "image/jpeg",
+            "width": 1024,
+            "height": 1024,
+            "bytes": 235478
+          },
+          {
+            "name": null,
+            "mimeType": "image/jpeg",
+            "width": 256,
+            "height": 128,
+            "bytes": 14414
+          }
+        ]
+      },
+      "optimized": {
+        "bytes": 79668,
+        "sha256": "c4c15108f3759327bc0fb1abbb4fa2b69480abff0f074e9c775fcde9641d9cb7",
+        "triangles": 1310,
+        "vertices": 922,
+        "textureBytes": 68800,
+        "textures": [
+          {
+            "name": null,
+            "mimeType": "image/webp",
+            "width": 512,
+            "height": 512,
+            "bytes": 13684
+          },
+          {
+            "name": null,
+            "mimeType": "image/webp",
+            "width": 1024,
+            "height": 1024,
+            "bytes": 35636
+          },
+          {
+            "name": null,
+            "mimeType": "image/webp",
+            "width": 256,
+            "height": 128,
+            "bytes": 4246
+          },
+          {
+            "name": null,
+            "mimeType": "image/webp",
+            "width": 512,
+            "height": 512,
+            "bytes": 15234
+          }
+        ],
+        "extensions": [
+          "KHR_materials_ior",
+          "KHR_materials_specular",
+          "EXT_texture_webp",
+          "KHR_draco_mesh_compression"
+        ]
+      },
+      "budgetBytes": 1310720,
+      "withinBudget": true,
+      "reduction": 86.33
+    },
+    {
+      "key": "lettuce",
+      "role": "ingredient",
+      "source": "art/source-assets/snow-burgers/lettuce-source.glb",
+      "runtime": "public/assets/models/snow-burgers/ingredient-lettuce.glb",
+      "profile": {
+        "target": 1.25,
+        "axis": "longest",
+        "pivot": "base",
+        "triangles": null,
+        "textures": {
+          "baseColor": 512,
+          "normal": 512,
+          "other": 512
+        }
+      },
+      "steps": [
+        "converted KHR_materials_pbrSpecularGlossiness → metallic-roughness",
+        "pruned unused nodes/materials/textures and deduplicated",
+        "scaled ×3.61012 to 1.25 m (longest); pivot → base",
+        "textures → WebP at {\"baseColor\":512,\"normal\":512,\"other\":512}",
+        "Draco edgebreaker, position 12 bits"
+      ],
+      "simplify": "not simplified",
+      "placement": {
+        "sourceSize": [
+          0.346248,
+          0.202025,
+          0.31889
+        ],
+        "measuredAxis": "longest",
+        "measured": 0.346248,
+        "scaleApplied": 3.61012418,
+        "finalMin": [
+          -0.60339,
+          -0.111872,
+          -0.428691
+        ],
+        "finalMax": [
+          0.64661,
+          0.617463,
+          0.722543
+        ],
+        "finalSize": [
+          1.25,
+          0.729336,
+          1.151234
+        ]
+      },
+      "original": {
+        "bytes": 85820,
+        "sha256": "60c69d6dedb3e19c211ce55f59d434a4293f7e0b6ef6c5a02071dc18c904a439",
+        "triangles": 476,
+        "vertices": 739,
+        "textureBytes": 53666,
+        "textures": [
+          {
+            "name": null,
+            "mimeType": "image/png",
+            "width": 128,
+            "height": 256,
+            "bytes": 53666
+          }
+        ]
+      },
+      "optimized": {
+        "bytes": 16604,
+        "sha256": "30736eeec0bfbd8b5c2757707493378f6a062c4f98f021a09d1261aa7259b902",
+        "triangles": 476,
+        "vertices": 739,
+        "textureBytes": 11728,
+        "textures": [
+          {
+            "name": null,
+            "mimeType": "image/webp",
+            "width": 128,
+            "height": 256,
+            "bytes": 11728
+          }
+        ],
+        "extensions": [
+          "KHR_materials_ior",
+          "KHR_materials_specular",
+          "EXT_texture_webp",
+          "KHR_draco_mesh_compression"
+        ]
+      },
+      "budgetBytes": 1310720,
+      "withinBudget": true,
+      "reduction": 80.65
+    },
+    {
+      "key": "onion",
+      "role": "ingredient",
+      "source": "art/source-assets/snow-burgers/onion-source.glb",
+      "runtime": "public/assets/models/snow-burgers/ingredient-onion.glb",
+      "profile": {
+        "target": 1.05,
+        "axis": "longest",
+        "pivot": "base",
+        "triangles": null,
+        "textures": {
+          "baseColor": 1024,
+          "normal": 1024,
+          "other": 512
+        }
+      },
+      "steps": [
+        "converted KHR_materials_pbrSpecularGlossiness → metallic-roughness",
+        "pruned unused nodes/materials/textures and deduplicated",
+        "scaled ×0.09762 to 1.05 m (longest); pivot → base",
+        "stripped TANGENT from 1 primitive(s) — shader derives TBN",
+        "textures → WebP at {\"baseColor\":1024,\"normal\":1024,\"other\":512}",
+        "Draco edgebreaker, position 12 bits"
+      ],
+      "simplify": "not simplified",
+      "placement": {
+        "sourceSize": [
+          9.81874,
+          10.756114,
+          9.81874
+        ],
+        "measuredAxis": "longest",
+        "measured": 10.756114,
+        "scaleApplied": 0.0976189,
+        "finalMin": [
+          -0.479247,
+          -0.002738,
+          -0.486022
+        ],
+        "finalMax": [
+          0.479247,
+          1.047262,
+          0.472472
+        ],
+        "finalSize": [
+          0.958495,
+          1.05,
+          0.958495
+        ]
+      },
+      "original": {
+        "bytes": 2765904,
+        "sha256": "78cbe755be20419aee503cc1b03cf659d0ab0d52f4cace66fc48b8ca861be737",
+        "triangles": 1340,
+        "vertices": 812,
+        "textureBytes": 2707842,
+        "textures": [
+          {
+            "name": null,
+            "mimeType": "image/png",
+            "width": 1024,
+            "height": 1024,
+            "bytes": 1031109
+          },
+          {
+            "name": null,
+            "mimeType": "image/png",
+            "width": 1024,
+            "height": 1024,
+            "bytes": 1676733
+          }
+        ]
+      },
+      "optimized": {
+        "bytes": 596544,
+        "sha256": "bf1bcca910abb78f778b13e73816a9adfee1868b3f1c7fab4fc8d48f1a9bb343",
+        "triangles": 1340,
+        "vertices": 812,
+        "textureBytes": 590122,
+        "textures": [
+          {
+            "name": null,
+            "mimeType": "image/webp",
+            "width": 1024,
+            "height": 1024,
+            "bytes": 119616
+          },
+          {
+            "name": null,
+            "mimeType": "image/webp",
+            "width": 1024,
+            "height": 1024,
+            "bytes": 347772
+          },
+          {
+            "name": null,
+            "mimeType": "image/webp",
+            "width": 1024,
+            "height": 1024,
+            "bytes": 122734
+          }
+        ],
+        "extensions": [
+          "KHR_materials_ior",
+          "KHR_materials_specular",
+          "EXT_texture_webp",
+          "KHR_draco_mesh_compression"
+        ]
+      },
+      "budgetBytes": 1310720,
+      "withinBudget": true,
+      "reduction": 78.43
+    },
+    {
+      "key": "burger",
+      "role": "reward",
+      "source": "art/source-assets/snow-burgers/burger-complete-source.glb",
+      "runtime": "public/assets/models/snow-burgers/burger-complete.glb",
+      "profile": {
+        "target": 1.6,
+        "axis": "longest",
+        "pivot": "base",
+        "triangles": 220000,
+        "textures": {
+          "baseColor": 2048,
+          "normal": 1024,
+          "other": 1024
+        }
+      },
+      "steps": [
+        "pruned unused nodes/materials/textures and deduplicated",
+        "scaled ×1.62519 to 1.6 m (longest); pivot → base",
+        "simplify ratio 0.14667 (error 0.0008, lockBorder)",
+        "textures → WebP at {\"baseColor\":2048,\"normal\":1024,\"other\":1024}",
+        "Draco edgebreaker, position 12 bits"
+      ],
+      "simplify": "simplify ratio 0.14667 (error 0.0008, lockBorder)",
+      "placement": {
+        "sourceSize": [
+          0.984499,
+          0.756857,
+          0.979399
+        ],
+        "measuredAxis": "longest",
+        "measured": 0.984499,
+        "scaleApplied": 1.62519209,
+        "finalMin": [
+          -0.8,
+          0,
+          -0.795856
+        ],
+        "finalMax": [
+          0.8,
+          1.230038,
+          0.795856
+        ],
+        "finalSize": [
+          1.6,
+          1.230038,
+          1.591712
+        ]
+      },
+      "original": {
+        "bytes": 93547332,
+        "sha256": "f0cb37a809cd2f779ce64e2c140520a1b02fce34dc09f4d9c1625802b219106d",
+        "triangles": 1500000,
+        "vertices": 855352,
+        "textureBytes": 48174081,
+        "textures": [
+          {
+            "name": "texture_pbr_20250901_normal",
+            "mimeType": "image/png",
+            "width": 4096,
+            "height": 4096,
+            "bytes": 10617343
+          },
+          {
+            "name": "texture_pbr_20250901",
+            "mimeType": "image/png",
+            "width": 4096,
+            "height": 4096,
+            "bytes": 22269611
+          },
+          {
+            "name": "texture_pbr_20250901_metallic-texture_pbr_20250901_roughness",
+            "mimeType": "image/png",
+            "width": 4096,
+            "height": 4096,
+            "bytes": 15287127
+          }
+        ]
+      },
+      "optimized": {
+        "bytes": 1569000,
+        "sha256": "44771fc1e9169c617998d43893a12abb93f2f0209fe1fb02da4295a5573b37aa",
+        "triangles": 220000,
+        "vertices": 177184,
+        "textureBytes": 816148,
+        "textures": [
+          {
+            "name": "texture_pbr_20250901_normal",
+            "mimeType": "image/webp",
+            "width": 1024,
+            "height": 1024,
+            "bytes": 38648
+          },
+          {
+            "name": "texture_pbr_20250901",
+            "mimeType": "image/webp",
+            "width": 2048,
+            "height": 2048,
+            "bytes": 607446
+          },
+          {
+            "name": "texture_pbr_20250901_metallic-texture_pbr_20250901_roughness",
+            "mimeType": "image/webp",
+            "width": 1024,
+            "height": 1024,
+            "bytes": 170054
+          }
+        ],
+        "extensions": [
+          "KHR_materials_specular",
+          "EXT_texture_webp",
+          "KHR_draco_mesh_compression"
+        ]
+      },
+      "budgetBytes": 2621440,
+      "withinBudget": true,
+      "reduction": 98.32
+    },
+    {
+      "key": "rocket",
+      "role": "vehicle",
+      "source": "art/source-assets/snow-burgers/rocket-chair-snowboard-source.glb",
+      "runtime": "public/assets/models/snow-burgers/rocket-chair-snowboard.glb",
+      "profile": {
+        "target": 2.524,
+        "axis": "z",
+        "pivot": "base",
+        "triangles": 160000,
+        "textures": {
+          "baseColor": 2048,
+          "normal": 1024,
+          "other": 1024
+        }
+      },
+      "steps": [
+        "pruned unused nodes/materials/textures and deduplicated",
+        "scaled ×2.11487 to 2.524 m (z); pivot → base",
+        "simplify ratio 0.10667 (error 0.0008, lockBorder)",
+        "textures → WebP at {\"baseColor\":2048,\"normal\":1024,\"other\":1024}",
+        "Draco edgebreaker, position 13 bits"
+      ],
+      "simplify": "simplify ratio 0.10667 (error 0.0008, lockBorder)",
+      "placement": {
+        "sourceSize": [
+          0.275362,
+          0.342731,
+          1.193455
+        ],
+        "measuredAxis": "z",
+        "measured": 1.193455,
+        "scaleApplied": 2.11486779,
+        "finalMin": [
+          -0.291177,
+          0,
+          -1.262
+        ],
+        "finalMax": [
+          0.291177,
+          0.724831,
+          1.262
+        ],
+        "finalSize": [
+          0.582354,
+          0.724831,
+          2.524
+        ]
+      },
+      "original": {
+        "bytes": 76827712,
+        "sha256": "476103841d2255db87bd37d4c3473e14678a944144802665827eaaa4b62f7a2b",
+        "triangles": 1500000,
+        "vertices": 840633,
+        "textureBytes": 31925470,
+        "textures": [
+          {
+            "name": "texture_pbr_20250901_normal",
+            "mimeType": "image/png",
+            "width": 4096,
+            "height": 4096,
+            "bytes": 5739475
+          },
+          {
+            "name": "texture_pbr_20250901",
+            "mimeType": "image/png",
+            "width": 4096,
+            "height": 4096,
+            "bytes": 14826179
+          },
+          {
+            "name": "texture_pbr_20250901_metallic-texture_pbr_20250901_roughness",
+            "mimeType": "image/png",
+            "width": 4096,
+            "height": 4096,
+            "bytes": 11359816
+          }
+        ]
+      },
+      "optimized": {
+        "bytes": 976300,
+        "sha256": "3008f0c43ee74512a9fff6cee64cea5ded2cac026a9a417de866e47d55833d02",
+        "triangles": 159996,
+        "vertices": 132376,
+        "textureBytes": 425186,
+        "textures": [
+          {
+            "name": "texture_pbr_20250901_normal",
+            "mimeType": "image/webp",
+            "width": 1024,
+            "height": 1024,
+            "bytes": 44278
+          },
+          {
+            "name": "texture_pbr_20250901",
+            "mimeType": "image/webp",
+            "width": 2048,
+            "height": 2048,
+            "bytes": 299098
+          },
+          {
+            "name": "texture_pbr_20250901_metallic-texture_pbr_20250901_roughness",
+            "mimeType": "image/webp",
+            "width": 1024,
+            "height": 1024,
+            "bytes": 81810
+          }
+        ],
+        "extensions": [
+          "KHR_materials_specular",
+          "EXT_texture_webp",
+          "KHR_draco_mesh_compression"
+        ]
+      },
+      "budgetBytes": 4194304,
+      "withinBudget": true,
+      "reduction": 98.73
+    }
+  ]
+}

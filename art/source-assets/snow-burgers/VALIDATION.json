@@ -1,0 +1,223 @@
+{
+  "generatedBy": "tools/snow-burgers/validate-assets.mjs",
+  "validatorVersion": "2.0.0-dev.3.10",
+  "runtimeDecodableExtensions": [
+    "EXT_texture_webp",
+    "KHR_draco_mesh_compression",
+    "KHR_materials_emissive_strength",
+    "KHR_materials_ior",
+    "KHR_materials_specular",
+    "KHR_materials_unlit",
+    "KHR_mesh_quantization",
+    "KHR_texture_transform"
+  ],
+  "totalRuntimeBytes": 3469544,
+  "preferredTotalBytes": 11534336,
+  "hardCeilingBytes": 15728640,
+  "assets": [
+    {
+      "key": "cheese",
+      "file": "ingredient-cheese.glb",
+      "bytes": 18404,
+      "budgetBytes": 1310720,
+      "overBudget": false,
+      "validator": {
+        "errors": 0,
+        "warnings": 1,
+        "infos": 2,
+        "hints": 0,
+        "messages": [
+          {
+            "severity": "warning",
+            "code": "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE",
+            "message": "Material requires a tangent space but the mesh primitive does not provide it. Runtime-generated tangent space may be non-portable across implementations.",
+            "pointer": "/meshes/0/primitives/0/material"
+          }
+        ]
+      },
+      "extensionsUsed": [
+        "EXT_texture_webp",
+        "KHR_draco_mesh_compression"
+      ],
+      "undecodableByRuntime": [],
+      "drawCallCount": 1,
+      "totalTriangleCount": 316,
+      "totalVertexCount": 233,
+      "maxUVTileCount": null,
+      "ok": true
+    },
+    {
+      "key": "patty",
+      "file": "ingredient-patty.glb",
+      "bytes": 213024,
+      "budgetBytes": 1310720,
+      "overBudget": false,
+      "validator": {
+        "errors": 0,
+        "warnings": 0,
+        "infos": 2,
+        "hints": 0,
+        "messages": []
+      },
+      "extensionsUsed": [
+        "EXT_texture_webp",
+        "KHR_draco_mesh_compression"
+      ],
+      "undecodableByRuntime": [],
+      "drawCallCount": 1,
+      "totalTriangleCount": 19628,
+      "totalVertexCount": 13226,
+      "maxUVTileCount": null,
+      "ok": true
+    },
+    {
+      "key": "tomato",
+      "file": "ingredient-tomato.glb",
+      "bytes": 79668,
+      "budgetBytes": 1310720,
+      "overBudget": false,
+      "validator": {
+        "errors": 0,
+        "warnings": 0,
+        "infos": 4,
+        "hints": 0,
+        "messages": []
+      },
+      "extensionsUsed": [
+        "EXT_texture_webp",
+        "KHR_draco_mesh_compression",
+        "KHR_materials_ior",
+        "KHR_materials_specular"
+      ],
+      "undecodableByRuntime": [],
+      "drawCallCount": 3,
+      "totalTriangleCount": 1310,
+      "totalVertexCount": 935,
+      "maxUVTileCount": null,
+      "ok": true
+    },
+    {
+      "key": "lettuce",
+      "file": "ingredient-lettuce.glb",
+      "bytes": 16604,
+      "budgetBytes": 1310720,
+      "overBudget": false,
+      "validator": {
+        "errors": 0,
+        "warnings": 0,
+        "infos": 2,
+        "hints": 0,
+        "messages": []
+      },
+      "extensionsUsed": [
+        "EXT_texture_webp",
+        "KHR_draco_mesh_compression",
+        "KHR_materials_ior",
+        "KHR_materials_specular"
+      ],
+      "undecodableByRuntime": [],
+      "drawCallCount": 1,
+      "totalTriangleCount": 476,
+      "totalVertexCount": 739,
+      "maxUVTileCount": null,
+      "ok": true
+    },
+    {
+      "key": "onion",
+      "file": "ingredient-onion.glb",
+      "bytes": 596544,
+      "budgetBytes": 1310720,
+      "overBudget": false,
+      "validator": {
+        "errors": 0,
+        "warnings": 1,
+        "infos": 2,
+        "hints": 0,
+        "messages": [
+          {
+            "severity": "warning",
+            "code": "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE",
+            "message": "Material requires a tangent space but the mesh primitive does not provide it. Runtime-generated tangent space may be non-portable across implementations.",
+            "pointer": "/meshes/0/primitives/0/material"
+          }
+        ]
+      },
+      "extensionsUsed": [
+        "EXT_texture_webp",
+        "KHR_draco_mesh_compression",
+        "KHR_materials_ior",
+        "KHR_materials_specular"
+      ],
+      "undecodableByRuntime": [],
+      "drawCallCount": 1,
+      "totalTriangleCount": 1340,
+      "totalVertexCount": 813,
+      "maxUVTileCount": null,
+      "ok": true
+    },
+    {
+      "key": "burger",
+      "file": "burger-complete.glb",
+      "bytes": 1569000,
+      "budgetBytes": 2621440,
+      "overBudget": false,
+      "validator": {
+        "errors": 0,
+        "warnings": 1,
+        "infos": 2,
+        "hints": 0,
+        "messages": [
+          {
+            "severity": "warning",
+            "code": "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE",
+            "message": "Material requires a tangent space but the mesh primitive does not provide it. Runtime-generated tangent space may be non-portable across implementations.",
+            "pointer": "/meshes/0/primitives/0/material"
+          }
+        ]
+      },
+      "extensionsUsed": [
+        "EXT_texture_webp",
+        "KHR_draco_mesh_compression",
+        "KHR_materials_specular"
+      ],
+      "undecodableByRuntime": [],
+      "drawCallCount": 1,
+      "totalTriangleCount": 220000,
+      "totalVertexCount": 179896,
+      "maxUVTileCount": null,
+      "ok": true
+    },
+    {
+      "key": "rocket",
+      "file": "rocket-chair-snowboard.glb",
+      "bytes": 976300,
+      "budgetBytes": 4194304,
+      "overBudget": false,
+      "validator": {
+        "errors": 0,
+        "warnings": 1,
+        "infos": 2,
+        "hints": 0,
+        "messages": [
+          {
+            "severity": "warning",
+            "code": "MESH_PRIMITIVE_GENERATED_TANGENT_SPACE",
+            "message": "Material requires a tangent space but the mesh primitive does not provide it. Runtime-generated tangent space may be non-portable across implementations.",
+            "pointer": "/meshes/0/primitives/0/material"
+          }
+        ]
+      },
+      "extensionsUsed": [
+        "EXT_texture_webp",
+        "KHR_draco_mesh_compression",
+        "KHR_materials_specular"
+      ],
+      "undecodableByRuntime": [],
+      "drawCallCount": 1,
+      "totalTriangleCount": 159996,
+      "totalVertexCount": 134211,
+      "maxUVTileCount": null,
+      "ok": true
+    }
+  ]
+}

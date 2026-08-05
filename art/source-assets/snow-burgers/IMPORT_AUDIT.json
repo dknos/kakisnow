@@ -1,0 +1,1215 @@
+{
+  "generatedBy": "tools/snow-burgers/inspect-assets.mjs",
+  "target": "source",
+  "directory": "art/source-assets/snow-burgers",
+  "toolVersions": {
+    "@gltf-transform/core": "4.3.0",
+    "@gltf-transform/extensions": "4.3.0",
+    "@gltf-transform/functions": "4.3.0"
+  },
+  "node": "v22.22.1",
+  "runtimeSupportedExtensions": [
+    "EXT_texture_webp",
+    "KHR_draco_mesh_compression",
+    "KHR_lights_punctual",
+    "KHR_materials_clearcoat",
+    "KHR_materials_emissive_strength",
+    "KHR_materials_ior",
+    "KHR_materials_pbrSpecularGlossiness",
+    "KHR_materials_sheen",
+    "KHR_materials_specular",
+    "KHR_materials_transmission",
+    "KHR_materials_unlit",
+    "KHR_materials_volume",
+    "KHR_mesh_quantization",
+    "KHR_texture_transform"
+  ],
+  "provenanceNote": "These files were supplied from the project owner's local Downloads folder. Nothing in them establishes a licence: `copyright` and `extras` are reported exactly as embedded, and where they are null the redistribution status is unresolved rather than permissive.",
+  "assets": [
+    {
+      "key": "cheese",
+      "role": "ingredient",
+      "runtimeName": "ingredient-cheese.glb",
+      "budgetBytes": 1310720,
+      "originalWindowsPath": "C:\\Users\\rneeb\\Downloads\\cheese.glb",
+      "file": "cheese-source.glb",
+      "bytes": 144548,
+      "sha256": "990470f82f79e53e246a82960fc462d101124e2044270608dcdaa9a0ed42987d",
+      "decodeNote": null,
+      "generator": "glTF-Transform v4.3.0",
+      "gltfVersion": "2.0",
+      "copyright": null,
+      "extras": {},
+      "extensionsUsed": [],
+      "extensionsRequired": [],
+      "extensionsUnsupportedByRuntime": [],
+      "counts": {
+        "scenes": 1,
+        "nodes": 3,
+        "rootNodes": 1,
+        "meshes": 1,
+        "primitives": 1,
+        "triangles": 316,
+        "vertices": 233,
+        "materials": 1,
+        "textures": 2,
+        "animations": 0,
+        "skins": 0,
+        "cameras": 0,
+        "morphTargets": 0
+      },
+      "animationNames": [],
+      "attributes": {
+        "semantics": [
+          "NORMAL",
+          "POSITION",
+          "TANGENT",
+          "TEXCOORD_0"
+        ],
+        "primitivesWithNormals": 1,
+        "primitivesWithTangents": 1,
+        "primitivesWithUV0": 1,
+        "primitivesWithVertexColor": 0,
+        "primitivesWithSkinWeights": 0,
+        "primitiveModes": [
+          4
+        ]
+      },
+      "bbox": {
+        "min": [
+          -0.369971,
+          -0.250339,
+          -0.484209
+        ],
+        "max": [
+          0.36324,
+          0.251331,
+          0.507155
+        ],
+        "size": [
+          0.733211,
+          0.50167,
+          0.991364
+        ],
+        "centre": [
+          -0.003366,
+          0.000496,
+          0.011473
+        ]
+      },
+      "rootNodes": [
+        {
+          "name": "Sketchfab_model",
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            -0.707107,
+            0,
+            0,
+            0.707107
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "children": 1,
+          "mesh": null
+        }
+      ],
+      "nodeNames": [
+        "Sketchfab_model",
+        "9c34eb8ad7764f5f990f548b19fb64e1.obj.cleaner.materialmerger.gles",
+        "Object_2"
+      ],
+      "materials": [
+        {
+          "name": "material_0",
+          "alphaMode": "OPAQUE",
+          "alphaCutoff": 0.5,
+          "doubleSided": true,
+          "baseColorFactor": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "metallic": 0,
+          "roughness": 0.6,
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "maps": {
+            "baseColor": true,
+            "metallicRoughness": false,
+            "normal": true,
+            "occlusion": false,
+            "emissive": false
+          },
+          "extensions": []
+        }
+      ],
+      "textures": [
+        {
+          "name": null,
+          "uri": null,
+          "embedded": true,
+          "mimeType": "image/png",
+          "bytes": 51386,
+          "width": 256,
+          "height": 256
+        },
+        {
+          "name": null,
+          "uri": null,
+          "embedded": true,
+          "mimeType": "image/png",
+          "bytes": 75491,
+          "width": 256,
+          "height": 256
+        }
+      ],
+      "textureBytes": 126877,
+      "externalTextures": 0,
+      "payloadSplit": {
+        "textureBytes": 126877,
+        "nonTextureBytes": 17671,
+        "texturePercent": 87.8
+      }
+    },
+    {
+      "key": "patty",
+      "role": "ingredient",
+      "runtimeName": "ingredient-patty.glb",
+      "budgetBytes": 1310720,
+      "originalWindowsPath": "C:\\Users\\rneeb\\Downloads\\raw_burger_meatball_-_patty.glb",
+      "file": "patty-source.glb",
+      "bytes": 2380180,
+      "sha256": "1ffee654a21562a05d818506c7656e1620ae779fee292292c4138a8d526f2c2b",
+      "decodeNote": null,
+      "generator": "glTF-Transform v4.3.0",
+      "gltfVersion": "2.0",
+      "copyright": null,
+      "extras": {},
+      "extensionsUsed": [],
+      "extensionsRequired": [],
+      "extensionsUnsupportedByRuntime": [],
+      "counts": {
+        "scenes": 1,
+        "nodes": 5,
+        "rootNodes": 1,
+        "meshes": 1,
+        "primitives": 1,
+        "triangles": 19628,
+        "vertices": 13226,
+        "materials": 1,
+        "textures": 1,
+        "animations": 0,
+        "skins": 0,
+        "cameras": 0,
+        "morphTargets": 0
+      },
+      "animationNames": [],
+      "attributes": {
+        "semantics": [
+          "NORMAL",
+          "POSITION",
+          "TEXCOORD_0"
+        ],
+        "primitivesWithNormals": 1,
+        "primitivesWithTangents": 0,
+        "primitivesWithUV0": 1,
+        "primitivesWithVertexColor": 0,
+        "primitivesWithSkinWeights": 0,
+        "primitiveModes": [
+          4
+        ]
+      },
+      "bbox": {
+        "min": [
+          -0.995563,
+          -0.352429,
+          -0.993479
+        ],
+        "max": [
+          0.999234,
+          0.348452,
+          0.995912
+        ],
+        "size": [
+          1.994797,
+          0.700881,
+          1.989391
+        ],
+        "centre": [
+          0.001836,
+          -0.001989,
+          0.001217
+        ]
+      },
+      "rootNodes": [
+        {
+          "name": "Sketchfab_model",
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            -0.707107,
+            0,
+            0,
+            0.707107
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "children": 1,
+          "mesh": null
+        }
+      ],
+      "nodeNames": [
+        "Sketchfab_model",
+        "root",
+        "GLTF_SceneRootNode",
+        "_0",
+        "Object_4"
+      ],
+      "materials": [
+        {
+          "name": "material_0",
+          "alphaMode": "OPAQUE",
+          "alphaCutoff": 0.5,
+          "doubleSided": true,
+          "baseColorFactor": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "metallic": 0,
+          "roughness": 0.8,
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "maps": {
+            "baseColor": true,
+            "metallicRoughness": false,
+            "normal": false,
+            "occlusion": false,
+            "emissive": false
+          },
+          "extensions": []
+        }
+      ],
+      "textures": [
+        {
+          "name": null,
+          "uri": null,
+          "embedded": true,
+          "mimeType": "image/jpeg",
+          "bytes": 1719038,
+          "width": 2048,
+          "height": 2048
+        }
+      ],
+      "textureBytes": 1719038,
+      "externalTextures": 0,
+      "payloadSplit": {
+        "textureBytes": 1719038,
+        "nonTextureBytes": 661142,
+        "texturePercent": 72.2
+      }
+    },
+    {
+      "key": "tomato",
+      "role": "ingredient",
+      "runtimeName": "ingredient-tomato.glb",
+      "budgetBytes": 1310720,
+      "originalWindowsPath": "C:\\Users\\rneeb\\Downloads\\tomato.glb",
+      "file": "tomato-source.glb",
+      "bytes": 582620,
+      "sha256": "33f8f0d8e32f1552840e1fada383a3be5a1029efd6cb5d3a13425b83123f3239",
+      "decodeNote": null,
+      "generator": "glTF-Transform v4.3.0",
+      "gltfVersion": "2.0",
+      "copyright": null,
+      "extras": {},
+      "extensionsUsed": [
+        "KHR_materials_pbrSpecularGlossiness"
+      ],
+      "extensionsRequired": [
+        "KHR_materials_pbrSpecularGlossiness"
+      ],
+      "extensionsUnsupportedByRuntime": [],
+      "counts": {
+        "scenes": 1,
+        "nodes": 6,
+        "rootNodes": 1,
+        "meshes": 3,
+        "primitives": 3,
+        "triangles": 1310,
+        "vertices": 922,
+        "materials": 3,
+        "textures": 3,
+        "animations": 0,
+        "skins": 0,
+        "cameras": 0,
+        "morphTargets": 0
+      },
+      "animationNames": [],
+      "attributes": {
+        "semantics": [
+          "NORMAL",
+          "POSITION",
+          "TEXCOORD_0",
+          "TEXCOORD_1"
+        ],
+        "primitivesWithNormals": 3,
+        "primitivesWithTangents": 0,
+        "primitivesWithUV0": 3,
+        "primitivesWithVertexColor": 0,
+        "primitivesWithSkinWeights": 0,
+        "primitiveModes": [
+          4
+        ]
+      },
+      "bbox": {
+        "min": [
+          -2.720358,
+          0,
+          -2.64634
+        ],
+        "max": [
+          2.572322,
+          5.654117,
+          2.64634
+        ],
+        "size": [
+          5.29268,
+          5.654117,
+          5.29268
+        ],
+        "centre": [
+          -0.074018,
+          2.827059,
+          0
+        ]
+      },
+      "rootNodes": [
+        {
+          "name": "Sketchfab_model",
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            -0.707107,
+            0,
+            0,
+            0.707107
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "children": 1,
+          "mesh": null
+        }
+      ],
+      "nodeNames": [
+        "Sketchfab_model",
+        "Root",
+        "Tomato",
+        "Tomato_0",
+        "Tomato_1",
+        "Tomato_2"
+      ],
+      "materials": [
+        {
+          "name": "Tomato_Material",
+          "alphaMode": "OPAQUE",
+          "alphaCutoff": 0.5,
+          "doubleSided": true,
+          "baseColorFactor": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "metallic": 1,
+          "roughness": 1,
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "maps": {
+            "baseColor": false,
+            "metallicRoughness": false,
+            "normal": false,
+            "occlusion": false,
+            "emissive": false
+          },
+          "extensions": [
+            "KHR_materials_pbrSpecularGlossiness"
+          ]
+        },
+        {
+          "name": "Tomato_Top_Texture",
+          "alphaMode": "OPAQUE",
+          "alphaCutoff": 0.5,
+          "doubleSided": true,
+          "baseColorFactor": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "metallic": 1,
+          "roughness": 1,
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "maps": {
+            "baseColor": false,
+            "metallicRoughness": false,
+            "normal": false,
+            "occlusion": false,
+            "emissive": false
+          },
+          "extensions": [
+            "KHR_materials_pbrSpecularGlossiness"
+          ]
+        },
+        {
+          "name": "Green_Material",
+          "alphaMode": "OPAQUE",
+          "alphaCutoff": 0.5,
+          "doubleSided": true,
+          "baseColorFactor": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "metallic": 1,
+          "roughness": 1,
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "maps": {
+            "baseColor": false,
+            "metallicRoughness": false,
+            "normal": false,
+            "occlusion": false,
+            "emissive": false
+          },
+          "extensions": [
+            "KHR_materials_pbrSpecularGlossiness"
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "name": null,
+          "uri": null,
+          "embedded": true,
+          "mimeType": "image/png",
+          "bytes": 274867,
+          "width": 512,
+          "height": 512
+        },
+        {
+          "name": null,
+          "uri": null,
+          "embedded": true,
+          "mimeType": "image/jpeg",
+          "bytes": 235478,
+          "width": 1024,
+          "height": 1024
+        },
+        {
+          "name": null,
+          "uri": null,
+          "embedded": true,
+          "mimeType": "image/jpeg",
+          "bytes": 14414,
+          "width": 256,
+          "height": 128
+        }
+      ],
+      "textureBytes": 524759,
+      "externalTextures": 0,
+      "payloadSplit": {
+        "textureBytes": 524759,
+        "nonTextureBytes": 57861,
+        "texturePercent": 90.1
+      }
+    },
+    {
+      "key": "lettuce",
+      "role": "ingredient",
+      "runtimeName": "ingredient-lettuce.glb",
+      "budgetBytes": 1310720,
+      "originalWindowsPath": "C:\\Users\\rneeb\\Downloads\\lettuce.glb",
+      "file": "lettuce-source.glb",
+      "bytes": 85820,
+      "sha256": "60c69d6dedb3e19c211ce55f59d434a4293f7e0b6ef6c5a02071dc18c904a439",
+      "decodeNote": null,
+      "generator": "glTF-Transform v4.3.0",
+      "gltfVersion": "2.0",
+      "copyright": null,
+      "extras": {},
+      "extensionsUsed": [
+        "KHR_materials_pbrSpecularGlossiness"
+      ],
+      "extensionsRequired": [
+        "KHR_materials_pbrSpecularGlossiness"
+      ],
+      "extensionsUnsupportedByRuntime": [],
+      "counts": {
+        "scenes": 1,
+        "nodes": 5,
+        "rootNodes": 1,
+        "meshes": 1,
+        "primitives": 1,
+        "triangles": 476,
+        "vertices": 739,
+        "materials": 1,
+        "textures": 1,
+        "animations": 0,
+        "skins": 0,
+        "cameras": 0,
+        "morphTargets": 0
+      },
+      "animationNames": [],
+      "attributes": {
+        "semantics": [
+          "NORMAL",
+          "POSITION",
+          "TEXCOORD_0"
+        ],
+        "primitivesWithNormals": 1,
+        "primitivesWithTangents": 0,
+        "primitivesWithUV0": 1,
+        "primitivesWithVertexColor": 0,
+        "primitivesWithSkinWeights": 0,
+        "primitiveModes": [
+          4
+        ]
+      },
+      "bbox": {
+        "min": [
+          -0.163413,
+          -0.030957,
+          -0.119001
+        ],
+        "max": [
+          0.182836,
+          0.171068,
+          0.199889
+        ],
+        "size": [
+          0.346248,
+          0.202025,
+          0.31889
+        ],
+        "centre": [
+          0.009712,
+          0.070056,
+          0.040444
+        ]
+      },
+      "rootNodes": [
+        {
+          "name": "Sketchfab_model",
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            -0.707107,
+            0,
+            0,
+            0.707107
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "children": 1,
+          "mesh": null
+        }
+      ],
+      "nodeNames": [
+        "Sketchfab_model",
+        "ef166ee98f0448d6ac2541732ab311d7.fbx",
+        "RootNode",
+        "Marul",
+        "Marul_Material_0"
+      ],
+      "materials": [
+        {
+          "name": "Material",
+          "alphaMode": "MASK",
+          "alphaCutoff": 0.095,
+          "doubleSided": true,
+          "baseColorFactor": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "metallic": 1,
+          "roughness": 1,
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "maps": {
+            "baseColor": false,
+            "metallicRoughness": false,
+            "normal": false,
+            "occlusion": false,
+            "emissive": false
+          },
+          "extensions": [
+            "KHR_materials_pbrSpecularGlossiness"
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "name": null,
+          "uri": null,
+          "embedded": true,
+          "mimeType": "image/png",
+          "bytes": 53666,
+          "width": 128,
+          "height": 256
+        }
+      ],
+      "textureBytes": 53666,
+      "externalTextures": 0,
+      "payloadSplit": {
+        "textureBytes": 53666,
+        "nonTextureBytes": 32154,
+        "texturePercent": 62.5
+      }
+    },
+    {
+      "key": "onion",
+      "role": "ingredient",
+      "runtimeName": "ingredient-onion.glb",
+      "budgetBytes": 1310720,
+      "originalWindowsPath": "C:\\Users\\rneeb\\Downloads\\onion.glb",
+      "file": "onion-source.glb",
+      "bytes": 2765904,
+      "sha256": "78cbe755be20419aee503cc1b03cf659d0ab0d52f4cace66fc48b8ca861be737",
+      "decodeNote": null,
+      "generator": "glTF-Transform v4.3.0",
+      "gltfVersion": "2.0",
+      "copyright": null,
+      "extras": {},
+      "extensionsUsed": [
+        "KHR_materials_pbrSpecularGlossiness"
+      ],
+      "extensionsRequired": [
+        "KHR_materials_pbrSpecularGlossiness"
+      ],
+      "extensionsUnsupportedByRuntime": [],
+      "counts": {
+        "scenes": 1,
+        "nodes": 4,
+        "rootNodes": 1,
+        "meshes": 1,
+        "primitives": 1,
+        "triangles": 1340,
+        "vertices": 812,
+        "materials": 1,
+        "textures": 2,
+        "animations": 0,
+        "skins": 0,
+        "cameras": 0,
+        "morphTargets": 0
+      },
+      "animationNames": [],
+      "attributes": {
+        "semantics": [
+          "NORMAL",
+          "POSITION",
+          "TANGENT",
+          "TEXCOORD_0"
+        ],
+        "primitivesWithNormals": 1,
+        "primitivesWithTangents": 1,
+        "primitivesWithUV0": 1,
+        "primitivesWithVertexColor": 0,
+        "primitivesWithSkinWeights": 0,
+        "primitiveModes": [
+          4
+        ]
+      },
+      "bbox": {
+        "min": [
+          -4.90937,
+          -0.019767,
+          -4.88173
+        ],
+        "max": [
+          4.90937,
+          10.736348,
+          4.93701
+        ],
+        "size": [
+          9.81874,
+          10.756114,
+          9.81874
+        ],
+        "centre": [
+          0,
+          5.358291,
+          0.02764
+        ]
+      },
+      "rootNodes": [
+        {
+          "name": "Sketchfab_model",
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            -0.707107,
+            0,
+            0,
+            0.707107
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "children": 1,
+          "mesh": null
+        }
+      ],
+      "nodeNames": [
+        "Sketchfab_model",
+        "Root",
+        "Onion",
+        "Onion_0"
+      ],
+      "materials": [
+        {
+          "name": "Onion_Material",
+          "alphaMode": "OPAQUE",
+          "alphaCutoff": 0.5,
+          "doubleSided": true,
+          "baseColorFactor": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "metallic": 1,
+          "roughness": 1,
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "maps": {
+            "baseColor": false,
+            "metallicRoughness": false,
+            "normal": true,
+            "occlusion": false,
+            "emissive": false
+          },
+          "extensions": [
+            "KHR_materials_pbrSpecularGlossiness"
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "name": null,
+          "uri": null,
+          "embedded": true,
+          "mimeType": "image/png",
+          "bytes": 1031109,
+          "width": 1024,
+          "height": 1024
+        },
+        {
+          "name": null,
+          "uri": null,
+          "embedded": true,
+          "mimeType": "image/png",
+          "bytes": 1676733,
+          "width": 1024,
+          "height": 1024
+        }
+      ],
+      "textureBytes": 2707842,
+      "externalTextures": 0,
+      "payloadSplit": {
+        "textureBytes": 2707842,
+        "nonTextureBytes": 58062,
+        "texturePercent": 97.9
+      }
+    },
+    {
+      "key": "burger",
+      "role": "reward",
+      "runtimeName": "burger-complete.glb",
+      "budgetBytes": 2621440,
+      "originalWindowsPath": "C:\\Users\\rneeb\\Downloads\\burger.glb",
+      "file": "burger-complete-source.glb",
+      "bytes": 93547332,
+      "sha256": "f0cb37a809cd2f779ce64e2c140520a1b02fce34dc09f4d9c1625802b219106d",
+      "decodeNote": null,
+      "generator": "glTF-Transform v4.3.0",
+      "gltfVersion": "2.0",
+      "copyright": null,
+      "extras": {},
+      "extensionsUsed": [
+        "KHR_materials_specular"
+      ],
+      "extensionsRequired": [],
+      "extensionsUnsupportedByRuntime": [],
+      "counts": {
+        "scenes": 1,
+        "nodes": 1,
+        "rootNodes": 1,
+        "meshes": 1,
+        "primitives": 1,
+        "triangles": 1500000,
+        "vertices": 855352,
+        "materials": 1,
+        "textures": 3,
+        "animations": 0,
+        "skins": 0,
+        "cameras": 0,
+        "morphTargets": 0
+      },
+      "animationNames": [],
+      "attributes": {
+        "semantics": [
+          "NORMAL",
+          "POSITION",
+          "TEXCOORD_0"
+        ],
+        "primitivesWithNormals": 1,
+        "primitivesWithTangents": 0,
+        "primitivesWithUV0": 1,
+        "primitivesWithVertexColor": 0,
+        "primitivesWithSkinWeights": 0,
+        "primitiveModes": [
+          4
+        ]
+      },
+      "bbox": {
+        "min": [
+          -0.500145,
+          0,
+          -0.503052
+        ],
+        "max": [
+          0.484354,
+          0.756857,
+          0.476347
+        ],
+        "size": [
+          0.984499,
+          0.756857,
+          0.979399
+        ],
+        "centre": [
+          -0.007896,
+          0.378429,
+          -0.013352
+        ]
+      },
+      "rootNodes": [
+        {
+          "name": "node_0",
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0.707107,
+            0,
+            0,
+            0.707107
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "children": 0,
+          "mesh": "node_0"
+        }
+      ],
+      "nodeNames": [
+        "node_0"
+      ],
+      "materials": [
+        {
+          "name": "Material.001",
+          "alphaMode": "OPAQUE",
+          "alphaCutoff": 0.5,
+          "doubleSided": true,
+          "baseColorFactor": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "metallic": 1,
+          "roughness": 1,
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "maps": {
+            "baseColor": true,
+            "metallicRoughness": true,
+            "normal": true,
+            "occlusion": false,
+            "emissive": false
+          },
+          "extensions": [
+            "KHR_materials_specular"
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "name": "texture_pbr_20250901_normal",
+          "uri": null,
+          "embedded": true,
+          "mimeType": "image/png",
+          "bytes": 10617343,
+          "width": 4096,
+          "height": 4096
+        },
+        {
+          "name": "texture_pbr_20250901",
+          "uri": null,
+          "embedded": true,
+          "mimeType": "image/png",
+          "bytes": 22269611,
+          "width": 4096,
+          "height": 4096
+        },
+        {
+          "name": "texture_pbr_20250901_metallic-texture_pbr_20250901_roughness",
+          "uri": null,
+          "embedded": true,
+          "mimeType": "image/png",
+          "bytes": 15287127,
+          "width": 4096,
+          "height": 4096
+        }
+      ],
+      "textureBytes": 48174081,
+      "externalTextures": 0,
+      "payloadSplit": {
+        "textureBytes": 48174081,
+        "nonTextureBytes": 45373251,
+        "texturePercent": 51.5
+      }
+    },
+    {
+      "key": "rocket",
+      "role": "vehicle",
+      "runtimeName": "rocket-chair-snowboard.glb",
+      "budgetBytes": 4194304,
+      "originalWindowsPath": "C:\\Users\\rneeb\\Downloads\\rocket snowboard.glb",
+      "file": "rocket-chair-snowboard-source.glb",
+      "bytes": 76827712,
+      "sha256": "476103841d2255db87bd37d4c3473e14678a944144802665827eaaa4b62f7a2b",
+      "decodeNote": null,
+      "generator": "glTF-Transform v4.3.0",
+      "gltfVersion": "2.0",
+      "copyright": null,
+      "extras": {},
+      "extensionsUsed": [
+        "KHR_materials_specular"
+      ],
+      "extensionsRequired": [],
+      "extensionsUnsupportedByRuntime": [],
+      "counts": {
+        "scenes": 1,
+        "nodes": 1,
+        "rootNodes": 1,
+        "meshes": 1,
+        "primitives": 1,
+        "triangles": 1500000,
+        "vertices": 840633,
+        "materials": 1,
+        "textures": 3,
+        "animations": 0,
+        "skins": 0,
+        "cameras": 0,
+        "morphTargets": 0
+      },
+      "animationNames": [],
+      "attributes": {
+        "semantics": [
+          "NORMAL",
+          "POSITION",
+          "TEXCOORD_0"
+        ],
+        "primitivesWithNormals": 1,
+        "primitivesWithTangents": 0,
+        "primitivesWithUV0": 1,
+        "primitivesWithVertexColor": 0,
+        "primitivesWithSkinWeights": 0,
+        "primitiveModes": [
+          4
+        ]
+      },
+      "bbox": {
+        "min": [
+          -0.13766,
+          0,
+          -0.565064
+        ],
+        "max": [
+          0.137702,
+          0.342731,
+          0.628391
+        ],
+        "size": [
+          0.275362,
+          0.342731,
+          1.193455
+        ],
+        "centre": [
+          0.000021,
+          0.171366,
+          0.031664
+        ]
+      },
+      "rootNodes": [
+        {
+          "name": "node_0",
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0.707107,
+            0,
+            0,
+            0.707107
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ],
+          "children": 0,
+          "mesh": "node_0"
+        }
+      ],
+      "nodeNames": [
+        "node_0"
+      ],
+      "materials": [
+        {
+          "name": "Material.001",
+          "alphaMode": "OPAQUE",
+          "alphaCutoff": 0.5,
+          "doubleSided": true,
+          "baseColorFactor": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "metallic": 1,
+          "roughness": 1,
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "maps": {
+            "baseColor": true,
+            "metallicRoughness": true,
+            "normal": true,
+            "occlusion": false,
+            "emissive": false
+          },
+          "extensions": [
+            "KHR_materials_specular"
+          ]
+        }
+      ],
+      "textures": [
+        {
+          "name": "texture_pbr_20250901_normal",
+          "uri": null,
+          "embedded": true,
+          "mimeType": "image/png",
+          "bytes": 5739475,
+          "width": 4096,
+          "height": 4096
+        },
+        {
+          "name": "texture_pbr_20250901",
+          "uri": null,
+          "embedded": true,
+          "mimeType": "image/png",
+          "bytes": 14826179,
+          "width": 4096,
+          "height": 4096
+        },
+        {
+          "name": "texture_pbr_20250901_metallic-texture_pbr_20250901_roughness",
+          "uri": null,
+          "embedded": true,
+          "mimeType": "image/png",
+          "bytes": 11359816,
+          "width": 4096,
+          "height": 4096
+        }
+      ],
+      "textureBytes": 31925470,
+      "externalTextures": 0,
+      "payloadSplit": {
+        "textureBytes": 31925470,
+        "nonTextureBytes": 44902242,
+        "texturePercent": 41.6
+      }
+    }
+  ]
+}

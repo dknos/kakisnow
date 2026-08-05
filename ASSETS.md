@@ -251,3 +251,46 @@ release packages must retain/provide the Apache 2.0 license and applicable
 notices. The production build includes the combined notice and license text as
 `THIRD_PARTY_NOTICES.txt`. The decoder is initialized during loading so the
 default RockerKaki model can be displayed without a runtime network fetch.
+
+## Snow-Burgers game assets — provenance unresolved
+
+Seven GLBs supplied by the project owner from a local `Downloads` folder on
+2026-08-05: five ingredients, the completed burger, and the rocket chair
+snowboard. They are the pickups, the reward and the second vehicle of the
+Snow-Burgers game layer.
+
+**None of them carries a licence.** Every one reports `copyright: null` and an
+empty `extras`; five have Sketchfab download signatures in their node names and
+two are generated assets whose textures are dated 2025-09-01. Being supplied
+locally establishes nothing about redistribution rights, and nothing here
+should be read as commercial clearance. This is the same unresolved status
+RockerKaki carries, recorded rather than resolved.
+
+Source files are preserved on the authoring machine at
+`art/source-assets/snow-burgers/*-source.glb` and excluded from version
+control — 176 MB of binaries would be permanent in the history of a repository
+that publishes to GitHub Pages. Their byte counts and SHA-256 hashes are in
+`art/source-assets/snow-burgers/IMPORT_AUDIT.json`, so a future copy can be
+verified as the file this pipeline measured.
+
+| Runtime file (`public/assets/models/snow-burgers/`) | Bytes | Source bytes | Source SHA-256 |
+| --- | ---: | ---: | --- |
+| `ingredient-cheese.glb` | 18,404 | 144,548 | `990470f82f79e53e246a82960fc462d101124e2044270608dcdaa9a0ed42987d` |
+| `ingredient-patty.glb` | 213,024 | 2,380,180 | `1ffee654a21562a05d818506c7656e1620ae779fee292292c4138a8d526f2c2b` |
+| `ingredient-tomato.glb` | 79,668 | 582,620 | `33f8f0d8e32f1552840e1fada383a3be5a1029efd6cb5d3a13425b83123f3239` |
+| `ingredient-lettuce.glb` | 16,604 | 85,820 | `60c69d6dedb3e19c211ce55f59d434a4293f7e0b6ef6c5a02071dc18c904a439` |
+| `ingredient-onion.glb` | 596,544 | 2,765,904 | `78cbe755be20419aee503cc1b03cf659d0ab0d52f4cace66fc48b8ca861be737` |
+| `burger-complete.glb` | 1,569,000 | 93,547,332 | `f0cb37a809cd2f779ce64e2c140520a1b02fce34dc09f4d9c1625802b219106d` |
+| `rocket-chair-snowboard.glb` | 976,300 | 76,827,712 | `476103841d2255db87bd37d4c3473e14678a944144802665827eaaa4b62f7a2b` |
+
+Each runtime file is a derivative, not a copy: transforms baked into geometry,
+uniform rescale to a game-world size, pivot moved to the footprint centre at
+ground level, specular-glossiness converted to metallic-roughness, unused
+attributes stripped, textures resampled and re-encoded WebP, geometry
+Draco-compressed. The burger and the rocket chair are additionally decimated
+from 1,500,000 triangles to 220,000 and 160,000.
+
+What was done to each file, why, and the rendered before/after evidence for the
+decimation are in `art/source-assets/snow-burgers/OPTIMIZATION_REPORT.md`.
+Runtime SHA-256 hashes are in `OPTIMIZATION_REPORT.json`; validator results are
+in `VALIDATION.json`.
