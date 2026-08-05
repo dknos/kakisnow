@@ -49,9 +49,7 @@ import { whenReady, bindMatrixArray } from "../core/gpuUtil.js";
 import { expDamp } from "../core/camera.js";
 import { CASCADE_COUNT } from "../render/shadows.js";
 import { SPELL_LIGHT_UNIFORMS } from "../spells/spellLights.js";
-import {
-    BOARD_LENGTH, BOARD_WIDTH, BOARD_DECK, BOARD_ENVELOPE, HALF_EDGE,
-} from "./boardSpec.js";
+import { BOARD, BOARD_BASE_LENGTH, setBoardScale } from "./boardSpec.js";
 
 const PUBLIC_BASE = import.meta.env.BASE_URL;
 
@@ -68,17 +66,25 @@ const ROCKER_CASCADES = 2;
 
 // --------------------------------------------------------------- board tuning
 //
-// How far the base rides below the undisturbed surface, metres, before
-// `S.deformDepth` scales it.
+// How far the base rides below the undisturbed surface, as a fraction of the
+// deck height, before `S.deformDepth` scales it.
 //
-// Both numbers are deliberately well under the terrain buffer's 0.55 m
-// depression clamp. The board has to sit *in* the trench it writes, not at the
-// bottom of it: the deformation pass keeps digging for as long as the brush is
-// over a texel, so matching the floor exactly would bury the board the moment
-// the player held a line. Riding high in its own groove, with the berms
-// standing either side, is what reads as a board displacing snow.
-const BOARD_SINK_IDLE = 0.045;
-const BOARD_SINK_RIDE = 0.165;
+// Expressed against the deck rather than in metres, because what the eye
+// actually judges is how much board is left above the snow — and that is the
+// deck minus the sink. A fixed 4.5 cm idle sink swallowed three quarters of a
+// 6 cm deck and left the board looking half-buried whenever the player slowed
+// down; worse, it did not track `S.boardScale`, so a bigger board would have
+// been buried by exactly as much.
+//
+// Idle is small because a stationary board barely settles: it is wide, light,
+// and cuts nothing. Ride is much larger, and still far under the terrain
+// buffer's 0.55 m depression clamp — the board has to sit *in* the trench it
+// writes, not at the bottom of it. The deformation pass keeps digging for as
+// long as the brush is over a texel, so matching the floor would bury the board
+// the moment the player held a line. Riding high in its own groove with the
+// berms standing either side is what reads as displaced snow.
+const BOARD_SINK_IDLE = 0.20;
+const BOARD_SINK_RIDE = 1.75;
 
 /**
  * How much of the sink the nose is lifted back out of, 0..1.
@@ -96,6 +102,30 @@ const BOARD_EDGE_ANGLE = 0.52;
 
 /** Nose-up attitude held in the air, radians. */
 const BOARD_AIR_PITCH = 0.09;
+
+/**
+ * Metres the base rides above the CPU height mirror, at `sastrugiStrength` 1.
+ *
+ * This is not a fudge, it is a layer of terrain the mirror does not contain.
+ * `heightAt` reconstructs the baked *macro* heightfield, but `snow.vertex.wgsl`
+ * then displaces every vertex again by `terrainFine` — sastrugi at roughly a
+ * 2.3 m wavelength, whose crests stand about 8 cm proud of the macro surface
+ * and whose troughs fall about 5 cm below it. That layer is evaluated per
+ * vertex on the GPU and never read back, so nothing on the CPU can see it.
+ *
+ * A 2.58 m character never showed the gap. A 7.6 cm board is thinner than the
+ * relief it sits in, so it was being swallowed whole by ridges the grounding
+ * code did not know were there.
+ *
+ * Lifting by the crest height rather than splitting the difference is the
+ * physical answer, not a compromise: the effective edge is 2.4 m and the
+ * sastrugi wavelength is 2.3 m, so the board spans a full ridge period and
+ * rests on the high points, bridging the troughs exactly as a stiff plank does.
+ * It scales with `S.sastrugiStrength` because that is the amplitude it is
+ * clearing; turn the sastrugi off and the board settles back onto the macro
+ * surface where it belongs.
+ */
+const BOARD_SASTRUGI_LIFT = 0.060;
 
 /** Rate the board's attitude eases at, and the rate contact blends at. */
 const BOARD_ATTITUDE_RATE = 11;
@@ -187,6 +217,12 @@ export class RockerKaki {
         // ------------------------------------------------------------- board
         /** True once the board mesh imported and normalised. */
         this.boardAvailable = false;
+        /** Whether she is riding it. Driven by `S.showBoard`. */
+        this.boardVisible = true;
+        /** The asset's own bounds at unit scale, measured once at import. */
+        this._boardRawLength = 0;
+        this._boardRawMin = new Vector3();
+        this._boardRawMax = new Vector3();
         /** Metres the base currently rides below the undisturbed surface. */
         this.boardSink = 0;
         /** Eased attitude, radians. Positive pitch is nose-down, as Babylon's. */
@@ -195,7 +231,7 @@ export class RockerKaki {
         /** 0 in the air, 1 on the snow. Eased, so takeoff is not a snap. */
         this._contact = 1;
         /** Height of the deck above the contact plane, metres. */
-        this._deckHeight = BOARD_DECK;
+        this._deckHeight = BOARD.deck;
     }
 
     /** Load, normalise, register, and leave visibility to the hero selector. */
@@ -308,6 +344,19 @@ export class RockerKaki {
             result.animationGroups[i].stop();
         }
 
+        // Measure detached, at identity.
+        //
+        // `getHierarchyBoundingVectors` reports *world* space. Once the board is
+        // hanging off a moving rider on a pitched slope, a world-space centre is
+        // no use for setting a local offset — the two are in different frames,
+        // and subtracting one from the other throws the board off its rider.
+        // Unhooking the parent for the measurement is what makes the numbers
+        // below mean what they say, and it is why they are taken once and kept
+        // rather than re-measured on every resize.
+        const parent = this.boardAsset.parent;
+        this.boardAsset.parent = null;
+        this.boardAsset.position.setAll(0);
+        this.boardAsset.scaling.setAll(1);
         this.boardAsset.computeWorldMatrix(true);
         let bounds = this.boardAsset.getHierarchyBoundingVectors(true);
         // Which way the board is lying is measured, not assumed. A re-export
@@ -318,44 +367,31 @@ export class RockerKaki {
             this.boardAsset.computeWorldMatrix(true);
             bounds = this.boardAsset.getHierarchyBoundingVectors(true);
         }
+        this._boardRawMin.copyFrom(bounds.min);
+        this._boardRawMax.copyFrom(bounds.max);
+        this.boardAsset.parent = parent;
 
-        const length = Math.max(bounds.max.z - bounds.min.z, 0.001);
-        // Uniform: the sidecut, camber and printed graphic are all proportions
-        // of each other, and squashing one axis to hit a target width would
-        // show up in every one of them.
-        const k = BOARD_LENGTH / length;
-        this.boardAsset.scaling.setAll(k);
-        this.boardAsset.computeWorldMatrix(true);
+        this._boardRawLength = Math.max(bounds.max.z - bounds.min.z, 0.001);
 
-        bounds = this.boardAsset.getHierarchyBoundingVectors(true);
-        this.boardAsset.position.set(
-            -(bounds.min.x + bounds.max.x) * 0.5,
-            -bounds.min.y,
-            -(bounds.min.z + bounds.max.z) * 0.5
-        );
-        this.boardAsset.computeWorldMatrix(true);
-
-        // `boardSpec` is this asset's description, so a mismatch means the two
-        // have drifted apart — and the trench is cut from the spec, not from
-        // the mesh, so drift is silent until someone looks closely at a carve.
-        // Two measurements, because width alone cannot catch a re-export that
-        // changed the camber or the rocker.
-        const width = bounds.max.x - bounds.min.x;
-        const envelope = bounds.max.y - bounds.min.y;
-        if (Math.abs(width - BOARD_WIDTH) > 0.04 ||
-            Math.abs(envelope - BOARD_ENVELOPE) > 0.02) {
+        // Verify the asset against the proportions the trench is cut from. Two
+        // measurements, because width alone cannot catch a re-export that
+        // changed the camber or the rocker, and drift here is silent until
+        // somebody looks closely at a carve.
+        const unit = BOARD_BASE_LENGTH / this._boardRawLength;
+        const width = (bounds.max.x - bounds.min.x) * unit;
+        const envelope = (bounds.max.y - bounds.min.y) * unit;
+        if (Math.abs(width - BOARD.width / BOARD.scale) > 0.04 ||
+            Math.abs(envelope - BOARD.envelope / BOARD.scale) > 0.02) {
             console.warn(
                 "[kakisnow] board measures " + width.toFixed(3) + " x " +
-                envelope.toFixed(3) + " m against boardSpec's " +
-                BOARD_WIDTH + " x " + BOARD_ENVELOPE +
+                envelope.toFixed(3) + " m at unit scale against boardSpec's " +
+                (BOARD.width / BOARD.scale).toFixed(3) + " x " +
+                (BOARD.envelope / BOARD.scale).toFixed(3) +
                 " m; the trench will not match the board"
             );
         }
-        // The deck at the waist, from the spec — not the mesh's total vertical
-        // extent, which is the tips' topsheet and stands 16 mm higher. Seating
-        // her on that would float her that far above the board she is sitting
-        // on.
-        this._deckHeight = BOARD_DECK;
+
+        this.applyBoardScale();
 
         for (let i = 0; i < result.meshes.length; i++) {
             const mesh = result.meshes[i];
@@ -381,6 +417,61 @@ export class RockerKaki {
 
         this.boardAvailable = true;
         return true;
+    }
+
+    /**
+     * Resize the board and re-ground it, from `S.boardScale`.
+     *
+     * Uniform scaling, because the sidecut, camber and printed graphic are all
+     * proportions of each other and squashing one axis to hit a target width
+     * would show in every one of them.
+     *
+     * The re-centring has to run again after every resize, and the `-min.y` in
+     * particular: the board is cambered, so its lowest points are the two
+     * contact patches out near the feet, and those are what the snow is under.
+     * Grounding the waist instead buries the whole effective edge by the camber
+     * height, and the camber grows with the board.
+     */
+    applyBoardScale() {
+        if (!this._boardRawLength) return;
+        setBoardScale(S.boardScale);
+
+        // Arithmetic on the bounds measured at import, not a fresh measurement.
+        // The mesh is only ever uniformly scaled, so its local extents scale
+        // with it exactly — and re-measuring here would read world space, which
+        // is the wrong frame the moment the rider is anywhere but the origin.
+        const k = BOARD.length / this._boardRawLength;
+        const lo = this._boardRawMin;
+        const hi = this._boardRawMax;
+        this.boardAsset.scaling.setAll(k);
+        this.boardAsset.position.set(
+            -(lo.x + hi.x) * 0.5 * k,
+            -lo.y * k,
+            -(lo.z + hi.z) * 0.5 * k
+        );
+        this.boardAsset.computeWorldMatrix(true);
+
+        // The deck at the waist — not the mesh's total vertical extent, which is
+        // the tips' topsheet and stands higher. Seating her on that would float
+        // her that far above the board she is sitting on.
+        this._deckHeight = BOARD.deck;
+    }
+
+    /**
+     * Show or hide the board.
+     *
+     * Hiding it is not just a visibility flag: with no board there is no deck to
+     * sit on and no base to sink, so she goes back to sitting on the snow
+     * itself. Terrain conformance stays either way — that part is not the
+     * board's doing, and she was sitting flat on 43-degree faces before it
+     * existed.
+     */
+    setBoardVisible(visible) {
+        this.boardVisible = !!visible && this.boardAvailable;
+        const meshes = this.boardAsset.getChildMeshes(false);
+        for (let i = 0; i < meshes.length; i++) {
+            meshes[i].setEnabled(this.active && this.boardVisible);
+        }
     }
 
     _captureRig(skeletons) {
@@ -545,6 +636,9 @@ export class RockerKaki {
         for (let i = 0; i < this.meshes.length; i++) {
             this.meshes[i].setEnabled(this.active);
         }
+        // Last, and unconditionally: the loop above has just enabled the board
+        // along with everything else, and the board answers to its own setting.
+        this.setBoardVisible(this.boardVisible);
     }
 
     /** Copy controller motion without allocating. */
@@ -576,7 +670,10 @@ export class RockerKaki {
         // Everything below is the rider *relative to the deck*. The board's own
         // pitch, roll and sink are already in the parent, so these are only the
         // things her body does that the board does not.
-        this.visualRoot.position.y = this._deckHeight - 0.012;
+        // On the deck when there is one, on the snow when there is not.
+        this.visualRoot.position.y = this.boardVisible
+            ? this._deckHeight - 0.012
+            : 0;
         this.visualRoot.rotation.x =
             -this._boardPitch * RIDER_UPRIGHT_PITCH
             + ch.surf * 0.13 + ch.speed * 0.003 - air * 0.18
@@ -654,20 +751,25 @@ export class RockerKaki {
         );
         const contact = this._contact;
 
+        const half = BOARD.halfEdge;
         const fx = Math.sin(ch.facing);
         const fz = Math.cos(ch.facing);
         const hNose = terrain.heightAt(
-            ch.position.x + fx * HALF_EDGE, ch.position.z + fz * HALF_EDGE
+            ch.position.x + fx * half, ch.position.z + fz * half
         );
         const hTail = terrain.heightAt(
-            ch.position.x - fx * HALF_EDGE, ch.position.z - fz * HALF_EDGE
+            ch.position.x - fx * half, ch.position.z - fz * half
         );
 
         // How hard the base is working. Speed alone is not it: a board pushed
         // sideways at a standstill still displaces snow, and one coasting flat
         // barely marks it.
+        //
+        // Measured in deck heights, so a bigger board sinks proportionally
+        // rather than disappearing into a hole sized for a smaller one.
         const work = ch.surf * Math.min(1, ch.speed / 7);
-        const sinkWant = contact * S.deformDepth *
+        const sinkWant = contact * S.deformDepth * this._deckHeight *
+            (this.boardVisible ? 1 : 0) *
             (BOARD_SINK_IDLE + (BOARD_SINK_RIDE - BOARD_SINK_IDLE) * work);
         this.boardSink = expDamp(
             this.boardSink, sinkWant, BOARD_ATTITUDE_RATE, dt
@@ -675,8 +777,8 @@ export class RockerKaki {
 
         // Pitch. Babylon rotates left-handed about X, so a positive angle drops
         // the nose — ground rising ahead has to raise it, hence the negation.
-        const slope = (hNose - hTail) / (HALF_EDGE * 2);
-        const plane = Math.asin(Math.min(0.9, this.boardSink / HALF_EDGE))
+        const slope = (hNose - hTail) / (half * 2);
+        const plane = Math.asin(Math.min(0.9, this.boardSink / half))
                     * BOARD_PLANE_FRACTION;
         const pitchWant =
             (-Math.atan(slope) - plane) * contact
@@ -707,7 +809,9 @@ export class RockerKaki {
         // its belly through the snow; taking the higher of the two is what
         // makes it pivot over the crest the way a rigid plank does.
         const span = Math.max((hNose + hTail) * 0.5 - ch.groundY, 0);
-        this.boardRoot.position.y = span * contact - this.boardSink;
+        this.boardRoot.position.y =
+            (span + BOARD_SASTRUGI_LIFT * S.sastrugiStrength) * contact
+            - this.boardSink;
         this.boardRoot.rotation.x = this._boardPitch;
         this.boardRoot.rotation.z = this._boardRoll;
     }

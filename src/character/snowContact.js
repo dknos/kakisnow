@@ -26,7 +26,7 @@
  * Zero allocation: brushes are pushed straight into the field's staging array.
  */
 
-import { HALF_EDGE, HALF_WAIST } from "./boardSpec.js";
+import { BOARD, EDGE_TO_WAIST } from "./boardSpec.js";
 
 /**
  * Boot geometry, metres. `WIDTH` is the short-axis radius, so the print is
@@ -45,9 +45,23 @@ const BOOT_ELONG = 1.7;
  * tip width leaves the board sitting in a groove half again too wide for it.
  * The long axis is the effective edge — the run between the contact points,
  * which is all that reaches the snow at all.
+ *
+ * The elongation is a constant because it is a ratio of two proportions of the
+ * same length, so resizing the board does not change it. The radius is read off
+ * `BOARD` per call, because that one does.
  */
-const SURF_WIDTH = HALF_WAIST;
-const SURF_ELONG = HALF_EDGE / HALF_WAIST;
+const SURF_ELONG = EDGE_TO_WAIST;
+
+/**
+ * Seated contact, for when the board is switched off, metres.
+ *
+ * Not the board's footprint scaled down — a different shape. A rider sitting
+ * directly in the snow presses a broad, soft, barely-oval hollow, where a base
+ * cuts a long clean slot. Reusing the board's brush without the board would
+ * leave a snowboard track behind a character who is visibly not on one.
+ */
+const SEAT_WIDTH = 0.54;
+const SEAT_ELONG = 1.65;
 
 /**
  * Depression written per metre travelled.
@@ -112,6 +126,8 @@ export class SnowContact {
         this._prevZ = character.position.z;
         /** RockerKaki rides a board, so her contact is the base — never boots. */
         this.rockerActive = false;
+        /** ...unless the board is switched off, when it is her seat instead. */
+        this.boardActive = true;
         this.enabled = true;
     }
 
@@ -122,6 +138,20 @@ export class SnowContact {
 
     setRockerActive(active) {
         this.rockerActive = !!active;
+    }
+
+    setBoardActive(active) {
+        this.boardActive = !!active;
+    }
+
+    /** Short-axis radius of whatever is currently against the snow, metres. */
+    get _contactWidth() {
+        return this.boardActive ? BOARD.halfWaist : SEAT_WIDTH;
+    }
+
+    /** Long-to-short axis ratio of the same. */
+    get _contactElong() {
+        return this.boardActive ? SURF_ELONG : SEAT_ELONG;
     }
 
     /** @param {number} dt seconds */
@@ -204,28 +234,30 @@ export class SnowContact {
     _landing() {
         const ch = this.character;
         const impact = ch.landingImpact;
-        const board = this.rockerActive;
+        const seated = this.rockerActive;
+        const board = seated && this.boardActive;
         this.field.brush(
             ch.position.x, ch.position.z,
-            board ? SURF_WIDTH * 1.15 : 0.40,
+            seated ? this._contactWidth * (board ? 1.15 : 1.0) : 0.40,
             (board ? 0.13 : 0.20) + impact * (board ? 0.11 : 0.15),
             (board ? 0.13 : 0.16) + impact * 0.13,
             Math.min(1, 0.72 + impact * 0.22),
             0,
             brushYaw(ch.facing),
-            board ? SURF_ELONG * 0.85 : 1.35,
+            seated ? this._contactElong * (board ? 0.85 : 0.82) : 1.35,
             board ? 0.6 : 1.0
         );
         this._kick(ch.position.x, ch.position.y, ch.position.z, 0.7 + impact * 0.6);
     }
 
     /**
-     * The board sliding without carving.
+     * The seated hero sliding without carving.
      *
-     * The rider is seated on it at all times, so there is always a base on the
-     * snow — this is the mark it leaves when it is skidding flat rather than
-     * held on an edge. Same footprint as the carve, a fraction of the depth,
-     * and a soft rim, because a flat base smears snow where an edge slices it.
+     * Something of hers is always on the snow — the board's base if she is on
+     * one, otherwise the rider herself — so this is the mark that contact
+     * leaves when it is skidding flat rather than held on an edge. A fraction
+     * of the carve's depth, and a soft rim either way, because neither a flat
+     * base nor a seat slices snow the way an edge does.
      */
     _rockerDrag(moved) {
         const ch = this.character;
@@ -233,14 +265,14 @@ export class SnowContact {
         const k = Math.min(moved, 0.35) * (1 - ch.surf);
         this.field.brush(
             ch.position.x, ch.position.z,
-            SURF_WIDTH,
-            0.16 * k,
-            0.18 * k,
+            this._contactWidth,
+            (this.boardActive ? 0.16 : 0.15) * k,
+            (this.boardActive ? 0.18 : 0.20) * k,
             0.82 * k,
             0,
             brushYaw(ch.facing),
-            SURF_ELONG,
-            0.5
+            this._contactElong,
+            this.boardActive ? 0.5 : 0.55
         );
     }
 
@@ -363,20 +395,24 @@ export class SnowContact {
         // about a trench it was never standing in.
         const lean = ch.carve;
         const edge = Math.min(1, Math.abs(lean));
-        const gx = ch.position.x + rx * lean * SURF_WIDTH * 0.85;
-        const gz = ch.position.z + rz * lean * SURF_WIDTH * 0.85;
+        // Whatever is against the snow: the base, or the rider's seat if the
+        // board is switched off.
+        const width = this._contactWidth;
+        const elong = this._contactElong;
+        const gx = ch.position.x + rx * lean * width * 0.85;
+        const gz = ch.position.z + rz * lean * width * 0.85;
 
         f.brush(
             gx, gz,
             // On edge the board presents a rail rather than a base, so the cut
             // narrows as the carve commits even while it deepens.
-            SURF_WIDTH * (1 + 0.35 * fast) * (1 - 0.3 * edge),
+            width * (1 + 0.35 * fast) * (1 - 0.3 * edge),
             SURF_DEPTH_RATE * k * (1 + 0.35 * edge),
             0.30 * k,
             4.0 * k,    // the board packs the trench floor hard
             0,
             brushYaw(yaw),
-            SURF_ELONG,
+            elong,
             0.55        // the board's edge is cleaner than a boot's
         );
 
@@ -395,20 +431,20 @@ export class SnowContact {
 
         // Just clear of the rail that cut the groove: the wall stands where the
         // snow the edge displaced came to rest, which is at the trench rim.
-        const off = SURF_WIDTH * (1.9 + 0.6 * fast);
+        const off = width * (1.9 + 0.6 * fast);
         const throwK = 0.75 * k * (0.55 + 0.9 * outside) * (1 + 0.5 * fast);
 
         f.brush(
             ch.position.x - rx * off, ch.position.z - rz * off,
-            SURF_WIDTH * 0.95,
+            width * 0.95,
             0, throwK * sideL * 2.0, 0, 0,
-            brushYaw(yaw), SURF_ELONG * 0.8, 1.0
+            brushYaw(yaw), elong * 0.8, 1.0
         );
         f.brush(
             ch.position.x + rx * off, ch.position.z + rz * off,
-            SURF_WIDTH * 0.95,
+            width * 0.95,
             0, throwK * sideR * 2.0, 0, 0,
-            brushYaw(yaw), SURF_ELONG * 0.8, 1.0
+            brushYaw(yaw), elong * 0.8, 1.0
         );
     }
 }

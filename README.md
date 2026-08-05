@@ -84,6 +84,17 @@ selector.
   43-degree face is reclining into the hill. The groove the board leaves is cut
   from the mesh's own measured waist and effective edge — see
   `src/character/boardSpec.js`.
+- The board also rides above the CPU height mirror by the height of the
+  sastrugi. `heightAt` reconstructs the baked macro heightfield, but the snow
+  vertex shader displaces every vertex again by a fine layer whose crests stand
+  around 8 cm proud — a layer that is evaluated on the GPU and never read back.
+  A 2.58 m character never showed that gap; a 7.6 cm board is thinner than the
+  relief it sits in and was being swallowed by ridges the grounding code could
+  not see.
+- The board can be switched off from the F1 overlay, which puts the rider back
+  on the snow itself and returns her contact to a broad seated scuff, and its
+  length is a slider. Resizing it moves the mesh and the trench together,
+  because both read the same proportions.
 - A 4096² GPU-baked heightfield combines broad dunes, medium wind lobes, and
   directional fine ridges. A procedural far-mountain field is integrated into
   the sky rather than projected from a flat card.

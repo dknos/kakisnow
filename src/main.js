@@ -152,9 +152,16 @@ async function boot() {
         usingRocker = show && rockerStyle;
         usingSnowbound = show && !rockerStyle;
         figure.setVisible(usingSnowbound);
+        // Before `setActive`: it enables every hero mesh and then defers to the
+        // board's own flag, so the flag has to be current when it asks.
+        rocker.setBoardVisible(S.showBoard !== false);
         rocker.setActive(usingRocker);
         contact.setEnabled(show);
         contact.setRockerActive(usingRocker);
+        // The trench follows what is actually against the snow. Without a board
+        // that is the rider herself, and a snowboard track behind a character
+        // visibly not on one is worse than no track at all.
+        contact.setBoardActive(usingRocker && rocker.boardVisible);
         if (spells) {
             spells.setFigureHandsEnabled(usingSnowbound);
             spells.setConsumersEnabled(
@@ -165,7 +172,11 @@ async function boot() {
             );
         }
     };
-    onChange(["showCharacter", "heroStyle"], applyHeroStyle);
+    onChange(["showCharacter", "heroStyle", "showBoard"], applyHeroStyle);
+    // Resizing the board moves the mesh and the trench together — `boardSpec`
+    // is the one place both read their geometry from, so this is the only hook
+    // the slider needs.
+    onChange("boardScale", () => rocker.applyBoardScale());
     applyHeroStyle();
 
     // The breaking wave, its bow crest and the plume it sheds.

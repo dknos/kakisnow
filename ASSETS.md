@@ -223,6 +223,11 @@ single record, and both the visual placement and the trench the board cuts are
 derived from it, so the groove is the board's own footprint rather than a shape
 chosen to look right.
 
+The runtime scales the asset by `S.boardScale`, which ships at 1.18 — a 2.98 m
+board under a 2.58 m chibi, where the authored 2.52 m read short against her
+width. The proportions above are the mesh's own at unit scale; every one of them
+and the trench derived from them move together with that setting.
+
 ## Draco decoder runtime
 
 These files are vendored byte-for-byte from

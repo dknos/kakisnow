@@ -103,6 +103,17 @@ export const S = {
     showTerrain: true,
     showCharacter: true,
     heroStyle: "rockerkaki",
+    /**
+     * Whether RockerKaki rides a board at all.
+     *
+     * Off puts her back on the snow itself: the mesh goes, she sits at surface
+     * level, and her contact reverts to the broad seated scuff. The board is
+     * the only thing that leaves; terrain conformance stays, because that is
+     * how she sat before there was a board to conform.
+     */
+    showBoard: true,
+    /** Board length as a multiple of the asset's authored 2.52 m. */
+    boardScale: 1.18,
     showWake: true,
     showLightShafts: true,
     wireframe: false,
@@ -207,6 +218,8 @@ export const SCHEMA = [
                 k: "heroStyle", l: "Hero", t: "e",
                 opts: ["snowbound", "rockerkaki"],
             },
+            { k: "showBoard", l: "Snowboard", t: "b" },
+            { k: "boardScale", l: "Board size", t: "f", min: 0.7, max: 1.8, step: 0.01 },
             { k: "wireframe", l: "Wireframe", t: "b" },
             { k: "freezeTime", l: "Freeze time", t: "b" },
             { k: "resolutionScale", l: "Resolution", t: "f", min: 0.5, max: 1.5, step: 0.05 },

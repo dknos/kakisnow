@@ -91,15 +91,43 @@ test("passing the heading through unconverted is wrong away from 45 degrees", ()
 
 test("the trench is the board's own footprint, not a shape chosen to look right",
     async () => {
-        const spec = await import("../src/character/boardSpec.js");
+        const { BOARD, setBoardScale } = await import("../src/character/boardSpec.js");
+        setBoardScale(1);
         // The trench's short axis is the waist and its long axis the effective
-        // edge. Both have to come off the mesh, or the groove stops being the
-        // board's.
-        assert.ok(spec.HALF_WAIST > 0 && spec.HALF_EDGE > 0);
-        assert.equal(spec.HALF_WAIST, spec.BOARD_WAIST * 0.5);
-        assert.equal(spec.HALF_EDGE, spec.EFFECTIVE_EDGE * 0.5);
+        // edge. Both come off the mesh, or the groove stops being the board's.
+        assert.ok(BOARD.halfWaist > 0 && BOARD.halfEdge > 0);
+        assert.equal(BOARD.halfWaist, BOARD.waist * 0.5);
+        assert.equal(BOARD.halfEdge, BOARD.effectiveEdge * 0.5);
         // The effective edge is shorter than the board: the rest is rocker.
-        assert.ok(spec.EFFECTIVE_EDGE < spec.BOARD_LENGTH);
+        assert.ok(BOARD.effectiveEdge < BOARD.length);
         // The waist is narrower than the tips: that is what sidecut means.
-        assert.ok(spec.BOARD_WAIST < spec.BOARD_WIDTH);
+        assert.ok(BOARD.waist < BOARD.width);
+        // The deck the rider sits on is below the tips' topsheet.
+        assert.ok(BOARD.deck < BOARD.envelope);
     });
+
+test("resizing the board resizes its trench with it", async () => {
+    const { BOARD, EDGE_TO_WAIST, setBoardScale } =
+        await import("../src/character/boardSpec.js");
+
+    setBoardScale(1);
+    const unit = { ...BOARD };
+    setBoardScale(1.5);
+
+    // Everything the mesh is and everything the groove is move together. A
+    // board scaled without its trench rides in a smaller board's track, which
+    // is the failure this whole file exists to make impossible.
+    for (const key of ["length", "width", "waist", "effectiveEdge",
+                       "camber", "deck", "envelope", "halfEdge", "halfWaist"]) {
+        assert.ok(
+            Math.abs(BOARD[key] - unit[key] * 1.5) < 1e-9,
+            `${key} did not scale: ${BOARD[key]} vs ${unit[key] * 1.5}`
+        );
+    }
+
+    // The brush's elongation is a ratio, so it must NOT move — the contact
+    // writer holds it as a constant and only re-reads the radius.
+    assert.ok(Math.abs(BOARD.halfEdge / BOARD.halfWaist - EDGE_TO_WAIST) < 1e-9);
+
+    setBoardScale(1);
+});

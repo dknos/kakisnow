@@ -8,72 +8,98 @@
  * instantly as a decal sliding under a prop, and is exactly the failure this
  * file exists to make impossible.
  *
- * Every number here was measured off the shipped asset rather than authored,
- * so the mesh is the source of truth and this file is its description.
- * `RockerKaki._loadBoard` re-measures on import and warns if the two ever stop
- * agreeing.
- */
-
-/**
- * Tip to tail, metres. The asset is authored at real-world scale, so this is
- * the size it already is rather than a size imposed on it.
- */
-export const BOARD_LENGTH = 2.524;
-
-/** Widest point, metres. That is out near the tips, not under the rider. */
-export const BOARD_WIDTH = 0.533;
-
-/**
- * Waist, metres — the narrowest point, at the middle.
+ * Everything here is one authored length and a set of proportions measured off
+ * the shipped asset, so the mesh is the source of truth and this file is its
+ * description. That split is what makes the board resizable: `S.boardScale`
+ * moves the length, every proportion follows it, and the trench stays the
+ * board's own footprint at any size. Scaling the mesh without scaling the
+ * groove would put a bigger board in a smaller board's track.
  *
- * This is the width that matters: sidecut means the tips are 40% wider than
- * the section actually pressed into the snow, and cutting the trench at the
- * tip width would leave the board sitting in a groove half again too wide.
+ * `RockerKaki._loadBoard` re-measures the import and warns if the asset and
+ * these proportions ever stop agreeing.
  */
-export const BOARD_WAIST = 0.382;
 
 /**
- * Effective edge, metres: the run between the contact points, where the base
- * reaches the snow at all.
- *
- * Measured as the span whose base sits at or below the contact plane. It comes
- * out at 81% of the length, the rest being tip and tail rocker — which is what
- * a real cambered board gives up, and is why the trench is shorter than the
- * board is long.
+ * The asset's authored length, metres, tip to tail. It arrives at real-world
+ * scale, so this is the size it already is rather than a size imposed on it.
  */
-export const EFFECTIVE_EDGE = 2.04;
+export const BOARD_BASE_LENGTH = 2.524;
 
 /**
- * Camber, metres: unweighted, the base at the waist stands this far above the
- * contact points.
+ * Proportions of the length, measured off the mesh.
  *
- * It is why the mesh touches down at two patches rather than one, and it is
- * the gap the rider's weight closes. The visual adapter grounds the *contact
- * points*, not the waist, so the board sits on the snow the way the geometry
- * says it should.
+ * `waist` is the narrowest point and is the width that matters: sidecut makes
+ * the tips 40% wider than the section actually pressed into the snow, and
+ * cutting the trench at the tip width leaves the board sitting in a groove half
+ * again too wide for it.
+ *
+ * `effectiveEdge` is the run between the contact points, measured as the span
+ * whose base sits at or below the contact plane. It comes out at 81% of the
+ * length, the rest being tip and tail rocker — which is why the trench is
+ * shorter than the board is long.
+ *
+ * `camber` is how far the base at the waist stands above the contact points
+ * unweighted. It is why the mesh touches down at two patches rather than one.
+ *
+ * `deck` is the topsheet at the waist, where the rider sits — not at the tips,
+ * which stand higher because the rocker lifts the whole section. `envelope` is
+ * that full vertical extent, and exists only so the import has a second
+ * measurement to check against; width alone cannot catch a re-export that
+ * changed the camber or the rocker.
  */
-export const BOARD_CAMBER = 0.025;
+const RATIO = {
+    width: 0.5317 / BOARD_BASE_LENGTH,
+    waist: 0.3820 / BOARD_BASE_LENGTH,
+    effectiveEdge: 2.0400 / BOARD_BASE_LENGTH,
+    camber: 0.0246 / BOARD_BASE_LENGTH,
+    deck: 0.0599 / BOARD_BASE_LENGTH,
+    envelope: 0.0764 / BOARD_BASE_LENGTH,
+};
 
 /**
- * Deck height above the contact plane at the waist — where the rider sits.
+ * The board at its current scale, in metres.
  *
- * At the waist specifically. The tips sit higher, because the rocker lifts the
- * whole section, and seating the rider on the tip figure floats her above the
- * deck by the difference.
+ * A live object rather than constants, because the size is a setting. Consumers
+ * read fields off it every frame; nothing here allocates.
  */
-export const BOARD_DECK = 0.060;
+export const BOARD = {
+    scale: 1,
+    length: 0,
+    width: 0,
+    waist: 0,
+    effectiveEdge: 0,
+    camber: 0,
+    deck: 0,
+    envelope: 0,
+    /** Half the effective edge — the trench's long half-axis. */
+    halfEdge: 0,
+    /** Half the waist — the trench's short half-axis. */
+    halfWaist: 0,
+};
 
 /**
- * Total vertical extent, metres: the tips' topsheet down to the contact plane.
+ * The trench's long-to-short axis ratio.
  *
- * Not a placement number — nothing is positioned from it. It is here so the
- * adapter has a second measurement to check the imported mesh against, since
- * width alone cannot catch a re-export that changed the camber or the rocker.
+ * Scale-invariant, because it is a ratio of two proportions of the same length.
+ * The brush's elongation therefore never has to be recomputed when the board
+ * resizes — only its radius does.
  */
-export const BOARD_ENVELOPE = 0.076;
+export const EDGE_TO_WAIST = RATIO.effectiveEdge / RATIO.waist;
 
-/** Half the effective edge. The trench's long half-axis. */
-export const HALF_EDGE = EFFECTIVE_EDGE * 0.5;
+/** @param {number} scale multiple of the authored length */
+export function setBoardScale(scale) {
+    const s = Math.max(0.1, scale || 1);
+    BOARD.scale = s;
+    BOARD.length = BOARD_BASE_LENGTH * s;
+    BOARD.width = BOARD.length * RATIO.width;
+    BOARD.waist = BOARD.length * RATIO.waist;
+    BOARD.effectiveEdge = BOARD.length * RATIO.effectiveEdge;
+    BOARD.camber = BOARD.length * RATIO.camber;
+    BOARD.deck = BOARD.length * RATIO.deck;
+    BOARD.envelope = BOARD.length * RATIO.envelope;
+    BOARD.halfEdge = BOARD.effectiveEdge * 0.5;
+    BOARD.halfWaist = BOARD.waist * 0.5;
+    return BOARD;
+}
 
-/** Half the waist. The trench's short half-axis. */
-export const HALF_WAIST = BOARD_WAIST * 0.5;
+setBoardScale(1);
