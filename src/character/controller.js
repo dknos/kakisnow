@@ -215,8 +215,16 @@ export class CharacterController {
         this.speed = Math.hypot(this.velocity.x, this.velocity.z);
         this.speed01 = Scalar.Clamp(this.speed / SURF_MAX, 0, 1);
 
-        this.acceleration.x = (this.velocity.x - this.prevVelocity.x) / h;
-        this.acceleration.z = (this.velocity.z - this.prevVelocity.z) / h;
+        // Guarded, because `S.freezeTime` feeds a dt of exactly zero and this
+        // is a division by it. Frozen, the quotient was 0/0: acceleration went
+        // NaN, lean and carve inherited it, and every consumer downstream got a
+        // NaN rotation — which used to cost a slightly wrong body lean and now
+        // costs the board's whole attitude. Holding the last value is what
+        // "frozen" should mean anyway.
+        if (h > 0) {
+            this.acceleration.x = (this.velocity.x - this.prevVelocity.x) / h;
+            this.acceleration.z = (this.velocity.z - this.prevVelocity.z) / h;
+        }
 
         // Lateral acceleration → lean. Project accel onto the character's right.
         const rx = Math.cos(this.facing);

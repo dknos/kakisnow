@@ -281,6 +281,26 @@ export class RockerKaki {
         );
         this._modelBaseY = this.assetRoot.position.y;
 
+        // Then centre her horizontally by mass rather than by extent.
+        //
+        // A bounding box is set by whatever reaches furthest, and what reaches
+        // furthest here is the guitar held out to her left. Centring the box
+        // therefore centres the guitar and pushes the *body* the other way —
+        // measured at 19 cm right and 8 cm forward of where it should sit. That
+        // was invisible while she was sitting on open snow, and is not once she
+        // is sitting on something with a centreline to be off.
+        //
+        // The vertex centroid is the body, because the body is where the
+        // geometry is, and it still accounts for the guitar's own mass rather
+        // than pretending the guitar is not there.
+        //
+        // Y is deliberately left on the bounding box: she has to stand on her
+        // lowest point, not on her average one.
+        this.assetRoot.computeWorldMatrix(true);
+        const mass = this._lateralCentroid(result.meshes);
+        this.assetRoot.position.x -= mass.x;
+        this.assetRoot.position.z -= mass.z;
+
         for (let i = 0; i < result.meshes.length; i++) {
             const mesh = result.meshes[i];
             if (mesh.getTotalVertices() <= 0) continue;
@@ -472,6 +492,38 @@ export class RockerKaki {
         for (let i = 0; i < meshes.length; i++) {
             meshes[i].setEnabled(this.active && this.boardVisible);
         }
+    }
+
+    /**
+     * Centroid of the drawn vertices on the horizontal plane, in world space.
+     *
+     * One pass over the imported positions, at load. The mesh is skinned, but
+     * its bones are held in the authored pose for the reasons in `update`, so
+     * the bind-pose vertices this reads are the vertices that get drawn.
+     *
+     * @param {import("@babylonjs/core/Meshes/mesh").Mesh[]} meshes
+     */
+    _lateralCentroid(meshes) {
+        let sx = 0;
+        let sz = 0;
+        let n = 0;
+        for (let i = 0; i < meshes.length; i++) {
+            const mesh = meshes[i];
+            if (mesh.getTotalVertices() <= 0) continue;
+            const pos = mesh.getVerticesData("position");
+            if (!pos) continue;
+            mesh.computeWorldMatrix(true);
+            const m = mesh.getWorldMatrix().m;
+            for (let v = 0; v < pos.length; v += 3) {
+                const x = pos[v];
+                const y = pos[v + 1];
+                const z = pos[v + 2];
+                sx += m[0] * x + m[4] * y + m[8] * z + m[12];
+                sz += m[2] * x + m[6] * y + m[10] * z + m[14];
+                n++;
+            }
+        }
+        return n > 0 ? { x: sx / n, z: sz / n } : { x: 0, z: 0 };
     }
 
     _captureRig(skeletons) {
