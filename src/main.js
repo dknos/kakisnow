@@ -27,6 +27,7 @@ import { Overlay } from "./ui/overlay.js";
 import { CourseHud } from "./ui/courseHud.js";
 import { GameDirector, Mode } from "./game/gameDirector.js";
 import { RocketChair } from "./vehicles/rocketChair.js";
+import { audio as gameAudio } from "./audio/audio.js";
 import { Sky } from "./render/sky.js";
 import { ShadowSystem } from "./render/shadows.js";
 import { Terrain } from "./terrain/terrain.js";
@@ -420,6 +421,9 @@ async function boot() {
     // capture and smoke tools drive this build headlessly and none of them can
     // press a button. `?mode=free-ride` is the original open mountain with no
     // game interface over it, which is what those tools were written against.
+    onChange("audio", (v) => gameAudio.setEnabled(v));
+    gameAudio.setEnabled(S.audio !== false);
+
     const requestedMode = new URLSearchParams(location.search).get("mode");
     game.selectMode(
         requestedMode === "free-ride" ? Mode.FREE_RIDE

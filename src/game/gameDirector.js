@@ -41,6 +41,7 @@ import { INGREDIENT_IDS, INGREDIENTS, BURGER_MODEL } from "./ingredients.js";
 import { ZONES, BASE_CAMP_Z } from "./ingredientPlacement.js";
 import { SnowBurgersUi, formatTime } from "../ui/snowBurgersUi.js";
 import { FUEL_PER_INGREDIENT } from "../vehicles/rocketThrust.js";
+import { audio } from "../audio/audio.js";
 
 export const Mode = {
     TITLE: "title",
@@ -117,17 +118,21 @@ export class GameDirector {
         /** Rig state on entering the assembly, restored when it ends. */
         this._camEntry = new Vector3();
 
+        audio.init();
+        this._lastCount = -1;
+
         this.ui = new SnowBurgersUi({
-            onSelectMode: (m) => this.selectMode(m),
-            onDropIn: () => this.run.dropIn(),
-            onRetry: () => this.run.retry(),
-            onNextOrder: () => this.startBurgerRun(),
-            onMenu: () => this.selectMode(Mode.TITLE),
+            onSelectMode: (m) => { audio.ui("confirm"); this.selectMode(m); },
+            onDropIn: () => { audio.ui("confirm"); this.run.dropIn(); },
+            onRetry: () => { audio.ui("confirm"); this.run.retry(); },
+            onNextOrder: () => { audio.ui("confirm"); this.startBurgerRun(); },
+            onMenu: () => { audio.ui(); this.selectMode(Mode.TITLE); },
         });
 
         this.field.onCollect = (id) => {
             this.run.noteCollected(id);
             this.ui.markCollected(id);
+            audio.pickup(id);
             // The order and the engine are the same decision: the detour that
             // costs time also buys back the boost that wins it.
             this.rocketChair?.thrust.refill(FUEL_PER_INGREDIENT);
@@ -298,7 +303,13 @@ export class GameDirector {
         // controller still has to run so the terrain keeps grounding it, the
         // camera keeps following, and the frame the countdown ends is not the
         // frame the physics wakes up.
-        if (this.run.state !== RunState.RUN) {
+        if (this.run.state === RunState.ASSEMBLY) {
+            // Held, but `jumpPressed` survives: it is the skip.
+            input.moveX = 0;
+            input.moveZ = 0;
+            input.moving = false;
+            input.surf = false;
+        } else if (this.run.state !== RunState.RUN) {
             input.moveX = 0;
             input.moveZ = 0;
             input.moving = false;
@@ -323,6 +334,7 @@ export class GameDirector {
     update(dt) {
         if (this.mode === Mode.ROCKET_TEST) {
             if (this.rocketChair) this.ui.setFuel(this.rocketChair.thrust.level, true);
+            this._updateEngineAudio();
             return;
         }
         if (this.mode !== Mode.BURGER_RUN) return;
@@ -335,14 +347,22 @@ export class GameDirector {
             this.rocketChair?.active ? this.rocketChair.thrust.telemetry() : null;
         this.run.update(dt);
         this.field.update(dt, this.run.time, state === RunState.RUN);
+        this._updateEngineAudio();
 
         switch (state) {
             case RunState.ORDER:
                 this.ui.setCountdown(null);
                 break;
-            case RunState.COUNTDOWN:
+            case RunState.COUNTDOWN: {
                 this.ui.setCountdown(this.run.countdown);
+                // One beep per whole second, and a different one on the drop.
+                const n = Math.max(0, Math.ceil(this.run.countdown));
+                if (n !== this._lastCount) {
+                    this._lastCount = n;
+                    audio.countdown(n);
+                }
                 break;
+            }
             case RunState.RUN:
                 this.ui.setCountdown(null);
                 this.ui.setClock(this.run.time);
@@ -353,11 +373,36 @@ export class GameDirector {
                 this._updateAlert();
                 break;
             case RunState.ASSEMBLY:
+                // Space skips it, once it has been seen. The check is inside
+                // `skipAssembly`, so a first-time player cannot skip the thing
+                // they have not watched and a returning one never has to.
+                if (input.jumpPressed) this.skipAssembly();
                 this._updateAssembly(dt);
                 break;
             default:
                 break;
         }
+    }
+
+    /**
+     * Keep the engine's voice on the engine's throttle.
+     *
+     * Read from the vehicle rather than from the input, so the sound follows
+     * the same ramp the thrust does — a rocket that is audibly at full power
+     * while the throttle is still spooling up is the sound of a switch, not of
+     * an engine.
+     */
+    _updateEngineAudio() {
+        const rc = this.rocketChair;
+        if (!rc) return;
+        const th = rc.thrust;
+        if (th.ignited) audio.ignite();
+        if (th.shutdown) audio.shutdown();
+        audio.updateRocket(
+            rc.active ? th.throttle : 0,
+            this.controller.speed01,
+            this.controller.grounded
+        );
     }
 
     /** Upload this frame's lighting for anything the game layer drew. */
@@ -415,6 +460,7 @@ export class GameDirector {
             this.burger.setActive(true);
             this.ui.setHud(false);
             this.ui.setAlert(null);
+            audio.sizzle();
         }
 
         // Coast, do not brake. A rider stopped dead at a finish line reads as a
@@ -480,6 +526,7 @@ export class GameDirector {
             this._assembly = 0;
         }
         if (next === RunState.RESULTS) {
+            if (this.run.result?.completed) audio.finish();
             // Hand the camera back the way it was found, or the next run starts
             // with the finish sequence's framing still applied.
             this.rig.distanceTarget = this._camEntry.z || this.rig.distanceTarget;

@@ -123,6 +123,8 @@ export const S = {
      * import.
      */
     vehicle: "classic-snowboard",
+    /** Master audio. Everything the game plays is synthesised at runtime. */
+    audio: true,
     /**
      * A second multiplier on the rocket chair, on top of `boardScale`.
      *
@@ -132,12 +134,12 @@ export const S = {
      * board's puts her in a seat built for someone a third her size. This is
      * the one number that trades those off, and it is a setting rather than a
      * constant because the answer came out of renders.
+     *
+     * 1.8 is what looking at it produced. The sweep is committed at
+     * `screenshots/snow-burgers/rocket-seat/`: at 1.2 the chair is a toy under
+     * her, and at 2.6 the board is nine metres long and the mountain looks
+     * small around it.
      */
-    //
-    // 1.8 is what looking at it produced. The sweep is committed at
-    // `screenshots/snow-burgers/rocket-seat/`: at 1.2 the chair is a toy under
-    // her, and at 2.6 the board is nine metres long and the mountain looks
-    // small around it.
     rocketChairScale: 1.8,
     showWake: true,
     showLightShafts: true,
@@ -245,6 +247,7 @@ export const SCHEMA = [
             },
             { k: "showBoard", l: "Snowboard", t: "b" },
             { k: "boardScale", l: "Board size", t: "f", min: 0.7, max: 1.8, step: 0.01 },
+            { k: "audio", l: "Audio", t: "b" },
             {
                 k: "vehicle", l: "Vehicle", t: "e",
                 opts: ["classic-snowboard", "rocket-chair"],

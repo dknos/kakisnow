@@ -6,11 +6,11 @@
     "height": 1440
   },
   "seeds": 1,
-  "vehicle": "classic-snowboard",
+  "vehicle": "rocket-chair",
   "runs": [
     {
       "seed": 1,
-      "vehicle": "classic-snowboard",
+      "vehicle": "rocket-chair",
       "ok": true,
       "finalState": "results",
       "placements": [
@@ -50,38 +50,37 @@
         "lettuce"
       ],
       "lastZ": 551.8,
-      "fuelAtFinish": 1,
+      "fuelAtFinish": 0,
       "blocked": null,
       "result": {
         "completed": true,
-        "time": 31.48,
+        "time": 27.95,
         "medal": "gold",
-        "style": 44,
+        "style": 46,
         "integrity": 100,
         "stars": 4,
         "grade": "Summit Stack",
         "splits": {
-          "cheese": 8.904000000000098,
-          "patty": 14.930599999994596,
-          "tomato": 20.53329999999753,
-          "lettuce": 26.472900000006238
+          "cheese": 6.768200000003005,
+          "patty": 12.423700000003366,
+          "tomato": 17.705299999997607,
+          "lettuce": 23.27550000000052
         },
         "detail": {
           "airTime": 0,
           "airShare": 0,
-          "carve": 0.14,
+          "carve": 0.193,
           "pace": 1,
-          "pipeTime": 6.13,
+          "pipeTime": 5.82,
           "routeRisk": 0.4,
           "landings": 0,
           "hardLandings": 0,
           "worstLanding": 0,
           "distance": 548
         },
-        "rocket": 0,
+        "rocket": 68,
         "notMeasured": [
-          "tricks",
-          "rocket efficiency"
+          "tricks"
         ]
       }
     }

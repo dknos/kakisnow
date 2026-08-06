@@ -161,7 +161,8 @@ give the plume width, and are documented as derived.
 
 Unchanged from the base project, plus: **Left Shift** or a **gamepad right
 trigger** (analogue) for rocket thrust. Right mouse to ride, WASD to steer,
-Space to jump, F1 for the settings overlay. `?mode=free-ride` and
+Space to jump (and to skip the assembly sequence once it has been seen), F1
+for the settings overlay. `?mode=free-ride` and
 `?mode=burger-run` select a mode at boot, which is how the headless tools reach
 the mountain without pressing a button.
 
@@ -243,11 +244,12 @@ screenshots/snow-burgers/placement-validation.json             100-seed sweep
 - **The burger is small in frame at the finish.** Three framings were tried and
   all put the camera inside a prop; a camera that stages the reward properly
   wants collision awareness in the rig.
-- **No audio at all.** There is no `src/audio/`, and the brief's rocket,
-  ingredient, grill and interface sound is not started.
+- **No snow or board audio.** The rocket, ingredients, countdown, grill and
+  interface all have synthesised sound; edge scrape, powder and landing do not
+  exist, so the brief's requirement that the rocket not mask them is currently
+  satisfied by their absence rather than by the mix.
 - **No ghost playback.** Ghost samples are recorded and persisted; nothing
   replays them.
-- **`skipAssembly()` is unreachable** — written, but no input calls it.
 - **The onion is loaded and placed-capable but not in any order.** THE SUMMIT
   STACK stays at the four the brief specifies; the onion is the variant-order
   ingredient and has a zone, an icon and a validated placement.
