@@ -1,0 +1,33 @@
+{
+  "tool": "capture-rocket-run-windows.cjs",
+  "url": "http://127.0.0.1:5173?mode=free-ride",
+  "midRun": {
+    "z": 103.2212224642623,
+    "speed": 24.085894234322144
+  },
+  "telemetry": {
+    "efficiency": 19,
+    "fuelBurned": 0,
+    "boostSeconds": 9.3,
+    "groundedBoostSeconds": 3.03,
+    "airborneBoostSeconds": 6.27,
+    "boostDistance": 56.5,
+    "wastedAirborne": 4.58,
+    "maxSpeed": 26.5,
+    "refills": 0,
+    "fuelRemaining": 4
+  },
+  "throttle": 0,
+  "speed": 19.39,
+  "z": 222.1,
+  "nan": false,
+  "shots": [
+    "01-ignition",
+    "02-sustained",
+    "03-boosted-air",
+    "04-landing",
+    "05-shutdown"
+  ],
+  "consoleErrors": [],
+  "webgpuValidation": []
+}

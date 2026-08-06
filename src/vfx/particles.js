@@ -237,8 +237,16 @@ export class SprayField {
                 this.age[i] += h * 2.5;
             }
 
-            // Puffs expand as they disperse; clods do not.
-            const grow = this.kind[i] > 0.5 ? 1.0 : 1.0 + a01 * 1.3;
+            // Puffs expand as they disperse; clods do not. Exhaust expands
+            // hardest of the three — a plume billows as it cools, and a flame
+            // made of grains that hold their size reads as a spray of sparks
+            // rather than as fire.
+            const grainKind = this.kind[i];
+            const grow = grainKind > 1.5
+                ? 1.0 + a01 * 1.5
+                : grainKind > 0.5
+                    ? 1.0
+                    : 1.0 + a01 * 1.3;
             // Fade in fast, out slowly.
             const alpha =
                 Math.min(1, a01 * 8) * (1 - a01) * (1 - a01);

@@ -35,6 +35,36 @@ const SURF_DRAG = 0.42;
 const SURF_TURN = 2.35; // rad/s at full steer
 const SURF_GRIP = 7.5;
 
+/**
+ * Rocket thrust, m/s², at full throttle on the ground.
+ *
+ * Added to the same forward thrust the surf already applies, along the same
+ * heading, so it is an engine on the board rather than a second way to move.
+ * That it is purely horizontal is not an oversight — it is what makes
+ * indefinite vertical flight structurally impossible rather than something
+ * that has to be caught by a limit.
+ */
+const BOOST_THRUST = 22.0;
+/**
+ * How much of it survives leaving the ground.
+ *
+ * Enough to extend a jump, not enough to fly one. A rider who can hold full
+ * thrust in the air stops reading terrain and starts reading a fuel gauge.
+ */
+const BOOST_AIR_SCALE = 0.35;
+/**
+ * Extra drag above the unboosted top speed, per (m/s)² of overspeed.
+ *
+ * The terminal speed under boost comes out of this rather than out of a clamp:
+ * thrust and drag balance around 26 m/s, and the rider feels the engine stop
+ * gaining rather than the number stop moving. The clamp below still exists, at
+ * a speed the drag should never let anything reach, because a backstop that
+ * never fires costs nothing and a NaN that escapes costs the frame.
+ */
+const BOOST_OVERSPEED_DRAG = 0.55;
+/** Absolute backstop. Drag settles well under this; nothing should reach it. */
+const BOOST_SPEED_CEILING = 32.0;
+
 const GRAVITY = 18.5;
 const JUMP_SPEED = 7.25;
 const JUMP_BUFFER = 0.14;
@@ -122,6 +152,16 @@ export class CharacterController {
         this._coyote = COYOTE_TIME;
 
         this._prevSpeed = 0;
+
+        /**
+         * Rocket throttle, 0..1, written by whatever vehicle the rider is on.
+         *
+         * Zero for the classic snowboard, which is why nothing about the
+         * original ride changes: every term it gates is multiplied by it.
+         */
+        this.boost = 0;
+        /** Metres per second of thrust actually delivered this frame, for telemetry. */
+        this.boostDelivered = 0;
     }
 
     /**
@@ -303,6 +343,13 @@ export class CharacterController {
         let thrust = Math.max(3.2, SURF_THRUST + slopeAssist);
         if (input.moveZ < 0) thrust -= 14; // pull back to scrub speed
 
+        // The engine, along the same heading as everything else.
+        const boost = Math.max(0, Math.min(1, this.boost));
+        const boostAccel = boost * BOOST_THRUST
+            * (this.grounded ? 1 : BOOST_AIR_SCALE);
+        thrust += boostAccel;
+        this.boostDelivered = boostAccel;
+
         this.velocity.x += fx * thrust * h;
         this.velocity.z += fz * thrust * h;
 
@@ -318,13 +365,25 @@ export class CharacterController {
         // Quadratic drag → a natural terminal speed.
         const s = Math.hypot(this.velocity.x, this.velocity.z);
         if (s > 0.0001) {
-            const drag = SURF_DRAG * s * s * 0.02 + 0.9;
+            let drag = SURF_DRAG * s * s * 0.02 + 0.9;
+            // Above the unboosted top speed, drag grows fast enough to settle
+            // the rider rather than let the clamp below catch them. This is
+            // what makes a boosted terminal feel like an engine running out of
+            // authority instead of a number hitting a wall.
+            if (s > SURF_MAX) {
+                const over = s - SURF_MAX;
+                drag += over * over * BOOST_OVERSPEED_DRAG;
+            }
             const k = Math.max(0, s - drag * h) / s;
             this.velocity.x *= k;
             this.velocity.z *= k;
         }
-        if (s > SURF_MAX) {
-            const k = SURF_MAX / s;
+        // Two ceilings, because there are two situations. Without thrust the
+        // original hard limit stands exactly as it did; with it, the backstop
+        // sits above where drag settles and should never be reached.
+        const ceiling = boost > 0 ? BOOST_SPEED_CEILING : SURF_MAX;
+        if (s > ceiling) {
+            const k = ceiling / s;
             this.velocity.x *= k;
             this.velocity.z *= k;
         }

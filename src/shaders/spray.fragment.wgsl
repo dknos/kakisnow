@@ -79,16 +79,33 @@ fn main(input: FragmentInputs) -> FragmentOutputs {
     let r = sqrt(r2) / wob;
     if (r > 1.0) { discard; }
 
+    // A third kind rides this same pool: rocket exhaust.
+    //
+    // It shares the pool rather than getting a system of its own because the
+    // pool is already allocated, already warmed up, already sorted into the
+    // right rendering group and already depth-tested against the prepass. A
+    // second particle system for the one effect the brief says must not hitch
+    // on first use would have been a second first-use pipeline compile.
+    let snowKind = min(kind, 1.0);
+    let isEmber = kind > 1.5;
+
     // Soft-edged for powder, harder for a clod of thrown snow.
     let edge = mix(
         pow(clamp(1.0 - r * r, 0.0, 1.0), 1.6),
         smoothstep(1.0, 0.65, r),
-        kind
+        snowKind
     );
     // Powder is close to transparent on its own; density has to come from many
     // grains overlapping, or a single one turns into a decal. 0.26 was low enough
     // that even fifteen hundred live grains read as haze rather than as spray.
-    var alpha = state.w * edge * mix(0.36, 0.55, kind);
+    var alpha = state.w * edge * mix(0.36, 0.55, snowKind);
+    if (isEmber) {
+        // Denser than powder at the core and much thinner at the edge: a flame
+        // is a volume seen through, not a crystal catching light. The exponent
+        // does most of the work — a plume that is uniformly opaque hides the
+        // route behind the rider, which is the one thing an exhaust may not do.
+        alpha = state.w * pow(clamp(1.0 - r * r, 0.0, 1.0), 2.6) * 0.52;
+    }
     if (alpha < 0.004) { discard; }
 
     // Spherical normal from the billboard's own coordinates.
@@ -122,7 +139,7 @@ fn main(input: FragmentInputs) -> FragmentOutputs {
     // white.
     let mu = dot(-V, L);
     let fwd = phaseMie(mu, 0.55) * 0.85;
-    color += sun * albedo * fwd * mix(0.25, 1.0, shadow) * (1.0 - kind * 0.5);
+    color += sun * albedo * fwd * mix(0.25, 1.0, shadow) * (1.0 - snowKind * 0.5);
 
     // Sky, which is what fills the shadowed side and keeps it blue.
     color += albedo * INV_PI * shIrradiance(N, uniforms.shR) * uniforms.ambientIntensity;
@@ -136,6 +153,22 @@ fn main(input: FragmentInputs) -> FragmentOutputs {
             world, N, albedo,
             uniforms.spellLightPos, uniforms.spellLightCol, uniforms.spellLightCount
         );
+    }
+
+    // Exhaust is emissive: it makes its own light and answers to none of the
+    // shading above. Age carries it from the white-hot root through the orange
+    // body of the plume to the ash the tail breaks up into, which is what
+    // stops a rocket flame reading as an orange decal following the board.
+    if (isEmber) {
+        let age = state.x;
+        let hot = vec3f(3.10, 1.85, 0.72);
+        let mid = vec3f(1.70, 0.52, 0.11);
+        let ash = vec3f(0.16, 0.13, 0.13);
+        var flame = mix(hot, mid, smoothstep(0.0, 0.30, age));
+        flame = mix(flame, ash, smoothstep(0.40, 1.0, age));
+        // Brightest at the core of the billboard, so overlapping grains build a
+        // hot centre instead of a uniform sheet.
+        color = flame * (0.55 + 0.45 * (1.0 - r));
     }
 
     color = applyAerial(

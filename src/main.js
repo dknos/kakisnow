@@ -141,13 +141,20 @@ async function boot() {
     // The second vehicle. It hangs off the node RockerKaki already uses to
     // carry the board's attitude, so switching is showing one and hiding the
     // other — the classic board stays loaded and stays the fallback.
+    // Airborne snow: footfall kick now, the surf plume and spell spray later.
+    // Also the rocket's exhaust, which rides this same pool rather than
+    // standing up a second particle system that would have to be warmed
+    // separately.
+    const spray = new SprayField(scene, terrain, sky, shadows);
+
+    // The second vehicle. It hangs off the node RockerKaki already uses to
+    // carry the board's attitude, so switching is showing one and hiding the
+    // other — the classic board stays loaded and stays the fallback.
     const rocketChair = new RocketChair({
         scene, sky, shadows, depthPass, rocker,
+        controller: character, spray,
     });
     await rocketChair.load();
-
-    // Airborne snow: footfall kick now, the surf plume and spell spray later.
-    const spray = new SprayField(scene, terrain, sky, shadows);
 
     // Feet and the surf groove write into the terrain state buffer through here.
     const contact = new SnowContact(character, terrain.deform, figure.figure, spray);
@@ -328,6 +335,9 @@ async function boot() {
         // start gate means overwriting the input struct the controller is
         // about to read — see `GameDirector.beforePhysics`.
         game.beforePhysics();
+        // Before the controller too: it is the controller that integrates the
+        // thrust, and a throttle written after it would be a frame late.
+        rocketChair.beforePhysics(dt);
 
         // Per-system CPU timings are labelled explicitly: Chrome's current
         // command-encoder timestamp path returns zero on this WebGPU backend,
@@ -346,6 +356,10 @@ async function boot() {
         // controller just produced, and the finish is caught on the frame it
         // is crossed rather than the one after.
         game.update(dt);
+        // After the physics: the plume leaves the nozzle where the nozzle
+        // actually is this frame, with the board's pitch and roll already in
+        // the anchors it is measured from.
+        rocketChair.update(dt);
         const tChar = performance.now();
 
         _vel.copyFrom(character.velocity);

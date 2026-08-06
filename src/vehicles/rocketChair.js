@@ -28,10 +28,15 @@ import { TransformNode } from "@babylonjs/core/Meshes/transformNode.js";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector.js";
 
 import { S } from "../core/settings.js";
+import { input } from "../core/input.js";
 import { ShadedAsset } from "../render/shadedAsset.js";
 import { ROCKET_CHAIR } from "./vehicleProfiles.js";
+import { RocketThrust, FUEL_PER_CLEAN_LANDING } from "./rocketThrust.js";
 
 const _v = new Vector3();
+const _nozzle = new Vector3();
+const _vent = new Vector3();
+const _back = new Vector3();
 
 /** How far the rider settles into the seat pan, in model units. */
 const SEAT_SETTLE = 0.045;
@@ -45,10 +50,14 @@ export class RocketChair {
      * @param {import("../render/depthPass.js").DepthPass} deps.depthPass
      * @param {import("../character/rockerKaki.js").RockerKaki} deps.rocker
      */
-    constructor({ scene, sky, shadows, depthPass, rocker }) {
+    constructor({ scene, sky, shadows, depthPass, rocker, controller, spray }) {
         this.scene = scene;
         this.rocker = rocker;
+        this.controller = controller;
+        this.spray = spray;
         this.profile = ROCKET_CHAIR;
+        this.thrust = new RocketThrust();
+        this._emitAcc = 0;
 
         this.asset = new ShadedAsset({
             scene, sky, shadows, depthPass, name: "rocketChair",
@@ -199,6 +208,10 @@ export class RocketChair {
         // RockerKaki drops the rider to snow level, which would leave her
         // sitting through the chair rather than in it.
         this.rocker.vehicleDeckHeight = this.active ? this.seatLift : null;
+        if (!this.active) {
+            this.thrust.throttle = 0;
+            if (this.controller) this.controller.boost = 0;
+        }
     }
 
     /** World position of a named anchor, for this frame. */
@@ -207,6 +220,113 @@ export class RocketChair {
         if (!node) return out.setAll(0);
         node.computeWorldMatrix(true);
         return out.copyFrom(node.getAbsolutePosition());
+    }
+
+    /**
+     * Drive the engine, and burn what it uses.
+     *
+     * Called before the controller, because the controller is what integrates
+     * the thrust and it reads `controller.boost` during its own update. A
+     * throttle written after it would be a frame late, which at this speed is
+     * half a metre of travel per frame of latency.
+     *
+     * @param {number} dt
+     */
+    beforePhysics(dt) {
+        if (!this.active) {
+            // An inactive vehicle must not leave thrust behind on the
+            // controller, or switching back to the classic board would keep
+            // whatever throttle was held at the moment of the switch.
+            this.controller.boost = 0;
+            return;
+        }
+        this.thrust.update(dt, input.boost, this.controller);
+        this.controller.boost = this.thrust.throttle;
+
+        // A landing that was actually flown, rather than a bump. Clean landings
+        // paying a little fuel back is what makes reading terrain worth more
+        // than holding the throttle down.
+        if (this.controller.landed && this.controller.landingImpact < 1.05
+            && this.controller.airTime > 0.35) {
+            this.thrust.refill(FUEL_PER_CLEAN_LANDING);
+        }
+    }
+
+    /**
+     * The plume, emitted after the physics from the anchors as they now are.
+     *
+     * Direction comes from two measured anchors rather than from the rider's
+     * heading: the vent sits ahead of the nozzle on the booster's axis, so the
+     * vector between them is the exhaust direction with the board's pitch and
+     * roll already in it. Using the heading instead would fire the plume flat
+     * out of the back of a board that is nose-down on a drop.
+     *
+     * @param {number} dt
+     */
+    update(dt) {
+        if (!this.active || !this.spray) return;
+        const throttle = this.thrust.throttle;
+        if (throttle <= 0) {
+            this._emitAcc = 0;
+            return;
+        }
+
+        this.anchorPosition("mainNozzle", _nozzle);
+        this.anchorPosition("leftVent", _vent);
+        _back.copyFrom(_nozzle).subtractInPlace(_vent).normalize();
+
+        const ch = this.controller;
+        // Grains per second. Scaled by throttle so a feathered trigger gives a
+        // thin flame rather than the same plume at a lower opacity.
+        const rate = 40 + 250 * throttle;
+        this._emitAcc += rate * dt;
+        let n = Math.floor(this._emitAcc);
+        this._emitAcc -= n;
+        if (n > 24) n = 24; // one long frame must not dump the whole pool
+
+        for (let i = 0; i < n; i++) {
+            const spread = 0.10 + 0.16 * (1 - throttle);
+            const jx = (Math.random() - 0.5) * spread;
+            const jy = (Math.random() - 0.5) * spread;
+            const jz = (Math.random() - 0.5) * spread;
+            // Expelled backward fast enough to fall behind a rider doing
+            // twenty metres a second, which is what makes the plume hang in
+            // the air rather than travel along as an attached decal.
+            // Relative to the vehicle rather than to the world: at 26 m/s the
+            // rider outruns anything slower, and the plume has to fall behind
+            // fast enough to trail rather than sit on the nozzle.
+            const speed = 16 + 12 * throttle;
+            this.spray.emit(
+                _nozzle.x + jx * 0.5, _nozzle.y + jy * 0.5, _nozzle.z + jz * 0.5,
+                ch.velocity.x + _back.x * speed + jx * 9,
+                ch.velocity.y + _back.y * speed + jy * 9 + 0.6,
+                ch.velocity.z + _back.z * speed + jz * 9,
+                0.17 + Math.random() * 0.13,
+                0.15 + Math.random() * 0.13,
+                2, // ember
+                3.4
+            );
+        }
+
+        // Snow torn off the surface behind a lit engine. Only on the ground,
+        // because there is nothing to tear off in the air.
+        if (ch.grounded && throttle > 0.25) {
+            const m = 1 + Math.floor(throttle * 3);
+            for (let i = 0; i < m; i++) {
+                this.spray.emit(
+                    _nozzle.x + (Math.random() - 0.5) * 0.7,
+                    ch.position.y + 0.1,
+                    _nozzle.z + (Math.random() - 0.5) * 0.7,
+                    ch.velocity.x * 0.3 + _back.x * 9 + (Math.random() - 0.5) * 5,
+                    2.2 + Math.random() * 2.6,
+                    ch.velocity.z * 0.3 + _back.z * 9 + (Math.random() - 0.5) * 5,
+                    0.06 + Math.random() * 0.05,
+                    0.55 + Math.random() * 0.35,
+                    0,
+                    1.6
+                );
+            }
+        }
     }
 
     sync(cameraPos) {

@@ -20,6 +20,14 @@ export const input = {
 
     surf: false, // RMB held
     sprint: false, // shift
+    /**
+     * Rocket throttle, 0..1. Left Shift is on or off; a gamepad trigger is not.
+     *
+     * Analogue rather than a boolean because the vehicle ramps thrust from it,
+     * and a controller that can ask for a third of the engine should be able
+     * to. The keyboard simply asks for all of it.
+     */
+    boost: 0,
     /** Set for one frame on Space keydown. Buffered by the character controller. */
     jumpPressed: false,
 
@@ -147,6 +155,36 @@ export function pollInput() {
     input.moveZ = z;
     input.moving = len > 0.001;
     input.sprint = !!(keys.ShiftLeft || keys.ShiftRight);
+    input.boost = pollBoost();
+}
+
+/**
+ * Throttle, from the keyboard or a gamepad's right trigger.
+ *
+ * The gamepad is read here rather than through events because that is the only
+ * way the API offers: `navigator.getGamepads` returns a fresh snapshot and a
+ * connected pad that is never polled reports nothing. Reading it inside the
+ * frame poll also means a pad disconnecting mid-run simply stops contributing
+ * on the next frame instead of leaving a stuck throttle.
+ *
+ * Whichever input is asking for more wins, so a player can hold Shift with a
+ * pad plugged in and not have the pad's idle trigger argue with it.
+ */
+function pollBoost() {
+    let boost = (keys.ShiftLeft || keys.ShiftRight) ? 1 : 0;
+    const pads = navigator.getGamepads ? navigator.getGamepads() : null;
+    if (!pads) return boost;
+    for (let i = 0; i < pads.length; i++) {
+        const pad = pads[i];
+        if (!pad || !pad.connected) continue;
+        // Standard mapping puts the right trigger at button 7, and it reports a
+        // value even though it is typed as a button. Sticks and triggers idle
+        // at small non-zero values on worn hardware, so a deadzone is not
+        // optional.
+        const trigger = pad.buttons && pad.buttons[7] ? pad.buttons[7].value : 0;
+        if (trigger > 0.08) boost = Math.max(boost, trigger);
+    }
+    return boost;
 }
 
 /** Clear per-frame accumulators. Called at the very end of the frame. */
