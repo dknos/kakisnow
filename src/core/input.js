@@ -5,6 +5,8 @@
  * Mouse look uses pointer lock, which frees the right button for snow-surf.
  */
 
+import { touch, endTouchFrame } from "./touchInput.js";
+
 export const input = {
     // Movement axes, camera-relative, already normalised to a unit disc.
     moveX: 0,
@@ -40,6 +42,8 @@ export const input = {
 };
 
 const keys = Object.create(null);
+/** Whether the right mouse button is currently holding the ride. */
+let mouseSurf = false;
 
 const LOOK_SCALE = 0.0022;
 
@@ -62,6 +66,7 @@ export function initInput(canvas, hooks) {
         if (!input.locked) {
             // Drop held state so the character doesn't run off while unfocused.
             for (const k in keys) keys[k] = false;
+            mouseSurf = false;
             input.surf = false;
             input.spellHeld2 = false;
         }
@@ -77,11 +82,11 @@ export function initInput(canvas, hooks) {
 
     document.addEventListener("mousedown", (e) => {
         if (!input.locked) return;
-        if (e.button === 2) input.surf = true;
+        if (e.button === 2) { input.surf = true; mouseSurf = true; }
     });
 
     document.addEventListener("mouseup", (e) => {
-        if (e.button === 2) input.surf = false;
+        if (e.button === 2) { input.surf = false; mouseSurf = false; }
     });
 
     document.addEventListener(
@@ -151,12 +156,28 @@ export function pollInput() {
         x /= len;
         z /= len;
     }
+    // Merge the touch stick here rather than letting it write `input` itself.
+    // This function rebuilds the axes from held keys every frame, so anything
+    // assigned from outside is overwritten before the controller reads it.
+    if (touch.x || touch.y) {
+        x = touch.x;
+        z = touch.y;
+    }
+
     input.moveX = x;
     input.moveZ = z;
-    input.moving = len > 0.001;
+    input.moving = Math.hypot(x, z) > 0.001;
     input.sprint = !!(keys.ShiftLeft || keys.ShiftRight);
-    input.boost = pollBoost();
+    input.boost = Math.max(pollBoost(), touch.boost);
+    // Held, not toggled: the ride button behaves like the right mouse button
+    // it stands in for.
+    if (touch.ride) input.surf = true;
+    else if (!mouseSurf) input.surf = false;
+    if (touch.jump) input.jumpPressed = true;
+    input.lookX += touch.lookX;
+    input.lookY += touch.lookY;
 }
+
 
 /**
  * Throttle, from the keyboard or a gamepad's right trigger.
@@ -189,6 +210,7 @@ function pollBoost() {
 
 /** Clear per-frame accumulators. Called at the very end of the frame. */
 export function endFrame() {
+    endTouchFrame();
     input.lookX = 0;
     input.lookY = 0;
     input.zoomDelta = 0;

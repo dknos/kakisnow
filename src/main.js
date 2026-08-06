@@ -15,6 +15,7 @@ import {
     sample, checkSpike, stats, mark, installDrawCounter, endFrameDraws,
 } from "./core/perf.js";
 import { initInput, pollInput, endFrame, input } from "./core/input.js";
+import { initTouch, setTouchVisible, shouldShowTouch } from "./core/touchInput.js";
 import { CameraRig } from "./core/camera.js";
 import { CharacterController } from "./character/controller.js";
 import { Character } from "./character/character.js";
@@ -257,6 +258,8 @@ async function boot() {
     const overlay = new Overlay({ rig, character });
     const courseHud = new CourseHud(character);
     initInput(canvas, { onToggleOverlay: () => overlay.toggle() });
+    initTouch(canvas);
+    onChange("touchControls", () => setTouchVisible(shouldShowTouch()));
 
     // ------------------------------------------------------------- warm-up
     // Everything that can compile, compiles here — behind the loading screen.

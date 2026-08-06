@@ -123,6 +123,14 @@ export const S = {
      * import.
      */
     vehicle: "classic-snowboard",
+    /**
+     * On-screen touch controls: "auto", "on" or "off".
+     *
+     * Auto asks the device whether it has a touchscreen rather than asking the
+     * user agent what it calls itself — a touch laptop that shows them loses
+     * nothing, and a phone that does not has no way to play.
+     */
+    touchControls: "auto",
     /** Master audio. Everything the game plays is synthesised at runtime. */
     audio: true,
     /**
@@ -248,6 +256,7 @@ export const SCHEMA = [
             { k: "showBoard", l: "Snowboard", t: "b" },
             { k: "boardScale", l: "Board size", t: "f", min: 0.7, max: 1.8, step: 0.01 },
             { k: "audio", l: "Audio", t: "b" },
+            { k: "touchControls", l: "Touch", t: "e", opts: ["auto", "on", "off"] },
             {
                 k: "vehicle", l: "Vehicle", t: "e",
                 opts: ["classic-snowboard", "rocket-chair"],
