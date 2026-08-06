@@ -1,0 +1,30 @@
+{
+  "tool": "tools/snow-burgers/perf-game-layer-windows.cjs",
+  "url": "http://127.0.0.1:5173",
+  "seconds": 6,
+  "viewport": {
+    "width": 2560,
+    "height": 1440
+  },
+  "note": "Uncapped rAF presentation intervals in headless Windows Chrome. Useful for the delta between the two samples, not as an absolute frame cost.",
+  "freeRideLab": {
+    "frames": 3213,
+    "mean": 1.867,
+    "median": 1.8,
+    "p95": 2.4,
+    "p99": 2.7,
+    "max": 9.7
+  },
+  "burgerRun": {
+    "frames": 2814,
+    "mean": 2.131,
+    "median": 2.1,
+    "p95": 3,
+    "p99": 3.7,
+    "max": 8.5
+  },
+  "gameTriangles": 22370,
+  "gameMeshes": 26,
+  "consoleErrors": [],
+  "deltaMeanMs": 0.264
+}

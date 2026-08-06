@@ -37,6 +37,7 @@ import { IngredientField } from "./ingredientField.js";
 import { BurgerRun, RunState, SUMMIT_STACK } from "./burgerRun.js";
 import { BurgerBook } from "./burgerBook.js";
 import { BurgerBaseCamp } from "./baseCamp.js";
+import { MountainDressing } from "./environment.js";
 import { INGREDIENT_IDS, INGREDIENTS, BURGER_MODEL } from "./ingredients.js";
 import { ZONES, BASE_CAMP_Z } from "./ingredientPlacement.js";
 import { SnowBurgersUi, formatTime } from "../ui/snowBurgersUi.js";
@@ -91,6 +92,15 @@ export class GameDirector {
             controller: deps.controller,
             field: this.field,
             book: this.book,
+            terrain: deps.terrain,
+        });
+
+        /** Conifers, rocks and ice off the racing line. */
+        this.dressing = new MountainDressing({
+            scene: deps.scene,
+            sky: deps.sky,
+            shadows: deps.shadows,
+            depthPass: deps.depthPass,
             terrain: deps.terrain,
         });
 
@@ -154,6 +164,7 @@ export class GameDirector {
         // The camp is grounded on terrain heights, so it cannot be raised until
         // the bake has been read back — which it has by the time this runs.
         this.camp.build();
+        this.dressing.build();
         const loaded = await this.field.load(INGREDIENT_IDS);
         const burgerOk = await this.burger.load(BURGER_MODEL);
         if (!burgerOk) {
@@ -171,6 +182,7 @@ export class GameDirector {
      * is the frame a pickup enters view at nineteen metres a second.
      */
     async warmUp() {
+        await this.dressing.warmUp();
         await this.ghost.warmUp();
         await this.camp.warmUp();
         await this.field.warmUp();
@@ -191,6 +203,7 @@ export class GameDirector {
         out.push(...this.burger.beautyMaterials);
         out.push(...this.camp.beautyMaterials);
         out.push(...this.ghost.beautyMaterials);
+        out.push(...this.dressing.beautyMaterials);
         return out;
     }
 
@@ -198,6 +211,7 @@ export class GameDirector {
 
     selectMode(mode) {
         this.mode = mode;
+        this.dressing.setActive(true);
         switch (mode) {
             case Mode.BURGER_RUN:
                 this.startBurgerRun();
@@ -426,13 +440,14 @@ export class GameDirector {
 
     /** Upload this frame's lighting for anything the game layer drew. */
     sync(cameraPos) {
-        if (this.mode === Mode.ROCKET_TEST) {
+        if (this.mode !== Mode.BURGER_RUN) {
             this.camp.sync(cameraPos);
+            this.dressing.sync(cameraPos);
             return;
         }
-        if (this.mode !== Mode.BURGER_RUN) return;
         this.field.sync(cameraPos);
         this.camp.sync(cameraPos);
+        this.dressing.sync(cameraPos);
         this.ghost.sync(cameraPos);
         this.burger.sync(cameraPos);
     }

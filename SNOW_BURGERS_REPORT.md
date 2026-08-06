@@ -256,8 +256,12 @@ screenshots/snow-burgers/placement-validation.json             100-seed sweep
 - **The onion is loaded and placed-capable but not in any order.** THE SUMMIT
   STACK stays at the four the brief specifies; the onion is the variant-order
   ingredient and has a zone, an icon and a validated placement.
-- **No procedural environment population** — no trees, rocks or fencing beyond
-  the base camp itself.
+- **The dressing is merged, not thin-instanced.** `rocker.vertex.wgsl` takes
+  its transform as `uniform world` with no instance attributes, and it is the
+  one vertex shader the rider, board, vehicle, ingredients, burger, camp and
+  pickup sites all share. Merging reaches the same goal — 43 draw calls for
+  2,840 props — without putting that shader at risk, but it gives up per-prop
+  culling, which the course bands only buy back coarsely.
 - **No heat distortion, ignition flare or exhaust illumination on the snow.**
 - **Pickup sites have a pad and stakes but no beacon or frost**; the beacon
   needs an emissive material this renderer does not currently have.

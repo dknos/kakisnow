@@ -1,0 +1,25 @@
+{
+  "tool": "dressing A/B, within session, vantage z=240, 2560x1440",
+  "dressingOff": {
+    "frames": 3216,
+    "mean": 1.865,
+    "median": 1.8,
+    "p99": 2.6
+  },
+  "dressingOn": {
+    "frames": 3185,
+    "mean": 1.883,
+    "median": 1.8,
+    "p99": 2.7
+  },
+  "dressingOffAgain": {
+    "frames": 3350,
+    "mean": 1.791,
+    "median": 1.8,
+    "p99": 2.7
+  },
+  "meanOffAveraged": 1.828,
+  "deltaMs": 0.055,
+  "note": "Off is sampled twice, before and after, and averaged: it is what bounds the drift this measurement can resolve.",
+  "consoleErrors": []
+}

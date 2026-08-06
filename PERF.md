@@ -202,3 +202,23 @@ Record: `screenshots/snow-burgers/perf/game-layer.json`.
 Neither figure is a GPU completion time. Chrome's command-encoder timestamp
 path still returns zero on this backend, as the record above already notes, so
 no GPU-millisecond result is claimed for the game layer either.
+
+### Mountain dressing
+
+Measured within one session by toggling it, from the same vantage, rather than
+across two sessions — the cross-session drift on this machine is around 0.2 ms,
+which is larger than the thing being measured.
+
+| Dressing | Mean |
+| --- | ---: |
+| Off | 1.865 ms |
+| On | 1.883 ms |
+| Off again | 1.791 ms |
+
+**+0.055 ms**, against an off-to-off drift of 0.074 ms in the same session. The
+dressing's cost is below what this measurement can resolve, and no smaller
+figure is claimed than that.
+
+2,840 placed props become **43 merged meshes** — 43 draw calls rather than
+2,840 — totalling 35,056 triangles. Record:
+`screenshots/snow-burgers/perf/dressing-ab.json`.
