@@ -1,8 +1,7 @@
 # Snow-Burgers — build report
 
-Branch `feat/snow-burgers`. Baseline commit `5291330`. Nothing has been pushed
-to `main`; that repository publishes to GitHub Pages on push, so a merge is a
-release and is the owner's call.
+Merged to `main` and live at https://dknos.github.io/kakisnow/ as of
+`1c49a50`. Baseline commit `5291330`, sixteen commits behind it.
 
 The twenty items below are the report the brief asks for. Where something is
 not done, it says so.
@@ -280,5 +279,12 @@ There is no staging step, so a merge is a release.
 
 ## 20. Deployed commit SHA
 
-**None.** Nothing has been deployed. All work is on `feat/snow-burgers`, and
-the owner has not been asked for a merge yet.
+**`1c49a50`** — "Dress the mountain off the racing line".
+
+Merged fast-forward into `main` and pushed on the owner's instruction. The
+Pages workflow completed in 36 seconds and the site serves at
+https://dknos.github.io/kakisnow/ with `<title>Snow-Burgers</title>` and
+`burger-complete.glb` at its recorded 1,569,000 bytes.
+
+The repository and Pages path remain `/kakisnow/`, unchanged, as the brief
+asked.
