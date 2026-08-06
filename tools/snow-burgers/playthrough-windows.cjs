@@ -45,6 +45,15 @@ const output = path.resolve(arg("--out", "screenshots/snow-burgers/playthrough")
 const seedCount = Number(arg("--seeds", "3"));
 const firstSeed = Number(arg("--first-seed", "1"));
 const timeLimit = Number(arg("--limit", "150"));
+/**
+ * Which vehicle to ride.
+ *
+ * `rocket-chair` also holds the throttle open for the whole descent, which is
+ * the only way to exercise fuel, refills and Rocket Efficiency end to end —
+ * and it has to be a real key, because `pollInput()` rewrites the throttle
+ * from held keys every frame.
+ */
+const vehicle = arg("--vehicle", "classic-snowboard");
 const viewport = { width: 2560, height: 1440 };
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), "snow-burgers-play-"));
 const validationPattern =
@@ -155,8 +164,10 @@ let context = null;
     const seed = firstSeed + n;
     const label = String(seed).padStart(3, "0");
 
-    const started = await page.evaluate((seed) => {
-      const g = window.KAKISNOW.game;
+    const started = await page.evaluate(({ seed, vehicle }) => {
+      const k = window.KAKISNOW;
+      k.set("vehicle", vehicle);
+      const g = k.game;
       g.selectMode("burger-run");
       const actual = g.start(seed);
       window.__autopilot.start();
@@ -169,7 +180,12 @@ let context = null;
           zone: p.zone,
         })),
       };
-    }, seed);
+    }, { seed, vehicle });
+
+    if (vehicle === "rocket-chair") {
+      await page.focus("#view").catch(() => {});
+      await page.keyboard.down("Shift");
+    }
 
     // Poll the run rather than sleep a fixed time: the whole question is how
     // long the mountain takes, and a fixed wait would either cut a slow run
@@ -192,6 +208,7 @@ let context = null;
           speed: +c.speed.toFixed(1),
           blocked: g.run.blockedReason,
           result: g.run.result,
+          fuel: g.rocketChair ? +g.rocketChair.thrust.level.toFixed(3) : null,
         };
       });
       state = last.state;
@@ -220,6 +237,7 @@ let context = null;
     }
 
     await page.evaluate(() => window.__autopilot.stop());
+    if (vehicle === "rocket-chair") await page.keyboard.up("Shift");
 
     const result = last?.result ?? null;
     const ok = state === "results" && result?.completed === true;
@@ -227,11 +245,13 @@ let context = null;
 
     runs.push({
       seed: started.seed,
+      vehicle,
       ok,
       finalState: state,
       placements: started.placements,
       collected: last?.collected ?? [],
       lastZ: last?.z ?? null,
+      fuelAtFinish: last?.fuel ?? null,
       blocked: last?.blocked ?? null,
       result: result && {
         completed: result.completed,
@@ -243,13 +263,16 @@ let context = null;
         grade: result.grade,
         splits: result.splits,
         detail: result.detail,
+        rocket: result.rocket,
+        notMeasured: result.notMeasured,
       },
     });
 
     process.stderr.write(
       `seed ${started.seed}: ${ok ? "COMPLETED" : "FAILED"} ` +
       `state=${state} collected=${(last?.collected ?? []).length}/4 ` +
-      (result ? `time=${result.time.toFixed(2)}s ${result.grade} ${result.stars}★` : "") +
+      (result ? `time=${result.time.toFixed(2)}s ${result.grade} ${result.stars}★ rocket=${result.rocket}` : "") +
+      (last?.fuel !== null && last?.fuel !== undefined ? ` fuel=${last.fuel}` : "") +
       `\n`
     );
 
@@ -263,6 +286,7 @@ let context = null;
     url,
     viewport,
     seeds: seedCount,
+    vehicle,
     runs,
     screenshots: shots,
     consoleErrors: errors,

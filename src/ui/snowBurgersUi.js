@@ -200,6 +200,31 @@ const CSS = `
     font: 500 10px/1 ui-monospace, monospace; letter-spacing: 0.2em;
     text-transform: uppercase; color: rgba(219,230,242,0.42);
 }
+.sb-hud-fuel {
+    position: absolute; left: 50%; top: 92px; transform: translateX(-50%);
+    width: 168px; opacity: 0;
+    transition: opacity 300ms ease;
+}
+.sb-hud-fuel.on { opacity: 1; }
+.sb-hud-fuel .sb-fuel-label {
+    font: 500 8px/1 ui-monospace, monospace; letter-spacing: 0.24em;
+    text-transform: uppercase; color: rgba(219,230,242,0.45);
+    text-align: center; margin-bottom: 6px;
+    text-shadow: 0 2px 14px rgba(3,8,15,0.9);
+}
+.sb-hud-fuel .sb-fuel-track {
+    height: 3px; background: rgba(219,230,242,0.16); overflow: hidden;
+    box-shadow: 0 1px 10px rgba(3,8,15,0.7);
+}
+.sb-hud-fuel .sb-fuel-track i {
+    display: block; height: 100%; width: 100%;
+    transform-origin: left center;
+    background: linear-gradient(90deg, var(--warm-dim), var(--warm));
+}
+/* Under a quarter it stops being information and starts being a warning. */
+.sb-hud-fuel.low .sb-fuel-track i { background: #e2553a; }
+.sb-hud-fuel.low .sb-fuel-label { color: #e2553a; }
+
 .sb-hud-alert {
     position: absolute; left: 50%; bottom: 84px; transform: translateX(-50%);
     text-align: center; max-width: 80vw;
@@ -295,6 +320,8 @@ export class SnowBurgersUi {
             clock: this.root.querySelector("#sb-hud-clock"),
             split: this.root.querySelector("#sb-hud-split"),
             alert: this.root.querySelector("#sb-hud-alert"),
+            fuel: this.root.querySelector("#sb-hud-fuel"),
+            fuelFill: this.root.querySelector("#sb-fuel-fill"),
             alertMain: this.root.querySelector("#sb-alert-main"),
             alertSub: this.root.querySelector("#sb-alert-sub"),
             chips: this.root.querySelector("#sb-order-chips"),
@@ -304,6 +331,7 @@ export class SnowBurgersUi {
 
         this._bind();
         this._lastClock = -1;
+        this._lastFuel = -1;
         /** @type {Record<string, HTMLElement>} */
         this._slotEls = {};
     }
@@ -347,6 +375,10 @@ export class SnowBurgersUi {
     <div class="sb-hud-split" id="sb-hud-split">The Summit Stack</div>
   </div>
   <div class="sb-hud-order" id="sb-hud-slots"></div>
+  <div class="sb-hud-fuel" id="sb-hud-fuel">
+    <div class="sb-fuel-label">Rocket fuel</div>
+    <div class="sb-fuel-track"><i id="sb-fuel-fill"></i></div>
+  </div>
   <div class="sb-hud-alert" id="sb-hud-alert">
     <div class="sb-alert-main" id="sb-alert-main"></div>
     <div class="sb-alert-sub" id="sb-alert-sub"></div>
@@ -475,6 +507,26 @@ export class SnowBurgersUi {
         this.el.clock.firstChild.textContent = formatTime(seconds);
     }
 
+    /**
+     * @param {number} level 0..1
+     * @param {boolean} fitted whether a thrusting vehicle is on the rider
+     *
+     * Hidden entirely rather than shown empty when there is no engine. A gauge
+     * reading zero on a board that has no tank is a bug report waiting to
+     * happen.
+     */
+    setFuel(level, fitted) {
+        this.el.fuel.classList.toggle("on", !!fitted);
+        if (!fitted) return;
+        const v = Math.max(0, Math.min(1, level));
+        // Only touch the DOM when the bar actually moves a visible amount.
+        const step = Math.round(v * 84);
+        if (step === this._lastFuel) return;
+        this._lastFuel = step;
+        this.el.fuelFill.style.transform = `scaleX(${v.toFixed(3)})`;
+        this.el.fuel.classList.toggle("low", v < 0.25);
+    }
+
     setSubtitle(text) {
         this.el.split.textContent = text;
     }
@@ -508,8 +560,11 @@ export class SnowBurgersUi {
             row("Medal", result.medal ? pct(medalFraction(result)) : "0%", medal),
             row("Style", pct(result.style / 100), String(result.style)),
             row("Stack integrity", pct(result.integrity / 100), String(result.integrity)),
-            row("Rocket efficiency", "0%",
-                result.notMeasured.includes("rocket efficiency") ? "not fitted" : String(result.rocket),
+            row("Rocket efficiency",
+                pct((result.rocket ?? 0) / 100),
+                result.notMeasured.includes("rocket efficiency")
+                    ? "not fitted"
+                    : String(result.rocket),
                 result.notMeasured.includes("rocket efficiency")),
         ].join("");
 

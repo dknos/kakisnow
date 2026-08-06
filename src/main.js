@@ -237,7 +237,7 @@ async function boot() {
     await loading.phase("stocking the grill", 0.72);
     const game = new GameDirector({
         scene, sky, shadows, depthPass, terrain,
-        controller: character, rig, spray,
+        controller: character, rig, spray, rocketChair,
     });
     await game.load();
 

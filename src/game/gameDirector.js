@@ -31,6 +31,7 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector.js";
 import { Scalar } from "@babylonjs/core/Maths/math.scalar.js";
 
 import { input } from "../core/input.js";
+import { set as setSetting } from "../core/settings.js";
 import { ShadedAsset } from "../render/shadedAsset.js";
 import { IngredientField } from "./ingredientField.js";
 import { BurgerRun, RunState, SUMMIT_STACK } from "./burgerRun.js";
@@ -38,6 +39,7 @@ import { BurgerBook } from "./burgerBook.js";
 import { INGREDIENT_IDS, INGREDIENTS, BURGER_MODEL } from "./ingredients.js";
 import { ZONES, BASE_CAMP_Z } from "./ingredientPlacement.js";
 import { SnowBurgersUi, formatTime } from "../ui/snowBurgersUi.js";
+import { FUEL_PER_INGREDIENT } from "../vehicles/rocketThrust.js";
 
 export const Mode = {
     TITLE: "title",
@@ -70,6 +72,8 @@ export class GameDirector {
         this.terrain = deps.terrain;
         this.controller = deps.controller;
         this.rig = deps.rig;
+        /** The thrusting vehicle, if one is fitted. May be absent. */
+        this.rocketChair = deps.rocketChair ?? null;
 
         this.book = new BurgerBook();
         this.field = new IngredientField({
@@ -112,6 +116,9 @@ export class GameDirector {
         this.field.onCollect = (id) => {
             this.run.noteCollected(id);
             this.ui.markCollected(id);
+            // The order and the engine are the same decision: the detour that
+            // costs time also buys back the boost that wins it.
+            this.rocketChair?.thrust.refill(FUEL_PER_INGREDIENT);
         };
         this.run.onStateChange = (next, prev) => this._onRunState(next, prev);
     }
@@ -166,18 +173,7 @@ export class GameDirector {
                 this._setCourseHudVisible(true);
                 break;
             case Mode.ROCKET_TEST:
-                // Honest rather than silent. The vehicle profile is Wave 3; a
-                // menu entry that quietly does nothing is worse than one that
-                // says what it is waiting for.
-                this.ui.setAlert({
-                    main: "Rocket Board Test",
-                    sub: "the rocket chair vehicle is not wired up yet",
-                });
-                this.ui.setHud(true);
-                setTimeout(() => {
-                    this.ui.setHud(false);
-                    this.selectMode(Mode.TITLE);
-                }, 2600);
+                this._startRocketTest();
                 break;
             case Mode.TITLE:
             default:
@@ -190,10 +186,57 @@ export class GameDirector {
         }
     }
 
+    /**
+     * Rocket Board Test: the Summit Line, the rocket chair, and no consequences.
+     *
+     * Deliberately not a Burger Run with the ingredients turned off. There is
+     * no clock, no order and nothing recorded, the tank never empties, and the
+     * run never ends — the point is to be able to hold the throttle down over
+     * the same terrain for as long as it takes to decide whether the vehicle is
+     * any good, which is a thing a scored run actively prevents.
+     */
+    _startRocketTest() {
+        this.mode = Mode.ROCKET_TEST;
+        this.run.stop();
+        this.burger.setActive(false);
+        this.ui.hideAll();
+        this._setCourseHudVisible(true);
+        if (!this.rocketChair?.available) {
+            this.ui.setHud(true);
+            this.ui.setAlert({
+                main: "Rocket Board Test unavailable",
+                sub: "the rocket chair model did not load",
+            });
+            return;
+        }
+        setSetting("vehicle", "rocket-chair");
+        this.rocketChair.thrust.reset();
+        this.rocketChair.thrust.infinite = true;
+        const c = this.controller;
+        c.position.set(0, 0, 0);
+        c.position.y = this.terrain.heightAt(0, 0);
+        c.velocity.setAll(0);
+        c.verticalVelocity = 0;
+        c.facing = 0;
+        this.ui.setHud(true);
+        this.ui.setFuel(1, true);
+        this.ui.setAlert({
+            main: "Rocket Board Test",
+            sub: "hold left shift or the right trigger · infinite fuel · F1 for settings",
+        });
+    }
+
     startBurgerRun() {
         this.mode = Mode.BURGER_RUN;
         this.burger.setActive(false);
         this._setCourseHudVisible(false);
+        // A run starts with a full tank whether or not a thrusting vehicle is
+        // fitted, so switching vehicles between attempts never inherits the
+        // last one's fuel.
+        if (this.rocketChair) {
+            this.rocketChair.thrust.reset();
+            this.rocketChair.thrust.infinite = false;
+        }
         const seed = this.run.begin();
         this.ui.resetCollected();
         this.ui.setOrderSlots(this.run.event.required);
@@ -220,6 +263,11 @@ export class GameDirector {
      * @param {number} dt
      */
     beforePhysics() {
+        if (this.mode === Mode.ROCKET_TEST) {
+            // Ride, always. There is nothing to walk to in a vehicle test.
+            input.surf = true;
+            return;
+        }
         if (this.mode !== Mode.BURGER_RUN) return;
 
         // A held rider is a zeroed input struct, not a skipped controller: the
@@ -249,9 +297,18 @@ export class GameDirector {
      * @param {number} dt
      */
     update(dt) {
+        if (this.mode === Mode.ROCKET_TEST) {
+            if (this.rocketChair) this.ui.setFuel(this.rocketChair.thrust.level, true);
+            return;
+        }
         if (this.mode !== Mode.BURGER_RUN) return;
 
         const state = this.run.state;
+        // The run reads telemetry rather than the vehicle, so a run on the
+        // classic board scores against a `null` and the results screen says
+        // "not fitted" instead of printing a zero.
+        this.run.rocketTelemetry =
+            this.rocketChair?.active ? this.rocketChair.thrust.telemetry() : null;
         this.run.update(dt);
         this.field.update(dt, this.run.time, state === RunState.RUN);
 
@@ -265,6 +322,10 @@ export class GameDirector {
             case RunState.RUN:
                 this.ui.setCountdown(null);
                 this.ui.setClock(this.run.time);
+                this.ui.setFuel(
+                    this.rocketChair?.thrust.level ?? 0,
+                    !!this.rocketChair?.active
+                );
                 this._updateAlert();
                 break;
             case RunState.ASSEMBLY:
@@ -443,6 +504,7 @@ export class GameDirector {
             director: this,
             run: this.run,
             field: this.field,
+            rocketChair: this.rocketChair,
             book: this.book,
             ui: this.ui,
             Mode,
