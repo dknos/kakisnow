@@ -26,6 +26,11 @@ const JOBS = [
     // scattered across a mountainside, so it keeps its geometry and most of
     // its texture resolution — it is the one built thing the player stops at.
     { in: "hut-source.glb", out: "camp-hut.glb", tris: 12000, tex: 512 },
+    // An authored village, kept as one laid-out group rather than cut into
+    // separate cabins: the file already arranges them the way a hamlet sits on
+    // a slope, and re-scattering them would throw that away to rebuild it.
+    // Untextured, so it costs geometry only.
+    { in: "village-source.glb", out: "camp-village.glb", tris: 22000, tex: 512 },
 ];
 
 const sdk = await loadGltfTransform();

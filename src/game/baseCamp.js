@@ -91,6 +91,18 @@ export class BurgerBaseCamp {
         this.hutB = new ShadedAsset({
             scene, sky, shadows, depthPass, name: "campHutB",
         });
+        /**
+         * The village, placed as one group.
+         *
+         * The file already arranges its cabins the way a hamlet sits on a
+         * slope, so it goes down as authored rather than being cut up and
+         * re-scattered — rebuilding a layout that already exists is work spent
+         * to arrive back where it started. It sits well downhill and off to
+         * the side, where it reads as somewhere the run leads to.
+         */
+        this.village = new ShadedAsset({
+            scene, sky, shadows, depthPass, name: "campVillage",
+        });
         this.built = false;
     }
 
@@ -175,12 +187,18 @@ export class BurgerBaseCamp {
     async load() {
         const url = (import.meta.env?.BASE_URL ?? "/")
             + "assets/models/snow-burgers/camp-hut.glb";
+        const base = (import.meta.env?.BASE_URL ?? "/")
+            + "assets/models/snow-burgers/";
         const placements = [
-            { asset: this.hut, x: -30, z: BASE_CAMP_Z + 40, scale: 1.5, ry: 0.5 },
-            { asset: this.hutB, x: 27, z: BASE_CAMP_Z + 52, scale: 1.15, ry: -1.9 },
+            { asset: this.hut, url, x: -30, z: BASE_CAMP_Z + 40, scale: 1.5, ry: 0.5 },
+            { asset: this.hutB, url, x: 27, z: BASE_CAMP_Z + 52, scale: 1.15, ry: -1.9 },
+            {
+                asset: this.village, url: base + "camp-village.glb",
+                x: -78, z: BASE_CAMP_Z + 96, scale: 1.0, ry: 0.35,
+            },
         ];
         for (const p of placements) {
-            if (!await p.asset.load(url)) continue;
+            if (!await p.asset.load(p.url)) continue;
             p.asset.root.scaling.setAll(p.scale);
             p.asset.root.rotation.y = p.ry;
             p.asset.root.position.set(p.x, this.terrain.heightAt(p.x, p.z), p.z);
@@ -194,7 +212,7 @@ export class BurgerBaseCamp {
         this.asset.setActive(true);
         await this.asset.warmUp();
         this.asset.setActive(false);
-        for (const h of [this.hut, this.hutB]) {
+        for (const h of [this.hut, this.hutB, this.village]) {
             if (!h.available) continue;
             h.setActive(true);
             await h.warmUp();
@@ -206,12 +224,14 @@ export class BurgerBaseCamp {
         this.asset.setActive(active);
         this.hut.setActive(active);
         this.hutB.setActive(active);
+        this.village.setActive(active);
     }
 
     sync(cameraPos) {
         this.asset.sync(cameraPos);
         this.hut.sync(cameraPos);
         this.hutB.sync(cameraPos);
+        this.village.sync(cameraPos);
     }
 
     get beautyMaterials() {
@@ -219,6 +239,7 @@ export class BurgerBaseCamp {
             ...this.asset.beautyMaterials,
             ...this.hut.beautyMaterials,
             ...this.hutB.beautyMaterials,
+            ...this.village.beautyMaterials,
         ];
     }
 
@@ -277,5 +298,6 @@ export class BurgerBaseCamp {
         this.asset.dispose();
         this.hut.dispose();
         this.hutB.dispose();
+        this.village.dispose();
     }
 }
