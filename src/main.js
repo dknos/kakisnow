@@ -26,6 +26,7 @@ import { SpellSystem } from "./spells/spellSystem.js";
 import { Overlay } from "./ui/overlay.js";
 import { CourseHud } from "./ui/courseHud.js";
 import { GameDirector, Mode } from "./game/gameDirector.js";
+import { RocketChair } from "./vehicles/rocketChair.js";
 import { Sky } from "./render/sky.js";
 import { ShadowSystem } from "./render/shadows.js";
 import { Terrain } from "./terrain/terrain.js";
@@ -137,6 +138,14 @@ async function boot() {
     });
     await rocker.load();
 
+    // The second vehicle. It hangs off the node RockerKaki already uses to
+    // carry the board's attitude, so switching is showing one and hiding the
+    // other — the classic board stays loaded and stays the fallback.
+    const rocketChair = new RocketChair({
+        scene, sky, shadows, depthPass, rocker,
+    });
+    await rocketChair.load();
+
     // Airborne snow: footfall kick now, the surf plume and spell spray later.
     const spray = new SprayField(scene, terrain, sky, shadows);
 
@@ -177,7 +186,18 @@ async function boot() {
     // Resizing the board moves the mesh and the trench together — `boardSpec`
     // is the one place both read their geometry from, so this is the only hook
     // the slider needs.
-    onChange("boardScale", () => rocker.applyBoardScale());
+    onChange("boardScale", () => {
+        rocker.applyBoardScale();
+        rocketChair.applyScale();
+    });
+    onChange("rocketChairScale", () => rocketChair.applyScale());
+    // After `applyHeroStyle`, always: that function ends by handing the board's
+    // visibility back to `S.showBoard`, which would put the classic board back
+    // underneath the chair.
+    const applyVehicle = () => {
+        rocketChair.setActive(S.vehicle === "rocket-chair" && usingRocker);
+    };
+    onChange(["vehicle", "showBoard", "showCharacter", "heroStyle"], applyVehicle);
     applyHeroStyle();
 
     // The breaking wave, its bow crest and the plume it sheds.
@@ -252,6 +272,8 @@ async function boot() {
     // Every ingredient and the reward burger, compiled here rather than on the
     // frame a pickup first enters view at nineteen metres a second.
     await game.warmUp();
+    await rocketChair.warmUp();
+    applyVehicle();
     await spells.warmUp(
         character.position.x + 3, character.position.y, character.position.z + 3
     );
@@ -348,6 +370,7 @@ async function boot() {
         // cascade matrices rather than last frame's.
         if (usingSnowbound) figure.sync(rig.camera.position);
         if (usingRocker) rocker.sync(rig.camera.position);
+        rocketChair.sync(rig.camera.position);
         game.sync(rig.camera.position);
         // Before the spray: the wake decides where its own lip is, and the
         // grains it sheds have to be in the pool before the pool is uploaded.
@@ -394,6 +417,7 @@ async function boot() {
         engine, scene, rig, character, figure, contact, spray, wake, spells,
         rocker, overlay, courseHud, terrain, sky, shadows, post, depthPass,
         game: game.api,
+        rocketChair,
         S, input, perfStats: stats, set: setSetting,
         setHeroStyle(style) {
             setSetting("heroStyle", style === "rockerkaki" ? "rockerkaki" : "snowbound");

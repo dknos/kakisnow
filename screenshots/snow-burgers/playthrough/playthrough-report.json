@@ -51,17 +51,17 @@
       "blocked": null,
       "result": {
         "completed": true,
-        "time": 31.48,
+        "time": 31.47,
         "medal": "gold",
         "style": 44,
         "integrity": 100,
         "stars": 4,
         "grade": "Summit Stack",
         "splits": {
-          "cheese": 8.903200000003068,
-          "patty": 14.929200000003448,
-          "tomato": 20.532099999994465,
-          "lettuce": 26.47240000000634
+          "cheese": 8.903400000006053,
+          "patty": 14.928799999997619,
+          "tomato": 20.532000000000316,
+          "lettuce": 26.47349999999989
         },
         "detail": {
           "airTime": 0,

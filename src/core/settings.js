@@ -114,6 +114,31 @@ export const S = {
     showBoard: true,
     /** Board length as a multiple of the asset's authored 2.52 m. */
     boardScale: 1.18,
+    /**
+     * Which vehicle the rider is on.
+     *
+     * `classic-snowboard` is the board RockerKaki has ridden for the life of
+     * this project and remains the fallback in every sense: it is what Free
+     * Ride Lab uses and what the rider is still on if the rocket chair fails to
+     * import.
+     */
+    vehicle: "classic-snowboard",
+    /**
+     * A second multiplier on the rocket chair, on top of `boardScale`.
+     *
+     * It exists because the two things it has to reconcile were authored for
+     * different worlds: the chair is furniture built around a person, and the
+     * rider is a 2.58 m chibi. Matching the chair's length to the classic
+     * board's puts her in a seat built for someone a third her size. This is
+     * the one number that trades those off, and it is a setting rather than a
+     * constant because the answer came out of renders.
+     */
+    //
+    // 1.8 is what looking at it produced. The sweep is committed at
+    // `screenshots/snow-burgers/rocket-seat/`: at 1.2 the chair is a toy under
+    // her, and at 2.6 the board is nine metres long and the mountain looks
+    // small around it.
+    rocketChairScale: 1.8,
     showWake: true,
     showLightShafts: true,
     wireframe: false,
@@ -220,6 +245,14 @@ export const SCHEMA = [
             },
             { k: "showBoard", l: "Snowboard", t: "b" },
             { k: "boardScale", l: "Board size", t: "f", min: 0.7, max: 1.8, step: 0.01 },
+            {
+                k: "vehicle", l: "Vehicle", t: "e",
+                opts: ["classic-snowboard", "rocket-chair"],
+            },
+            {
+                k: "rocketChairScale", l: "Chair size", t: "f",
+                min: 0.6, max: 3.2, step: 0.02,
+            },
             { k: "wireframe", l: "Wireframe", t: "b" },
             { k: "freezeTime", l: "Freeze time", t: "b" },
             { k: "resolutionScale", l: "Resolution", t: "f", min: 0.5, max: 1.5, step: 0.05 },

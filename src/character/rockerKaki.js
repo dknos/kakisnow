@@ -219,6 +219,20 @@ export class RockerKaki {
         this.boardAvailable = false;
         /** Whether she is riding it. Driven by `S.showBoard`. */
         this.boardVisible = true;
+        /**
+         * Where a mounted vehicle wants the rider's feet, overriding the deck.
+         *
+         * Null means there is no vehicle and the two answers already here
+         * apply: on the deck when the board is visible, on the snow when it is
+         * not. A second vehicle needs a third answer, because hiding the board
+         * to make room for it would otherwise drop the rider to snow level and
+         * leave her sitting through the chair she is supposed to be in.
+         *
+         * It is a number rather than a reference to the vehicle deliberately —
+         * this class does not need to know what it is carrying, only how high
+         * to sit her.
+         */
+        this.vehicleDeckHeight = null;
         /** The asset's own bounds at unit scale, measured once at import. */
         this._boardRawLength = 0;
         this._boardRawMin = new Vector3();
@@ -723,9 +737,11 @@ export class RockerKaki {
         // pitch, roll and sink are already in the parent, so these are only the
         // things her body does that the board does not.
         // On the deck when there is one, on the snow when there is not.
-        this.visualRoot.position.y = this.boardVisible
-            ? this._deckHeight - 0.012
-            : 0;
+        this.visualRoot.position.y = this.vehicleDeckHeight !== null
+            ? this.vehicleDeckHeight
+            : this.boardVisible
+                ? this._deckHeight - 0.012
+                : 0;
         this.visualRoot.rotation.x =
             -this._boardPitch * RIDER_UPRIGHT_PITCH
             + ch.surf * 0.13 + ch.speed * 0.003 - air * 0.18
