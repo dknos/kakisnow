@@ -36,6 +36,7 @@ import { ShadedAsset } from "../render/shadedAsset.js";
 import { IngredientField } from "./ingredientField.js";
 import { BurgerRun, RunState, SUMMIT_STACK } from "./burgerRun.js";
 import { BurgerBook } from "./burgerBook.js";
+import { BurgerBaseCamp } from "./baseCamp.js";
 import { INGREDIENT_IDS, INGREDIENTS, BURGER_MODEL } from "./ingredients.js";
 import { ZONES, BASE_CAMP_Z } from "./ingredientPlacement.js";
 import { SnowBurgersUi, formatTime } from "../ui/snowBurgersUi.js";
@@ -91,6 +92,15 @@ export class GameDirector {
             terrain: deps.terrain,
         });
 
+        /** The finish: arch, grill, order board and lodge. */
+        this.camp = new BurgerBaseCamp({
+            scene: deps.scene,
+            sky: deps.sky,
+            shadows: deps.shadows,
+            depthPass: deps.depthPass,
+            terrain: deps.terrain,
+        });
+
         /** The reward model, loaded once and reused for every completion. */
         this.burger = new ShadedAsset({
             scene: deps.scene,
@@ -104,6 +114,8 @@ export class GameDirector {
         this._assembly = 0;
         this._assemblyTotal = ASSEMBLY_TIME;
         this._alertShown = null;
+        /** Rig state on entering the assembly, restored when it ends. */
+        this._camEntry = new Vector3();
 
         this.ui = new SnowBurgersUi({
             onSelectMode: (m) => this.selectMode(m),
@@ -125,6 +137,9 @@ export class GameDirector {
 
     /** Load every model the game layer places. Behind the loading screen. */
     async load() {
+        // The camp is grounded on terrain heights, so it cannot be raised until
+        // the bake has been read back — which it has by the time this runs.
+        this.camp.build();
         const loaded = await this.field.load(INGREDIENT_IDS);
         const burgerOk = await this.burger.load(BURGER_MODEL);
         if (!burgerOk) {
@@ -142,6 +157,7 @@ export class GameDirector {
      * is the frame a pickup enters view at nineteen metres a second.
      */
     async warmUp() {
+        await this.camp.warmUp();
         await this.field.warmUp();
         this.burger.setActive(true);
         await this.burger.warmUp();
@@ -154,7 +170,11 @@ export class GameDirector {
         for (const asset of this.field.assets.values()) {
             out.push(...asset.beautyMaterials);
         }
+        for (const site of this.field.sites.values()) {
+            out.push(...site.beautyMaterials);
+        }
         out.push(...this.burger.beautyMaterials);
+        out.push(...this.camp.beautyMaterials);
         return out;
     }
 
@@ -168,6 +188,7 @@ export class GameDirector {
                 break;
             case Mode.FREE_RIDE:
                 this.run.stop();
+                this.camp.setActive(false);
                 this.burger.setActive(false);
                 this.ui.hideAll();
                 this._setCourseHudVisible(true);
@@ -179,6 +200,7 @@ export class GameDirector {
             default:
                 this.mode = Mode.TITLE;
                 this.run.stop();
+                this.camp.setActive(false);
                 this.burger.setActive(false);
                 this.ui.showTitle();
                 this._setCourseHudVisible(false);
@@ -209,6 +231,7 @@ export class GameDirector {
             });
             return;
         }
+        this.camp.setActive(true);
         setSetting("vehicle", "rocket-chair");
         this.rocketChair.thrust.reset();
         this.rocketChair.thrust.infinite = true;
@@ -229,6 +252,7 @@ export class GameDirector {
     startBurgerRun() {
         this.mode = Mode.BURGER_RUN;
         this.burger.setActive(false);
+        this.camp.setActive(true);
         this._setCourseHudVisible(false);
         // A run starts with a full tank whether or not a thrusting vehicle is
         // fitted, so switching vehicles between attempts never inherits the
@@ -338,8 +362,13 @@ export class GameDirector {
 
     /** Upload this frame's lighting for anything the game layer drew. */
     sync(cameraPos) {
+        if (this.mode === Mode.ROCKET_TEST) {
+            this.camp.sync(cameraPos);
+            return;
+        }
         if (this.mode !== Mode.BURGER_RUN) return;
         this.field.sync(cameraPos);
+        this.camp.sync(cameraPos);
         this.burger.sync(cameraPos);
     }
 
@@ -366,9 +395,22 @@ export class GameDirector {
                 : ASSEMBLY_TIME;
             this._assembly = this._assemblyTotal;
 
-            _burgerPos.set(c.position.x, 0, BASE_CAMP_Z + 6);
-            _burgerPos.y = this.terrain.heightAt(_burgerPos.x, _burgerPos.z);
+            // Ahead of the rider, on the line they are already travelling.
+            //
+            // Standing it on the grill's counter was the obvious idea and the
+            // wrong one: the rig orbits the rider, so framing something off to
+            // the side means swinging the camera around them, and at the finish
+            // that swing puts it inside the arch. The committed frame from that
+            // attempt is a flat brown rectangle — the inside of the banner.
+            //
+            // Putting the reward where the camera is already pointed costs
+            // nothing and composes better anyway: the burger lands centre
+            // frame with the arch, the grill and the lodge behind it.
+            // Close enough to the rider that the run's own camera frames it.
+            _burgerPos.set(c.position.x, 0, c.position.z + 4.2);
+            _burgerPos.y = this.terrain.heightAt(_burgerPos.x, _burgerPos.z) + 0.55;
             this.burger.root.position.copyFrom(_burgerPos);
+            this._camEntry.set(this.rig.yaw, this.rig.pitch, this.rig.distanceTarget);
             this.burger.root.scaling.setAll(0.01);
             this.burger.setActive(true);
             this.ui.setHud(false);
@@ -377,7 +419,9 @@ export class GameDirector {
 
         // Coast, do not brake. A rider stopped dead at a finish line reads as a
         // bug; one that runs out is a rider.
-        const k = Math.max(0, 1 - dt * 1.9);
+        // Firmer than a coast: the run-out has to finish inside the assembly,
+        // or the rider drifts on into the camp with the camera behind them.
+        const k = Math.max(0, 1 - dt * 3.4);
         c.velocity.x *= k;
         c.velocity.z *= k;
 
@@ -386,13 +430,26 @@ export class GameDirector {
         const ease = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
         this.burger.root.scaling.setAll(Scalar.Lerp(0.01, 1, ease));
-        this.burger.root.position.y = _burgerPos.y + ease * 1.1;
+        this.burger.root.position.y = _burgerPos.y + ease * 0.5;
         this.burger.root.rotation.y += dt * 0.8;
 
-        // Look at it. The rig's own follow keeps the framing sane; nudging its
-        // yaw toward the burger is enough to make the finish about the burger
-        // without taking the camera away from the player.
-        this.rig.yaw += (0 - this.rig.yaw) * Math.min(1, dt * 2.2);
+        // Settle the yaw down the fall line, and touch nothing else.
+        //
+        // Two attempts at a dedicated finish camera are committed above this
+        // one, and both put the lens inside a prop: the rig orbits the rider,
+        // the rider stops at the arch, and the arch is a solid object the
+        // camera passes through. Swinging it sideways framed the banner;
+        // pulling it in framed the beam.
+        //
+        // What is left is the camera the player has ridden the whole run with,
+        // which cannot collide with anything the run did not already collide
+        // with. The reward is brought to it instead. A camera that stages the
+        // burger properly wants collision awareness in the rig, and that is a
+        // change to the rig rather than to the finish.
+        let delta = 0 - this.rig.yaw;
+        while (delta > Math.PI) delta -= Math.PI * 2;
+        while (delta < -Math.PI) delta += Math.PI * 2;
+        this.rig.yaw += delta * (1 - Math.exp(-dt * 2.4));
 
         if (this._assembly <= 0) {
             this._assembly = 0;
@@ -423,6 +480,9 @@ export class GameDirector {
             this._assembly = 0;
         }
         if (next === RunState.RESULTS) {
+            // Hand the camera back the way it was found, or the next run starts
+            // with the finish sequence's framing still applied.
+            this.rig.distanceTarget = this._camEntry.z || this.rig.distanceTarget;
             this.burger.setActive(false);
             this.ui.showResults(this.run.result, this.book.event(this.run.event.id));
         }
