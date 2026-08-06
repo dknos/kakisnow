@@ -25,6 +25,7 @@ import { SurfWake } from "./vfx/surfWake.js";
 import { SpellSystem } from "./spells/spellSystem.js";
 import { Overlay } from "./ui/overlay.js";
 import { CourseHud } from "./ui/courseHud.js";
+import { GameDirector, Mode } from "./game/gameDirector.js";
 import { Sky } from "./render/sky.js";
 import { ShadowSystem } from "./render/shadows.js";
 import { Terrain } from "./terrain/terrain.js";
@@ -201,6 +202,25 @@ async function boot() {
     applyHeroStyle();
     spells.registerPrepass(depthPass);
 
+    // ----------------------------------------------------------- game layer
+    // Snow-Burgers: the order, the five ingredients, the grill and the score.
+    // It owns no rendering of its own — every model it places goes through the
+    // same custom sun, cascades, prepass and fog as the hero — and it is a
+    // mode, so Free Ride Lab turns all of it off and hands the mountain back.
+    await loading.phase("stocking the grill", 0.72);
+    const game = new GameDirector({
+        scene, sky, shadows, depthPass, terrain,
+        controller: character, rig, spray,
+    });
+    await game.load();
+
+    // A pickup standing in a spell's light has to answer to it the way the snow
+    // does. Its meshes carry the same `rocker` material as the hero, so they
+    // join the same four-slot pool with no special case — but only once the
+    // models are actually loaded, because before that there are no materials to
+    // register.
+    for (const material of game.lightConsumers) spells.addConsumers(material);
+
     // The rig needs ground heights to keep the spring arm above the snow.
     rig.groundAt = (x, z) => terrain.heightAt(x, z);
 
@@ -229,6 +249,9 @@ async function boot() {
     spray.update(0, rig.camera.position);
     await spray.warmUp();
     await wake.warmUp();
+    // Every ingredient and the reward burger, compiled here rather than on the
+    // frame a pickup first enters view at nineteen metres a second.
+    await game.warmUp();
     await spells.warmUp(
         character.position.x + 3, character.position.y, character.position.z + 3
     );
@@ -279,6 +302,10 @@ async function boot() {
         time += dt;
 
         pollInput();
+        // Between the poll and the controller, because holding a rider at a
+        // start gate means overwriting the input struct the controller is
+        // about to read — see `GameDirector.beforePhysics`.
+        game.beforePhysics();
 
         // Per-system CPU timings are labelled explicitly: Chrome's current
         // command-encoder timestamp path returns zero on this WebGPU backend,
@@ -293,6 +320,10 @@ async function boot() {
         if (usingSnowbound) figure.update(dt);
         if (usingRocker) rocker.update(dt);
         contact.update(dt);
+        // After the physics: the swept pickup test spans the movement the
+        // controller just produced, and the finish is caught on the frame it
+        // is crossed rather than the one after.
+        game.update(dt);
         const tChar = performance.now();
 
         _vel.copyFrom(character.velocity);
@@ -317,6 +348,7 @@ async function boot() {
         // cascade matrices rather than last frame's.
         if (usingSnowbound) figure.sync(rig.camera.position);
         if (usingRocker) rocker.sync(rig.camera.position);
+        game.sync(rig.camera.position);
         // Before the spray: the wake decides where its own lip is, and the
         // grains it sheds have to be in the pool before the pool is uploaded.
         wake.update(dt, rig.camera.position);
@@ -345,9 +377,23 @@ async function boot() {
     await loading.done();
     setTimeout(() => overlay.resetSpikes(), 800);
 
+    // Which mode the build opens in.
+    //
+    // A query parameter rather than only a menu click, because the committed
+    // capture and smoke tools drive this build headlessly and none of them can
+    // press a button. `?mode=free-ride` is the original open mountain with no
+    // game interface over it, which is what those tools were written against.
+    const requestedMode = new URLSearchParams(location.search).get("mode");
+    game.selectMode(
+        requestedMode === "free-ride" ? Mode.FREE_RIDE
+            : requestedMode === "burger-run" ? Mode.BURGER_RUN
+            : Mode.TITLE
+    );
+
     const api = {
         engine, scene, rig, character, figure, contact, spray, wake, spells,
         rocker, overlay, courseHud, terrain, sky, shadows, post, depthPass,
+        game: game.api,
         S, input, perfStats: stats, set: setSetting,
         setHeroStyle(style) {
             setSetting("heroStyle", style === "rockerkaki" ? "rockerkaki" : "snowbound");

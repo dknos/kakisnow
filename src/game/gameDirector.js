@@ -1,0 +1,464 @@
+/**
+ * The game layer's one entry point.
+ *
+ * Owns the modes, holds the run, the ingredient field, the book and the
+ * interface together, and is the only thing `main.js` has to call. Everything
+ * below it is a plain object with no knowledge of the renderer; everything
+ * above it is the renderer with no knowledge of burgers.
+ *
+ * ------------------------------------------------------------------- the modes
+ *
+ *   BURGER RUN        the game: order, countdown, four pickups, grill, results
+ *   FREE RIDE LAB     the original open mountain, unchanged and unscored
+ *   ROCKET BOARD TEST reserved for the second vehicle; selecting it says so
+ *
+ * Free Ride Lab is not a stripped Burger Run. It is this project as it was
+ * before the game layer existed — the ingredient field is cleared, the run
+ * clock never starts, and nothing in `update` below does anything at all. That
+ * is deliberate: the snow study is the reason the game looks like this, and it
+ * has to stay reachable in the state it was in.
+ *
+ * ------------------------------------------------------------- input ownership
+ *
+ * The controller reads the shared `input` struct, which `pollInput()` rewrites
+ * from held keys every frame. So a countdown or a cinematic cannot hold the
+ * rider by setting a flag somewhere — it has to zero that struct, after the
+ * poll and before the controller reads it. `update` is called in exactly that
+ * gap, which is the whole reason it sits where it does in the frame.
+ */
+
+import { Vector3 } from "@babylonjs/core/Maths/math.vector.js";
+import { Scalar } from "@babylonjs/core/Maths/math.scalar.js";
+
+import { input } from "../core/input.js";
+import { ShadedAsset } from "../render/shadedAsset.js";
+import { IngredientField } from "./ingredientField.js";
+import { BurgerRun, RunState, SUMMIT_STACK } from "./burgerRun.js";
+import { BurgerBook } from "./burgerBook.js";
+import { INGREDIENT_IDS, INGREDIENTS, BURGER_MODEL } from "./ingredients.js";
+import { ZONES, BASE_CAMP_Z } from "./ingredientPlacement.js";
+import { SnowBurgersUi, formatTime } from "../ui/snowBurgersUi.js";
+
+export const Mode = {
+    TITLE: "title",
+    BURGER_RUN: "burger-run",
+    FREE_RIDE: "free-ride",
+    ROCKET_TEST: "rocket-test",
+};
+
+/** Seconds the burger assembly plays before the results screen. */
+const ASSEMBLY_TIME = 3.4;
+/** Its shortened form, once the player has seen it. */
+const ASSEMBLY_TIME_SEEN = 1.5;
+
+const _burgerPos = new Vector3();
+
+export class GameDirector {
+    /**
+     * @param {object} deps
+     * @param {import("@babylonjs/core/scene").Scene} deps.scene
+     * @param {import("../render/sky.js").Sky} deps.sky
+     * @param {import("../render/shadows.js").ShadowSystem} deps.shadows
+     * @param {import("../render/depthPass.js").DepthPass} deps.depthPass
+     * @param {import("../terrain/terrain.js").Terrain} deps.terrain
+     * @param {import("../character/controller.js").CharacterController} deps.controller
+     * @param {import("../core/camera.js").CameraRig} deps.rig
+     * @param {import("../vfx/particles.js").SprayField} deps.spray
+     */
+    constructor(deps) {
+        this.deps = deps;
+        this.terrain = deps.terrain;
+        this.controller = deps.controller;
+        this.rig = deps.rig;
+
+        this.book = new BurgerBook();
+        this.field = new IngredientField({
+            scene: deps.scene,
+            sky: deps.sky,
+            shadows: deps.shadows,
+            depthPass: deps.depthPass,
+            controller: deps.controller,
+            spray: deps.spray,
+        });
+        this.run = new BurgerRun({
+            controller: deps.controller,
+            field: this.field,
+            book: this.book,
+            terrain: deps.terrain,
+        });
+
+        /** The reward model, loaded once and reused for every completion. */
+        this.burger = new ShadedAsset({
+            scene: deps.scene,
+            sky: deps.sky,
+            shadows: deps.shadows,
+            depthPass: deps.depthPass,
+            name: "burgerComplete",
+        });
+
+        this.mode = Mode.TITLE;
+        this._assembly = 0;
+        this._assemblyTotal = ASSEMBLY_TIME;
+        this._alertShown = null;
+
+        this.ui = new SnowBurgersUi({
+            onSelectMode: (m) => this.selectMode(m),
+            onDropIn: () => this.run.dropIn(),
+            onRetry: () => this.run.retry(),
+            onNextOrder: () => this.startBurgerRun(),
+            onMenu: () => this.selectMode(Mode.TITLE),
+        });
+
+        this.field.onCollect = (id) => {
+            this.run.noteCollected(id);
+            this.ui.markCollected(id);
+        };
+        this.run.onStateChange = (next, prev) => this._onRunState(next, prev);
+    }
+
+    /** Load every model the game layer places. Behind the loading screen. */
+    async load() {
+        const loaded = await this.field.load(INGREDIENT_IDS);
+        const burgerOk = await this.burger.load(BURGER_MODEL);
+        if (!burgerOk) {
+            console.warn("[snow-burgers] the reward burger failed to load");
+        }
+        return { ingredients: loaded, burger: burgerOk };
+    }
+
+    /**
+     * Compile every game pipeline before the loading screen lifts.
+     *
+     * This is the whole of the brief's no-first-pickup-hitch requirement. A
+     * WebGPU render pipeline is built the first time a material is bound with a
+     * mesh that is actually drawn, and without this the first time that happens
+     * is the frame a pickup enters view at nineteen metres a second.
+     */
+    async warmUp() {
+        await this.field.warmUp();
+        this.burger.setActive(true);
+        await this.burger.warmUp();
+        this.burger.setActive(false);
+    }
+
+    /** The materials the spell system should light. */
+    get lightConsumers() {
+        const out = [];
+        for (const asset of this.field.assets.values()) {
+            out.push(...asset.beautyMaterials);
+        }
+        out.push(...this.burger.beautyMaterials);
+        return out;
+    }
+
+    // ------------------------------------------------------------------ modes
+
+    selectMode(mode) {
+        this.mode = mode;
+        switch (mode) {
+            case Mode.BURGER_RUN:
+                this.startBurgerRun();
+                break;
+            case Mode.FREE_RIDE:
+                this.run.stop();
+                this.burger.setActive(false);
+                this.ui.hideAll();
+                this._setCourseHudVisible(true);
+                break;
+            case Mode.ROCKET_TEST:
+                // Honest rather than silent. The vehicle profile is Wave 3; a
+                // menu entry that quietly does nothing is worse than one that
+                // says what it is waiting for.
+                this.ui.setAlert({
+                    main: "Rocket Board Test",
+                    sub: "the rocket chair vehicle is not wired up yet",
+                });
+                this.ui.setHud(true);
+                setTimeout(() => {
+                    this.ui.setHud(false);
+                    this.selectMode(Mode.TITLE);
+                }, 2600);
+                break;
+            case Mode.TITLE:
+            default:
+                this.mode = Mode.TITLE;
+                this.run.stop();
+                this.burger.setActive(false);
+                this.ui.showTitle();
+                this._setCourseHudVisible(false);
+                break;
+        }
+    }
+
+    startBurgerRun() {
+        this.mode = Mode.BURGER_RUN;
+        this.burger.setActive(false);
+        this._setCourseHudVisible(false);
+        const seed = this.run.begin();
+        this.ui.resetCollected();
+        this.ui.setOrderSlots(this.run.event.required);
+        this.ui.showOrder(
+            this.run.event,
+            this.run.placements.map((p) => ({
+                ...p,
+                zoneName: ZONES[p.ingredient]?.name ?? "",
+            }))
+        );
+        return seed;
+    }
+
+    // ----------------------------------------------------------------- update
+
+    /**
+     * Impose the run's intent on the input the controller is about to read.
+     *
+     * Called between `pollInput()` and `character.update()`. It has to be
+     * there and not anywhere else: `pollInput` rewrites the shared input struct
+     * from held keys every frame, so a countdown that held the rider by setting
+     * a flag earlier would be overwritten before the controller ever saw it.
+     *
+     * @param {number} dt
+     */
+    beforePhysics() {
+        if (this.mode !== Mode.BURGER_RUN) return;
+
+        // A held rider is a zeroed input struct, not a skipped controller: the
+        // controller still has to run so the terrain keeps grounding it, the
+        // camera keeps following, and the frame the countdown ends is not the
+        // frame the physics wakes up.
+        if (this.run.state !== RunState.RUN) {
+            input.moveX = 0;
+            input.moveZ = 0;
+            input.moving = false;
+            input.surf = false;
+            input.jumpPressed = false;
+        } else {
+            // Surf is the ride. On a timed run the player should not have to
+            // hold a mouse button down to be going downhill.
+            input.surf = true;
+        }
+    }
+
+    /**
+     * Advance the run against the position the controller just produced.
+     *
+     * After the physics rather than before it, so the swept pickup test spans
+     * this frame's actual movement and the finish is detected on the frame it
+     * is crossed rather than the one after.
+     *
+     * @param {number} dt
+     */
+    update(dt) {
+        if (this.mode !== Mode.BURGER_RUN) return;
+
+        const state = this.run.state;
+        this.run.update(dt);
+        this.field.update(dt, this.run.time, state === RunState.RUN);
+
+        switch (state) {
+            case RunState.ORDER:
+                this.ui.setCountdown(null);
+                break;
+            case RunState.COUNTDOWN:
+                this.ui.setCountdown(this.run.countdown);
+                break;
+            case RunState.RUN:
+                this.ui.setCountdown(null);
+                this.ui.setClock(this.run.time);
+                this._updateAlert();
+                break;
+            case RunState.ASSEMBLY:
+                this._updateAssembly(dt);
+                break;
+            default:
+                break;
+        }
+    }
+
+    /** Upload this frame's lighting for anything the game layer drew. */
+    sync(cameraPos) {
+        if (this.mode !== Mode.BURGER_RUN) return;
+        this.field.sync(cameraPos);
+        this.burger.sync(cameraPos);
+    }
+
+    // ------------------------------------------------------------- the finish
+
+    /**
+     * Build the burger.
+     *
+     * The four ingredients are already gone — they flew to the rider when they
+     * were collected — so what this stages is the reward arriving, not four
+     * meshes being hidden and one popped into existence. It rises out of the
+     * snow at the grill, turning, while the rider coasts to a stop.
+     *
+     * Short by design, and shorter still once seen: the player is expected to
+     * retry this run many times, and a cinematic that cannot be got past is the
+     * fastest way to make them stop.
+     */
+    _updateAssembly(dt) {
+        const c = this.controller;
+
+        if (this._assembly <= 0) {
+            this._assemblyTotal = this.book.book.seenAssembly
+                ? ASSEMBLY_TIME_SEEN
+                : ASSEMBLY_TIME;
+            this._assembly = this._assemblyTotal;
+
+            _burgerPos.set(c.position.x, 0, BASE_CAMP_Z + 6);
+            _burgerPos.y = this.terrain.heightAt(_burgerPos.x, _burgerPos.z);
+            this.burger.root.position.copyFrom(_burgerPos);
+            this.burger.root.scaling.setAll(0.01);
+            this.burger.setActive(true);
+            this.ui.setHud(false);
+            this.ui.setAlert(null);
+        }
+
+        // Coast, do not brake. A rider stopped dead at a finish line reads as a
+        // bug; one that runs out is a rider.
+        const k = Math.max(0, 1 - dt * 1.9);
+        c.velocity.x *= k;
+        c.velocity.z *= k;
+
+        this._assembly = Math.max(0, this._assembly - dt);
+        const t = 1 - this._assembly / this._assemblyTotal;
+        const ease = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+        this.burger.root.scaling.setAll(Scalar.Lerp(0.01, 1, ease));
+        this.burger.root.position.y = _burgerPos.y + ease * 1.1;
+        this.burger.root.rotation.y += dt * 0.8;
+
+        // Look at it. The rig's own follow keeps the framing sane; nudging its
+        // yaw toward the burger is enough to make the finish about the burger
+        // without taking the camera away from the player.
+        this.rig.yaw += (0 - this.rig.yaw) * Math.min(1, dt * 2.2);
+
+        if (this._assembly <= 0) {
+            this._assembly = 0;
+            this.run.completeAssembly();
+        }
+    }
+
+    /** Skip the assembly. Bound to any keypress once it has been seen. */
+    skipAssembly() {
+        if (this.run.state !== RunState.ASSEMBLY) return false;
+        if (!this.book.book.seenAssembly) return false;
+        this._assembly = 0.0001;
+        return true;
+    }
+
+    _onRunState(next, prev) {
+        // The countdown is the first frame the player is looking at the
+        // mountain rather than at a card, so every full-screen panel and its
+        // scrim goes here, before the 3 appears rather than when the clock
+        // starts.
+        if (next === RunState.COUNTDOWN) this.ui.hideScreens();
+        if (next === RunState.RUN) {
+            this.ui.setHud(true);
+            this.ui.setSubtitle(this.run.event.name);
+            this.ui.setClock(0);
+        }
+        if (next === RunState.ASSEMBLY) {
+            this._assembly = 0;
+        }
+        if (next === RunState.RESULTS) {
+            this.burger.setActive(false);
+            this.ui.showResults(this.run.result, this.book.event(this.run.event.id));
+        }
+        if (next === RunState.ORDER || next === RunState.IDLE) {
+            this.ui.setHud(false);
+            this.ui.setCountdown(null);
+        }
+        if (prev === RunState.RESULTS && next === RunState.COUNTDOWN) {
+            this.ui.resetCollected();
+        }
+    }
+
+    /**
+     * The one line of guidance the HUD gives, and only when it is needed.
+     *
+     * Two cases, and nothing else: the player has crossed the finish without
+     * the full order, or they are past the last pickup's zone with something
+     * still outstanding. Both are recoverable and both are invisible without
+     * being told, which is the bar for putting text on the screen during a run.
+     */
+    _updateAlert() {
+        const c = this.controller;
+        const missing = this.run.blockedReason;
+
+        if (missing && missing.length) {
+            const nearest = this.field.nearestOutstanding(c.position);
+            const back = nearest ? Math.round(c.position.z - nearest.anchor.z) : 0;
+            const key = "blocked:" + missing.join(",");
+            if (this._alertShown !== key) {
+                this._alertShown = key;
+                this.ui.setAlert({
+                    main: "Order incomplete — " +
+                        missing.map((id) => INGREDIENTS[id].label).join(", "),
+                    sub: nearest
+                        ? `${ZONES[nearest.id].name} is ${Math.abs(back)} m back up the hill`
+                        : "return up the course",
+                });
+            }
+            return;
+        }
+
+        const outstanding = this.field.outstanding;
+        if (outstanding.length) {
+            const nearest = this.field.nearestOutstanding(c.position);
+            if (nearest && c.position.z > nearest.anchor.z + 40) {
+                const key = "passed:" + nearest.id;
+                if (this._alertShown !== key) {
+                    this._alertShown = key;
+                    this.ui.setAlert({
+                        main: INGREDIENTS[nearest.id].label + " is behind you",
+                        sub: `${ZONES[nearest.id].name} · ` +
+                            `${Math.round(c.position.z - nearest.anchor.z)} m back`,
+                    });
+                }
+                return;
+            }
+        }
+
+        if (this._alertShown) {
+            this._alertShown = null;
+            this.ui.setAlert(null);
+        }
+    }
+
+    /**
+     * The Summit Line trail-map HUD belongs to Free Ride Lab.
+     *
+     * During a run the order chips and the clock are the orientation, and two
+     * competing progress readouts on one screen is one too many.
+     */
+    _setCourseHudVisible(visible) {
+        const el = document.getElementById("course-hud");
+        if (el) el.style.display = visible ? "" : "none";
+    }
+
+    /** The console/tooling handle. */
+    get api() {
+        return {
+            director: this,
+            run: this.run,
+            field: this.field,
+            book: this.book,
+            ui: this.ui,
+            Mode,
+            RunState,
+            event: SUMMIT_STACK,
+            selectMode: (m) => this.selectMode(m),
+            start: (seed) => {
+                this.mode = Mode.BURGER_RUN;
+                this._setCourseHudVisible(false);
+                this.run.begin(seed ?? null);
+                this.ui.resetCollected();
+                this.ui.setOrderSlots(this.run.event.required);
+                this.run.dropIn();
+                return this.run.seed;
+            },
+            formatTime,
+        };
+    }
+}

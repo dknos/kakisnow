@@ -1,0 +1,345 @@
+/**
+ * The ingredients as they exist in the world: placed, animated, and collected.
+ *
+ * One `ShadedAsset` per ingredient, positioned from the route the placement
+ * system chose, bobbing and turning where it stands until the rider sweeps
+ * through it.
+ *
+ * ------------------------------------------------------------- the swept test
+ *
+ * A pickup is not a sphere the player's position is tested against once a
+ * frame. At the controller's terminal speed of 19.5 m/s a 60 Hz frame advances
+ * the rider 33 cm, which a 2.6 m radius swallows comfortably — but the frame
+ * rate is not guaranteed, the rocket vehicle raises the speed, and a single
+ * long frame during a shader compile or a tab restore is exactly when a player
+ * is most annoyed to ride through a pickup and not get it. So the test is the
+ * distance from the *segment* between last frame's position and this one, which
+ * makes the result independent of both frame rate and speed.
+ *
+ * Horizontally it is a radius; vertically it is a band, generous upward so a
+ * pickup can be taken off a jump and only slightly downward so one cannot be
+ * taken from underneath a lip.
+ *
+ * ------------------------------------------------------------------ collection
+ *
+ * Collection is a one-way latch per run. `collected` is set before the flight
+ * animation starts, not after it ends, so a second frame inside the radius
+ * cannot score twice — and because the latch is on the run rather than on the
+ * mesh, a crash and a respawn do not hand the ingredient back.
+ *
+ * Allocation per frame: none.
+ */
+
+import { Vector3 } from "@babylonjs/core/Maths/math.vector.js";
+import { Scalar } from "@babylonjs/core/Maths/math.scalar.js";
+
+import { ShadedAsset } from "../render/shadedAsset.js";
+import { INGREDIENTS } from "./ingredients.js";
+
+/** Horizontal reach of the pickup, metres. Forgiving, not automatic. */
+const PICKUP_RADIUS = 2.6;
+/** How far above the anchor a pickup can still be taken. */
+const PICKUP_ABOVE = 3.2;
+/** How far below. Small: a pickup should not be collectable from under a lip. */
+const PICKUP_BELOW = 1.4;
+
+/** Seconds the collected model takes to reach the rider. */
+const FLIGHT_TIME = 0.42;
+
+const _seg = new Vector3();
+const _rel = new Vector3();
+const _tmp = new Vector3();
+
+export class IngredientField {
+    /**
+     * @param {object} deps
+     * @param {import("@babylonjs/core/scene").Scene} deps.scene
+     * @param {import("../render/sky.js").Sky} deps.sky
+     * @param {import("../render/shadows.js").ShadowSystem} deps.shadows
+     * @param {import("../render/depthPass.js").DepthPass} deps.depthPass
+     * @param {import("../character/controller.js").CharacterController} deps.controller
+     * @param {import("../vfx/particles.js").SprayField} deps.spray
+     */
+    constructor({ scene, sky, shadows, depthPass, controller, spray }) {
+        this.scene = scene;
+        this.controller = controller;
+        this.spray = spray;
+
+        /** @type {Map<string, ShadedAsset>} */
+        this.assets = new Map();
+        /**
+         * Live state per placed ingredient, one entry per ingredient in the
+         * current order. Rebuilt by `place`, never allocated during a run.
+         * @type {Array<object>}
+         */
+        this.items = [];
+
+        /** Called with the ingredient id when one is taken. */
+        this.onCollect = null;
+
+        this._deps = { scene, sky, shadows, depthPass };
+        this._prev = new Vector3();
+        this._hasPrev = false;
+        this._time = 0;
+    }
+
+    /**
+     * Load every ingredient model the game can place.
+     *
+     * All of them, once, at boot — not the four a particular order needs. An
+     * order variant that swaps the onion in must not pay a GLB parse mid-run,
+     * and retrying a run must not re-parse anything at all. Six megabytes of
+     * decoded mesh held for the session is the cheaper side of that trade.
+     *
+     * @param {string[]} ids
+     */
+    async load(ids) {
+        for (const id of ids) {
+            const def = INGREDIENTS[id];
+            if (!def) throw new Error("unknown ingredient " + id);
+            const asset = new ShadedAsset({ ...this._deps, name: "ingredient_" + id });
+            const ok = await asset.load(def.url);
+            if (!ok) {
+                console.warn(`[snow-burgers] ingredient ${id} failed to load`);
+                continue;
+            }
+            this.assets.set(id, asset);
+        }
+        return this.assets.size;
+    }
+
+    /** Compile every ingredient pipeline behind the loading screen. */
+    async warmUp() {
+        for (const asset of this.assets.values()) {
+            // A pipeline is only created when a material is bound with a mesh
+            // that is actually being drawn, so the asset has to be enabled for
+            // the duration of the compile and put back afterwards.
+            asset.setActive(true);
+            await asset.warmUp();
+            asset.setActive(false);
+        }
+    }
+
+    /**
+     * Position the collectibles for a run.
+     *
+     * @param {Array<{ingredient:string,x:number,y:number,z:number,approach:number}>} placements
+     */
+    place(placements) {
+        this.items.length = 0;
+        for (const asset of this.assets.values()) asset.setActive(false);
+
+        for (const p of placements) {
+            const asset = this.assets.get(p.ingredient);
+            const def = INGREDIENTS[p.ingredient];
+            if (!asset || !def) continue;
+
+            asset.setActive(true);
+            asset.root.position.set(p.x, p.y + def.lift, p.z);
+            asset.root.rotation.y = p.approach;
+            asset.root.scaling.setAll(1);
+
+            this.items.push({
+                id: p.ingredient,
+                def,
+                asset,
+                anchor: new Vector3(p.x, p.y, p.z),
+                // Phase offset so five ingredients do not bob in lockstep.
+                phase: (p.x * 0.37 + p.z * 0.11) % (Math.PI * 2),
+                collected: false,
+                flight: 0,
+                collectedAt: 0,
+            });
+        }
+        this._hasPrev = false;
+        return this.items.length;
+    }
+
+    /** Put every ingredient back, for an instant retry on the same route. */
+    reset() {
+        for (const item of this.items) {
+            item.collected = false;
+            item.flight = 0;
+            item.collectedAt = 0;
+            item.asset.setActive(true);
+            item.asset.root.scaling.setAll(1);
+            item.asset.root.position.set(
+                item.anchor.x, item.anchor.y + item.def.lift, item.anchor.z
+            );
+        }
+        this._hasPrev = false;
+    }
+
+    /** Hide everything — between runs, and in Free Ride Lab. */
+    clear() {
+        this.items.length = 0;
+        for (const asset of this.assets.values()) asset.setActive(false);
+    }
+
+    /**
+     * @param {number} dt
+     * @param {number} runTime seconds since the countdown ended; drives the idle
+     *   animation so it is identical for a given time in a replay
+     * @param {boolean} live whether pickups can currently be taken
+     */
+    update(dt, runTime, live) {
+        this._time = runTime;
+        const pos = this.controller.position;
+
+        if (!this._hasPrev) {
+            this._prev.copyFrom(pos);
+            this._hasPrev = true;
+        }
+
+        for (let i = 0; i < this.items.length; i++) {
+            const item = this.items[i];
+
+            if (item.collected) {
+                if (item.flight > 0) this._advanceFlight(item, dt, pos);
+                continue;
+            }
+
+            // Idle: a slow turn and a shallow bob, driven by run time rather
+            // than wall time so a replay reproduces the exact frame.
+            const t = runTime + item.phase;
+            item.asset.root.rotation.y += item.def.spin * dt;
+            item.asset.root.position.y =
+                item.anchor.y + item.def.lift + Math.sin(t * 1.6) * item.def.bob;
+
+            if (live && this._sweptHit(item, pos)) this._collect(item, pos);
+        }
+
+        this._prev.copyFrom(pos);
+    }
+
+    /** Distance from the rider's swept segment to the pickup, in the XZ plane. */
+    _sweptHit(item, pos) {
+        const a = item.anchor;
+        const centreY = a.y + item.def.lift;
+
+        // Segment from last frame's position to this one, in XZ.
+        _seg.set(pos.x - this._prev.x, 0, pos.z - this._prev.z);
+        _rel.set(a.x - this._prev.x, 0, a.z - this._prev.z);
+        const segLenSq = _seg.x * _seg.x + _seg.z * _seg.z;
+        const t = segLenSq > 1e-9
+            ? Scalar.Clamp((_rel.x * _seg.x + _rel.z * _seg.z) / segLenSq, 0, 1)
+            : 0;
+
+        const closestX = this._prev.x + _seg.x * t;
+        const closestZ = this._prev.z + _seg.z * t;
+        const dx = a.x - closestX;
+        const dz = a.z - closestZ;
+        if (dx * dx + dz * dz > PICKUP_RADIUS * PICKUP_RADIUS) return false;
+
+        // Vertically, interpolate the rider's own height along the same
+        // parameter: taking the current height would let a rider who has
+        // already landed collect something they passed under while airborne.
+        const riderY = this._prev.y + (pos.y - this._prev.y) * t;
+        const dy = riderY - centreY;
+        return dy < PICKUP_ABOVE && dy > -PICKUP_BELOW;
+    }
+
+    _collect(item, pos) {
+        // Latch first. Everything below can take as long as it likes; nothing
+        // can score this ingredient twice once this line has run.
+        item.collected = true;
+        item.flight = FLIGHT_TIME;
+        item.collectedAt = this._time;
+
+        this._burst(item);
+
+        if (this.onCollect) this.onCollect(item.id, item);
+    }
+
+    /**
+     * A short burst of snow and ingredient-coloured grains.
+     *
+     * Emitted into the shared pooled spray field rather than a system of its
+     * own: the pool is already allocated, already warmed up and already drawn
+     * in the correct rendering group against the depth prepass, and a second
+     * particle system would be a second first-use pipeline compile at exactly
+     * the moment the brief forbids one.
+     */
+    _burst(item) {
+        if (!this.spray) return;
+        const a = item.anchor;
+        const y = a.y + item.def.lift;
+        for (let i = 0; i < 22; i++) {
+            const ang = (i / 22) * Math.PI * 2 + item.phase;
+            const up = 1.6 + (i % 5) * 0.5;
+            const out = 2.2 + (i % 3) * 0.9;
+            this.spray.emit(
+                a.x, y, a.z,
+                Math.cos(ang) * out, up, Math.sin(ang) * out,
+                0.055 + (i % 4) * 0.012,
+                0.5 + (i % 3) * 0.16,
+                i % 3 === 0 ? 1 : 0,
+                1.4
+            );
+        }
+    }
+
+    /**
+     * Carry the collected model to the rider and retire it.
+     *
+     * It is pulled toward the rider's *current* position each frame rather than
+     * along a path fixed at the moment of pickup, so at speed it reads as being
+     * swept up rather than left behind — which is what actually happens to
+     * something a snowboard hits at twenty metres a second.
+     */
+    _advanceFlight(item, dt, riderPos) {
+        item.flight = Math.max(0, item.flight - dt);
+        const k = 1 - item.flight / FLIGHT_TIME;
+        const ease = k * k * (3 - 2 * k);
+
+        const root = item.asset.root;
+        _tmp.set(riderPos.x, riderPos.y + 1.1, riderPos.z);
+        root.position.x = Scalar.Lerp(root.position.x, _tmp.x, ease * 0.55 + 0.1);
+        root.position.y = Scalar.Lerp(root.position.y, _tmp.y, ease * 0.55 + 0.1);
+        root.position.z = Scalar.Lerp(root.position.z, _tmp.z, ease * 0.55 + 0.1);
+        root.rotation.y += item.def.spin * 7 * dt;
+        const s = Math.max(0.001, 1 - ease);
+        root.scaling.setAll(s);
+
+        if (item.flight <= 0) item.asset.setActive(false);
+    }
+
+    /** Upload this frame's lighting for every visible ingredient. */
+    sync(cameraPos) {
+        for (const item of this.items) item.asset.sync(cameraPos);
+    }
+
+    /** How many of the placed ingredients have been taken. */
+    get collectedCount() {
+        let n = 0;
+        for (const item of this.items) if (item.collected) n++;
+        return n;
+    }
+
+    /** The ids still on the mountain, in route order. */
+    get outstanding() {
+        const out = [];
+        for (const item of this.items) if (!item.collected) out.push(item.id);
+        return out;
+    }
+
+    /** The nearest uncollected ingredient, for the HUD's recovery pointer. */
+    nearestOutstanding(from) {
+        let best = null;
+        let bestSq = Infinity;
+        for (const item of this.items) {
+            if (item.collected) continue;
+            const dx = item.anchor.x - from.x;
+            const dz = item.anchor.z - from.z;
+            const d = dx * dx + dz * dz;
+            if (d < bestSq) { bestSq = d; best = item; }
+        }
+        return best;
+    }
+
+    dispose() {
+        for (const asset of this.assets.values()) asset.dispose();
+        this.assets.clear();
+        this.items.length = 0;
+    }
+}

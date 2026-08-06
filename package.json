@@ -1,7 +1,7 @@
 {
-  "name": "kakisnow",
+  "name": "snow-burgers",
   "version": "1.0.0",
-  "description": "Real-time procedural snow rendering tech demo (Babylon.js / WebGPU)",
+  "description": "Snowboarding game: ride the mountain, collect giant burger ingredients, build the order at the grill. Built on the KAKISNOW real-time procedural snow renderer (Babylon.js / WebGPU)",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,6 +10,10 @@
     "test": "node --test tests/*.test.mjs"
   },
   "keywords": [
+    "game",
+    "snowboarding",
+    "snow-burgers",
+    "kakisnow",
     "webgpu",
     "babylonjs",
     "wgsl",

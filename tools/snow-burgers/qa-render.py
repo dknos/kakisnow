@@ -39,6 +39,12 @@ def parse_args():
     p.add_argument("--name", required=True)
     p.add_argument("--res", type=int, default=900)
     p.add_argument("--views", type=int, default=4)
+    # Icon mode: one three-quarter view on transparency, for the order card and
+    # the HUD chips. The brief forbids emoji, so the interface's ingredient
+    # imagery is rendered from the same models the mountain places — which also
+    # means a re-import that changed an asset changes its icon.
+    p.add_argument("--transparent", action="store_true")
+    p.add_argument("--start-angle", type=float, default=35.0)
     return p.parse_args(argv)
 
 
@@ -126,7 +132,7 @@ def main():
     scene.display.shading.show_cavity = True
     scene.render.resolution_x = args.res
     scene.render.resolution_y = args.res
-    scene.render.film_transparent = False
+    scene.render.film_transparent = args.transparent
     scene.render.image_settings.file_format = "PNG"
 
     cam_data = bpy.data.cameras.new("qa_cam")
@@ -138,11 +144,11 @@ def main():
     # Far enough that the whole bounding sphere fits with margin at 60 mm, and
     # identical for both renders because it is derived from the *source* size
     # passed in by the caller when comparing — see optimise-assets.mjs.
-    dist = radius * 3.1
+    dist = radius * (2.35 if args.transparent else 3.1)
     os.makedirs(args.outdir, exist_ok=True)
 
     for i in range(args.views):
-        angle = (math.pi * 2.0 * i) / args.views + math.radians(35)
+        angle = (math.pi * 2.0 * i) / args.views + math.radians(args.start_angle)
         elev = math.radians(22)
         cam.location = (
             centre.x + math.cos(angle) * dist * math.cos(elev),
