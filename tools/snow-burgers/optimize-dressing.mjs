@@ -22,6 +22,10 @@ const OUT = "/home/nemoclaw/kakisnow/public/assets/models/snow-burgers/";
 const JOBS = [
     { in: "bush-source.glb", out: "dressing-bush.glb", tris: 4200, tex: 512 },
     { in: "rock-source.glb", out: "dressing-rock.glb", tris: 6000, tex: 512 },
+    // The lodge. Read from twenty metres at the end of a run rather than
+    // scattered across a mountainside, so it keeps its geometry and most of
+    // its texture resolution — it is the one built thing the player stops at.
+    { in: "hut-source.glb", out: "camp-hut.glb", tris: 12000, tex: 512 },
 ];
 
 const sdk = await loadGltfTransform();

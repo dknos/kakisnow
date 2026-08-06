@@ -75,6 +75,22 @@ export class BurgerBaseCamp {
         });
         /** Where the assembly sequence should stand the finished burger. */
         this.grillPosition = new Vector3(0, 0, 0);
+        /**
+         * The lodge, imported rather than built.
+         *
+         * Everything else here is primitives, because everything else here is
+         * read at speed from a distance. The lodge is the one structure the
+         * player actually comes to rest beside, and a box with a rotated box
+         * on top does not survive being looked at — so this is a real 8.5 m
+         * hut with real timber and real snow on its roof, and it is the only
+         * imported thing in the camp.
+         */
+        this.hut = new ShadedAsset({
+            scene, sky, shadows, depthPass, name: "campHut",
+        });
+        this.hutB = new ShadedAsset({
+            scene, sky, shadows, depthPass, name: "campHutB",
+        });
         this.built = false;
     }
 
@@ -139,13 +155,6 @@ export class BurgerBaseCamp {
         this._boxAt("orderBoard", bx, by + 3.2, bz, 3.8, 2.2, 0.18, TIMBER, 0.55);
         this._boxAt("orderBoardFace", bx, by + 3.2, bz - 0.11, 3.4, 1.8, 0.06, WARM, 0.5);
 
-        // --------------------------------------------------------- the lodge
-        //
-        // Set well back off the piste. It is scenery, and scenery on the racing
-        // line is an obstacle.
-        this._hut("lodgeA", -26, BASE_CAMP_Z + 40, 7.5, 4.2, 6.0);
-        this._hut("lodgeB", 25, BASE_CAMP_Z + 47, 5.5, 3.4, 4.6);
-
         // ------------------------------------------------------- finish line
         // A stripe across the snow at the gate, so the line is a line.
         this._boxAt("finishStripe", 0, g(0, BASE_CAMP_Z) + 0.03, BASE_CAMP_Z,
@@ -156,23 +165,61 @@ export class BurgerBaseCamp {
         this.built = true;
     }
 
+    /**
+     * Import the lodge and stand it beside the piste.
+     *
+     * Two copies of one model rather than two models: a second hut costs a
+     * second import and a second set of pipelines, and at this distance the
+     * difference between two huts and one hut twice is a rotation.
+     */
+    async load() {
+        const url = (import.meta.env?.BASE_URL ?? "/")
+            + "assets/models/snow-burgers/camp-hut.glb";
+        const placements = [
+            { asset: this.hut, x: -30, z: BASE_CAMP_Z + 40, scale: 1.5, ry: 0.5 },
+            { asset: this.hutB, x: 27, z: BASE_CAMP_Z + 52, scale: 1.15, ry: -1.9 },
+        ];
+        for (const p of placements) {
+            if (!await p.asset.load(url)) continue;
+            p.asset.root.scaling.setAll(p.scale);
+            p.asset.root.rotation.y = p.ry;
+            p.asset.root.position.set(p.x, this.terrain.heightAt(p.x, p.z), p.z);
+            p.asset.setActive(false);
+        }
+        return this.hut.available;
+    }
+
     async warmUp() {
         if (!this.built) return;
         this.asset.setActive(true);
         await this.asset.warmUp();
         this.asset.setActive(false);
+        for (const h of [this.hut, this.hutB]) {
+            if (!h.available) continue;
+            h.setActive(true);
+            await h.warmUp();
+            h.setActive(false);
+        }
     }
 
     setActive(active) {
         this.asset.setActive(active);
+        this.hut.setActive(active);
+        this.hutB.setActive(active);
     }
 
     sync(cameraPos) {
         this.asset.sync(cameraPos);
+        this.hut.sync(cameraPos);
+        this.hutB.sync(cameraPos);
     }
 
     get beautyMaterials() {
-        return this.asset.beautyMaterials;
+        return [
+            ...this.asset.beautyMaterials,
+            ...this.hut.beautyMaterials,
+            ...this.hutB.beautyMaterials,
+        ];
     }
 
     // ------------------------------------------------------------- builders
@@ -228,5 +275,7 @@ export class BurgerBaseCamp {
 
     dispose() {
         this.asset.dispose();
+        this.hut.dispose();
+        this.hutB.dispose();
     }
 }
