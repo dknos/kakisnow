@@ -42,6 +42,7 @@ import { ZONES, BASE_CAMP_Z } from "./ingredientPlacement.js";
 import { SnowBurgersUi, formatTime } from "../ui/snowBurgersUi.js";
 import { FUEL_PER_INGREDIENT } from "../vehicles/rocketThrust.js";
 import { audio } from "../audio/audio.js";
+import { GhostPlayback, formatDelta } from "./ghost.js";
 
 export const Mode = {
     TITLE: "title",
@@ -91,6 +92,14 @@ export class GameDirector {
             field: this.field,
             book: this.book,
             terrain: deps.terrain,
+        });
+
+        /** The best run for this seed, replayed alongside. */
+        this.ghost = new GhostPlayback({
+            scene: deps.scene,
+            sky: deps.sky,
+            shadows: deps.shadows,
+            depthPass: deps.depthPass,
         });
 
         /** The finish: arch, grill, order board and lodge. */
@@ -162,6 +171,7 @@ export class GameDirector {
      * is the frame a pickup enters view at nineteen metres a second.
      */
     async warmUp() {
+        await this.ghost.warmUp();
         await this.camp.warmUp();
         await this.field.warmUp();
         this.burger.setActive(true);
@@ -180,6 +190,7 @@ export class GameDirector {
         }
         out.push(...this.burger.beautyMaterials);
         out.push(...this.camp.beautyMaterials);
+        out.push(...this.ghost.beautyMaterials);
         return out;
     }
 
@@ -195,6 +206,7 @@ export class GameDirector {
                 this.run.stop();
                 this.camp.setActive(false);
                 this.burger.setActive(false);
+                this.ghost.clear();
                 this.ui.hideAll();
                 this._setCourseHudVisible(true);
                 break;
@@ -207,6 +219,7 @@ export class GameDirector {
                 this.run.stop();
                 this.camp.setActive(false);
                 this.burger.setActive(false);
+                this.ghost.clear();
                 this.ui.showTitle();
                 this._setCourseHudVisible(false);
                 break;
@@ -366,6 +379,12 @@ export class GameDirector {
             case RunState.RUN:
                 this.ui.setCountdown(null);
                 this.ui.setClock(this.run.time);
+                this.ghost.update(this.run.time, this.controller.position.z);
+                this.ui.setSubtitle(
+                    this.ghost.hasDelta
+                        ? formatDelta(this.ghost.delta) + " vs best"
+                        : this.run.event.name
+                );
                 this.ui.setFuel(
                     this.rocketChair?.thrust.level ?? 0,
                     !!this.rocketChair?.active
@@ -414,6 +433,7 @@ export class GameDirector {
         if (this.mode !== Mode.BURGER_RUN) return;
         this.field.sync(cameraPos);
         this.camp.sync(cameraPos);
+        this.ghost.sync(cameraPos);
         this.burger.sync(cameraPos);
     }
 
@@ -516,7 +536,15 @@ export class GameDirector {
         // mountain rather than at a card, so every full-screen panel and its
         // scrim goes here, before the 3 appears rather than when the clock
         // starts.
-        if (next === RunState.COUNTDOWN) this.ui.hideScreens();
+        if (next === RunState.COUNTDOWN) {
+            this.ui.hideScreens();
+            // Arm the ghost here rather than when an order is taken, because
+            // this is the one place both paths pass through. Taking a new
+            // order rolls a fresh seed, and a stored ghost belongs to the seed
+            // that produced it — so the run that actually races a ghost is the
+            // retry, and a retry never goes through the order screen.
+            this.ghost.arm(this.book.event(this.run.event.id).bestGhost, this.run.seed);
+        }
         if (next === RunState.RUN) {
             this.ui.setHud(true);
             this.ui.setSubtitle(this.run.event.name);
@@ -531,6 +559,7 @@ export class GameDirector {
             // with the finish sequence's framing still applied.
             this.rig.distanceTarget = this._camEntry.z || this.rig.distanceTarget;
             this.burger.setActive(false);
+            this.ghost.clear();
             this.ui.showResults(this.run.result, this.book.event(this.run.event.id));
         }
         if (next === RunState.ORDER || next === RunState.IDLE) {

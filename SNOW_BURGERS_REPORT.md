@@ -16,6 +16,11 @@ zones → pass under the finish arch and cross the gate at Burger Base Camp →
 assembly sequence stands the finished burger up → results, medal and star
 rating → retry the same seed, take a new order, or return to the menu.
 
+Retrying races the best run for that seed: a marker replays it and the HUD
+shows how far ahead or behind the current run is, in seconds. A ghost is only
+shown for the seed that produced it, because the route is a function of the
+seed.
+
 Two other modes: **Free Ride Lab**, the original open mountain unchanged and
 unscored, and **Rocket Board Test**, the Summit Line on the rocket chair with
 an infinite tank and nothing recorded.
@@ -248,8 +253,6 @@ screenshots/snow-burgers/placement-validation.json             100-seed sweep
   interface all have synthesised sound; edge scrape, powder and landing do not
   exist, so the brief's requirement that the rocket not mask them is currently
   satisfied by their absence rather than by the mix.
-- **No ghost playback.** Ghost samples are recorded and persisted; nothing
-  replays them.
 - **The onion is loaded and placed-capable but not in any order.** THE SUMMIT
   STACK stays at the four the brief specifies; the onion is the variant-order
   ingredient and has a zone, an icon and a validated placement.
