@@ -65,9 +65,18 @@ const MODELS = (import.meta.env?.BASE_URL ?? "/") + "assets/models/snow-burgers/
  * big one, and an even draw puts a hero pine every fifth trunk.
  */
 const TREE_MODELS = [
-    { url: MODELS + "dressing-firs.glb", weight: 5 },
-    { url: MODELS + "dressing-pine.glb", weight: 1 },
+    { url: MODELS + "dressing-firs.glb", weight: 5, group: "prefix" },
+    { url: MODELS + "dressing-pine.glb", weight: 1, group: "prefix" },
 ];
+/**
+ * Shrubs and rocks, from the same supplied photogrammetry.
+ *
+ * Grouped per mesh rather than per name prefix: these arrive as a dozen
+ * separate objects in one file with no naming convention between them, so each
+ * mesh is its own variant and the pool is as varied as the file is.
+ */
+const SHRUB_MODELS = [{ url: MODELS + "dressing-bush.glb", weight: 1, group: "mesh" }];
+const ROCK_MODELS = [{ url: MODELS + "dressing-rock.glb", weight: 1, group: "mesh" }];
 
 const SNOW = new Color3(0.93, 0.95, 1.0);
 const NEEDLE = new Color3(0.12, 0.19, 0.15);
@@ -102,16 +111,26 @@ const ZONE_CLEAR = 26;
  * @property {[number,number]} slope  acceptable ground slope, radians
  * @property {number} chance     rejection after the disc, 0..1
  */
+/**
+ * Density, and why it is this low.
+ *
+ * The first version of these families was tuned against procedural shapes of
+ * thirty triangles. The authored replacements are a thousand to three thousand
+ * each, and keeping the counts produced 2.3 million triangles of dressing —
+ * more than the terrain it was dressing. The separation radii below are the
+ * answer: fewer props, larger, further apart, which is also what a real
+ * treeline above the snowline looks like.
+ */
 const FAMILIES = [
     // Conifers want the sheltered lower-angle ground; they are also the tallest
     // thing out there, so they are the most separated.
     { id: "conifer", radius: 26, slope: [0.0, 0.62], chance: 0.7 },
     // Wind-bent trees live where the conifers give up: steeper and rougher.
     { id: "bent", radius: 30, slope: [0.5, 0.95], chance: 0.45 },
-    { id: "shrub", radius: 8, slope: [0.0, 0.8], chance: 0.7 },
-    { id: "rock", radius: 11, slope: [0.35, 1.3], chance: 0.75 },
+    { id: "shrub", radius: 34, slope: [0.0, 0.8], chance: 0.5 },
+    { id: "rock", radius: 38, slope: [0.35, 1.3], chance: 0.55 },
     // Ice forms on the steepest exposed faces and nowhere else.
-    { id: "ice", radius: 22, slope: [0.72, 1.4], chance: 0.4 },
+    { id: "ice", radius: 30, slope: [0.72, 1.4], chance: 0.35 },
 ];
 
 export class MountainDressing {
@@ -128,8 +147,10 @@ export class MountainDressing {
         this.terrain = terrain;
         this.asset = new ShadedAsset({ scene, sky, shadows, depthPass, name: "dressing" });
         this.built = false;
-        /** @type {Array<object>} authored fir variants, empty until `load`. */
+        /** Authored variant pools, empty until `load`. */
         this.firs = [];
+        this.shrubs = [];
+        this.rocks = [];
         this.propCount = 0;
         this.triangles = 0;
         this.drawCalls = 0;
@@ -149,36 +170,43 @@ export class MountainDressing {
      * twice for one forest.
      */
     async load() {
+        this.firs = await this._pool(TREE_MODELS);
+        this.shrubs = await this._pool(SHRUB_MODELS);
+        this.rocks = await this._pool(ROCK_MODELS);
+        return this.firs.length > 0;
+    }
+
+    /** Import a set of models and flatten them into a weighted variant pool. */
+    async _pool(models) {
         const variants = new Map();
-        for (const model of TREE_MODELS) {
+        for (const model of models) {
             let result;
             try {
                 result = await ImportMeshAsync(model.url, this.scene);
             } catch (error) {
-                console.warn("[snow-burgers] tree model unavailable:", model.url, error);
+                console.warn("[snow-burgers] dressing model unavailable:", model.url, error);
                 continue;
             }
-            this._collect(result, variants, model.weight);
+            this._collect(result, variants, model.weight, model.group);
             for (const mesh of result.meshes) mesh.dispose(false, true);
             for (const node of result.transformNodes || []) node.dispose();
         }
-
-        this.firs = [];
+        const pool = [];
         for (const v of variants.values()) {
             if (!v.parts.length) continue;
-            for (let i = 0; i < v.weight; i++) this.firs.push(v);
+            for (let i = 0; i < v.weight; i++) pool.push(v);
         }
-        return this.firs.length > 0;
+        return pool;
     }
 
     /** Pull every mesh out of one import and group it into tree variants. */
-    _collect(result, variants, weight) {
+    _collect(result, variants, weight, group = "prefix") {
         for (const mesh of result.meshes) {
             if (mesh.getTotalVertices() <= 0) continue;
             // "FirTreeSnowA_FirTreeGreen_0" — the variant is the part before
             // the first underscore group, the material name is the rest.
             const name = mesh.name;
-            const variant = name.split("_")[0];
+            const variant = group === "mesh" ? name : name.split("_")[0];
             const data = VertexData.ExtractFromMesh(mesh);
             const src = mesh.material;
             const colour = src?.albedoColor
@@ -387,7 +415,19 @@ export class MountainDressing {
      */
     _fir(next, height, tilt) {
         if (!this.firs.length) return this._coneFallback(next, height, tilt);
-        const v = this.firs[(next() * this.firs.length) | 0];
+        return this._authored(this.firs, next, height, tilt);
+    }
+
+    /**
+     * One placed copy from an authored pool, scaled to a height and stood up.
+     *
+     * The upright is a measured rotation rather than an assumed one, applied
+     * here rather than baked into the shipped file, so a re-export that changes
+     * the convention is one line to absorb instead of a silent field of props
+     * lying on their sides.
+     */
+    _authored(pool, next, height, tilt) {
+        const v = pool[(next() * pool.length) | 0];
         const s = height / Math.max(v.height, 1e-3);
         const ry = next() * Math.PI * 2;
         const out = [];
@@ -456,6 +496,9 @@ export class MountainDressing {
                 this._fir(next, 3.6 + next() * 2.2,
                     0.20 + slope * 0.32 + next() * 0.10),
             shrub: (next) => {
+                if (this.shrubs?.length) {
+                    return this._authored(this.shrubs, next, 0.9 + next() * 0.8, 0);
+                }
                 const s = 0.7 + next() * 0.9;
                 const ry = next() * Math.PI * 2;
                 return [
@@ -468,6 +511,9 @@ export class MountainDressing {
                 ];
             },
             rock: (next) => {
+                if (this.rocks?.length) {
+                    return this._authored(this.rocks, next, 1.6 + next() * 2.4, 0);
+                }
                 const s = 1.1 + next() * 2.6;
                 const ry = next() * Math.PI * 2;
                 return [
