@@ -32,9 +32,31 @@
 
 import { Vector3 } from "@babylonjs/core/Maths/math.vector.js";
 import { Scalar } from "@babylonjs/core/Maths/math.scalar.js";
+import { Color3 } from "@babylonjs/core/Maths/math.color.js";
+import { CreateCylinder } from "@babylonjs/core/Meshes/Builders/cylinderBuilder.js";
+import { CreateBox } from "@babylonjs/core/Meshes/Builders/boxBuilder.js";
 
 import { ShadedAsset } from "../render/shadedAsset.js";
 import { INGREDIENTS } from "./ingredients.js";
+
+/**
+ * The pickup site: a groomed pad and four route stakes.
+ *
+ * An ingredient alone on open snow reads as a floating collectible whatever
+ * else is done to it — the first capture of this system is committed as
+ * `screenshots/snow-burgers/ingredients/tomato.webp` and shows exactly that,
+ * correctly lit and still obviously a prop. What makes a pickup look placed
+ * rather than spawned is evidence that somebody put it there, so the site is
+ * groomed snow with markers around it, in the ingredient's own colour.
+ *
+ * Built procedurally rather than authored because four primitives at a known
+ * size cost nothing to ship and nothing to load, and because they have to
+ * scale with the ingredient rather than with an art file.
+ */
+const PAD_RADIUS = 1.55;
+const PAD_HEIGHT = 0.16;
+const STAKE_HEIGHT = 1.35;
+const STAKE_COUNT = 4;
 
 /** Horizontal reach of the pickup, metres. Forgiving, not automatic. */
 const PICKUP_RADIUS = 2.6;
@@ -68,6 +90,16 @@ export class IngredientField {
         /** @type {Map<string, ShadedAsset>} */
         this.assets = new Map();
         /**
+         * The pickup sites — the pad and stakes each ingredient stands on.
+         *
+         * Kept apart from the ingredient itself because they behave
+         * differently: the ingredient is collected and flies away, and the site
+         * stays where it was. One asset holding both would have to un-collect
+         * the pad.
+         * @type {Map<string, ShadedAsset>}
+         */
+        this.sites = new Map();
+        /**
          * Live state per placed ingredient, one entry per ingredient in the
          * current order. Rebuilt by `place`, never allocated during a run.
          * @type {Array<object>}
@@ -77,6 +109,7 @@ export class IngredientField {
         /** Called with the ingredient id when one is taken. */
         this.onCollect = null;
 
+        this.scene = scene;
         this._deps = { scene, sky, shadows, depthPass };
         this._prev = new Vector3();
         this._hasPrev = false;
@@ -104,12 +137,70 @@ export class IngredientField {
                 continue;
             }
             this.assets.set(id, asset);
+            this.sites.set(id, this._buildSite(id, def));
         }
         return this.assets.size;
     }
 
+    /**
+     * Build one pickup site.
+     *
+     * The pad is a shallow disc of groomed snow, kept white so it reads as
+     * snow that has been worked rather than as a coloured platform; the stakes
+     * carry the ingredient's colour, which is the same value the order card and
+     * the HUD chip use, so a player learns one association rather than three.
+     *
+     * @param {string} id
+     * @param {import("./ingredients.js").IngredientDefinition} def
+     */
+    _buildSite(id, def) {
+        const site = new ShadedAsset({ ...this._deps, name: "site_" + id });
+        const colour = new Color3(def.colour[0], def.colour[1], def.colour[2]);
+
+        const pad = CreateCylinder(
+            "site_" + id + "_pad",
+            { diameter: PAD_RADIUS * 2, height: PAD_HEIGHT, tessellation: 28 },
+            this.scene
+        );
+        pad.parent = site.root;
+        // Half its height, so the disc's top is the snow line rather than
+        // hovering a pad's thickness above it.
+        pad.position.y = PAD_HEIGHT * 0.5 - 0.06;
+        // Slightly brighter than the snow it sits in and much smoother:
+        // groomed snow is packed snow, and packed snow is shinier.
+        site.adopt(pad, { colour: new Color3(0.94, 0.96, 1.0), roughness: 0.42 });
+
+        for (let i = 0; i < STAKE_COUNT; i++) {
+            const a = (i / STAKE_COUNT) * Math.PI * 2 + Math.PI * 0.25;
+            const stake = CreateBox(
+                "site_" + id + "_stake" + i,
+                { width: 0.075, depth: 0.075, height: STAKE_HEIGHT },
+                this.scene
+            );
+            stake.parent = site.root;
+            stake.position.set(
+                Math.cos(a) * PAD_RADIUS * 0.92,
+                STAKE_HEIGHT * 0.5 - 0.1,
+                Math.sin(a) * PAD_RADIUS * 0.92
+            );
+            // Leaned outward, the way a marker driven into snow ends up.
+            stake.rotation.z = -Math.cos(a) * 0.09;
+            stake.rotation.x = Math.sin(a) * 0.09;
+            site.adopt(stake, { colour, roughness: 0.55 });
+        }
+
+        site.available = true;
+        site.setActive(false);
+        return site;
+    }
+
     /** Compile every ingredient pipeline behind the loading screen. */
     async warmUp() {
+        for (const site of this.sites.values()) {
+            site.setActive(true);
+            await site.warmUp();
+            site.setActive(false);
+        }
         for (const asset of this.assets.values()) {
             // A pipeline is only created when a material is bound with a mesh
             // that is actually being drawn, so the asset has to be enabled for
@@ -128,6 +219,7 @@ export class IngredientField {
     place(placements) {
         this.items.length = 0;
         for (const asset of this.assets.values()) asset.setActive(false);
+        for (const site of this.sites.values()) site.setActive(false);
 
         for (const p of placements) {
             const asset = this.assets.get(p.ingredient);
@@ -138,6 +230,14 @@ export class IngredientField {
             asset.root.position.set(p.x, p.y + def.lift, p.z);
             asset.root.rotation.y = p.approach;
             asset.root.scaling.setAll(1);
+
+            const site = this.sites.get(p.ingredient);
+            if (site) {
+                site.setActive(true);
+                // The pad sits on the snow, not on the ingredient's lift.
+                site.root.position.set(p.x, p.y, p.z);
+                site.root.rotation.y = p.approach;
+            }
 
             this.items.push({
                 id: p.ingredient,
@@ -174,6 +274,7 @@ export class IngredientField {
     clear() {
         this.items.length = 0;
         for (const asset of this.assets.values()) asset.setActive(false);
+        for (const site of this.sites.values()) site.setActive(false);
     }
 
     /**
@@ -306,7 +407,13 @@ export class IngredientField {
 
     /** Upload this frame's lighting for every visible ingredient. */
     sync(cameraPos) {
-        for (const item of this.items) item.asset.sync(cameraPos);
+        for (const item of this.items) {
+            item.asset.sync(cameraPos);
+            // The site stays lit after the ingredient is gone: it is still
+            // standing there, and a pad that goes black on pickup is worse
+            // than no pad.
+            this.sites.get(item.id)?.sync(cameraPos);
+        }
     }
 
     /** How many of the placed ingredients have been taken. */
@@ -339,7 +446,9 @@ export class IngredientField {
 
     dispose() {
         for (const asset of this.assets.values()) asset.dispose();
+        for (const site of this.sites.values()) site.dispose();
         this.assets.clear();
+        this.sites.clear();
         this.items.length = 0;
     }
 }

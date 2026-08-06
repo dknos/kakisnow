@@ -192,6 +192,31 @@ export class ShadedAsset {
         return out;
     }
 
+    /**
+     * Take over a mesh this class did not import.
+     *
+     * The pickup pedestals and route markers are built procedurally rather than
+     * imported, but they still have to belong to the scene the way an imported
+     * mesh does — same sun, same cascades, same prepass, same fog. Without this
+     * they would need a material of their own, and a second material means a
+     * second answer to what the light is doing.
+     *
+     * @param {import("@babylonjs/core/Meshes/mesh").Mesh} mesh parented already
+     * @param {{colour?: Color3, roughness?: number, metallic?: number}} [opts]
+     */
+    adopt(mesh, opts = {}) {
+        const index = this.meshes.length;
+        const beauty = this._makeBeautyMaterial(index, null);
+        beauty.setColor3("baseColor", opts.colour ?? _white);
+        beauty.setFloat("roughness", opts.roughness ?? 0.62);
+        beauty.setFloat("metallic", opts.metallic ?? 0);
+        mesh.material = beauty;
+        mesh.renderingGroupId = 1;
+        mesh.isPickable = false;
+        this._register(mesh, beauty, index);
+        return beauty;
+    }
+
     setActive(active) {
         this.active = !!active && this.available;
         for (let i = 0; i < this.meshes.length; i++) {
