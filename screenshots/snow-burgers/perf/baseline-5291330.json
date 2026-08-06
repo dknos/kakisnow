@@ -1,0 +1,172 @@
+{
+  "url": "http://127.0.0.1:5174/?mode=free-ride",
+  "capturedAt": "2026-08-06T01:29:11.347Z",
+  "host": {
+    "platform": "win32",
+    "release": "10.0.26200",
+    "arch": "x64"
+  },
+  "viewport": {
+    "width": 2560,
+    "height": 1440
+  },
+  "flags": [
+    "disable-frame-rate-limit",
+    "disable-gpu-vsync"
+  ],
+  "runtime": {
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/150.0.0.0 Safari/537.36",
+    "adapter": {
+      "vendor": "nvidia",
+      "architecture": "blackwell",
+      "device": "",
+      "description": "",
+      "isFallbackAdapter": false
+    },
+    "adapterFeatures": [
+      "bgra8unorm-storage",
+      "clip-distances",
+      "core-features-and-limits",
+      "depth-clip-control",
+      "depth32float-stencil8",
+      "dual-source-blending",
+      "float32-blendable",
+      "float32-filterable",
+      "indirect-first-instance",
+      "primitive-index",
+      "rg11b10ufloat-renderable",
+      "shader-f16",
+      "subgroups",
+      "texture-component-swizzle",
+      "texture-compression-bc",
+      "texture-compression-bc-sliced-3d",
+      "texture-formats-tier1",
+      "texture-formats-tier2",
+      "timestamp-query"
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "baseline",
+      "samples": 480,
+      "mean": 1.7695833333333326,
+      "median": 1.7999999999992724,
+      "p90": 2,
+      "p99": 2.300000000000182,
+      "max": 2.899999999999636,
+      "medianFps": 555.5555555557801,
+      "medianPlus4": 5.799999999999272,
+      "aboveMedianPlus4": 0
+    },
+    {
+      "name": "terrain-off",
+      "samples": 480,
+      "mean": 1.2014583333333329,
+      "median": 1.199999999999818,
+      "p90": 1.300000000000182,
+      "p99": 5.899999999999636,
+      "max": 6.5,
+      "medianFps": 833.3333333334597,
+      "medianPlus4": 5.199999999999818,
+      "aboveMedianPlus4": 7
+    },
+    {
+      "name": "mountains-off",
+      "samples": 480,
+      "mean": 1.218958333333334,
+      "median": 1.2000000000007276,
+      "p90": 1.3000000000010914,
+      "p99": 2.1999999999989086,
+      "max": 2.7999999999992724,
+      "medianFps": 833.333333332828,
+      "medianPlus4": 5.200000000000728,
+      "aboveMedianPlus4": 0
+    },
+    {
+      "name": "character-off",
+      "samples": 480,
+      "mean": 1.723333333333335,
+      "median": 1.7000000000007276,
+      "p90": 1.8999999999996362,
+      "p99": 2.1999999999989086,
+      "max": 3.400000000001455,
+      "medianFps": 588.2352941173953,
+      "medianPlus4": 5.700000000000728,
+      "aboveMedianPlus4": 0
+    },
+    {
+      "name": "shadows-cached",
+      "samples": 480,
+      "mean": 1.598541666666669,
+      "median": 1.6000000000003638,
+      "p90": 1.7999999999992724,
+      "p99": 4.199999999998909,
+      "max": 6.399999999999636,
+      "medianFps": 624.9999999998579,
+      "medianPlus4": 5.600000000000364,
+      "aboveMedianPlus4": 1
+    },
+    {
+      "name": "finishing-off",
+      "samples": 480,
+      "mean": 1.6583333333333334,
+      "median": 1.6999999999989086,
+      "p90": 1.8000000000010914,
+      "p99": 2,
+      "max": 3,
+      "medianFps": 588.2352941180247,
+      "medianPlus4": 5.699999999998909,
+      "aboveMedianPlus4": 0
+    },
+    {
+      "name": "snowbound",
+      "samples": 480,
+      "mean": 1.7570833333333327,
+      "median": 1.7000000000007276,
+      "p90": 1.8999999999996362,
+      "p99": 2.1999999999989086,
+      "max": 2.3000000000010914,
+      "medianFps": 588.2352941173953,
+      "medianPlus4": 5.700000000000728,
+      "aboveMedianPlus4": 0
+    },
+    {
+      "name": "surf-active",
+      "samples": 480,
+      "mean": 1.940625,
+      "median": 1.8999999999978172,
+      "p90": 2.2000000000007276,
+      "p99": 3.2999999999992724,
+      "max": 3.600000000002183,
+      "medianFps": 526.3157894742889,
+      "medianPlus4": 5.899999999997817,
+      "aboveMedianPlus4": 0
+    },
+    {
+      "name": "vortex-active",
+      "samples": 480,
+      "mean": 2.0433333333333317,
+      "median": 2,
+      "p90": 2.600000000002183,
+      "p99": 3.7000000000007276,
+      "max": 3.8000000000029104,
+      "medianFps": 500,
+      "medianPlus4": 6,
+      "aboveMedianPlus4": 0
+    }
+  ],
+  "finalStats": {
+    "last": 2,
+    "median": 2,
+    "mean": 2.022070294013247,
+    "p99": 3.799999952316284,
+    "p95": 3.5,
+    "max": 3.9000000953674316,
+    "fps": 500,
+    "fpsLow": 263.1578980390385,
+    "drawCalls": 26,
+    "triangles": 1906008
+  },
+  "errors": [],
+  "validationWarnings": []
+}

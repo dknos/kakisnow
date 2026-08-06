@@ -202,13 +202,24 @@ validation messages.
 
 ## 14. Performance
 
-Not measured against the committed `PERF.md` baseline. This is a gap: the frame
-profile was not re-run after the game layer landed, so no claim is made about
-frame time. What is known is that the snow systems are untouched, the added
-geometry is 220 k triangles for the burger (finish only), 160 k for the vehicle,
-and roughly 30 primitives for the camp and pickup sites, and that every game
-pipeline is compiled behind the loading screen so no first-use compile happens
-during play.
+Measured against the pre-game baseline `5291330`, served from a separate
+worktree so both builds could be profiled in one session.
+
+**Free Ride Lab is not regressed.** Across all nine profiled scenarios the mean
+frame time differs by 0.00 to 0.03 ms, and draw calls and triangle count are
+identical at 26 and 1,906,008 — which is the expected result, because in Free
+Ride Lab every game asset is disabled. The p99 and maximum figures swing by
+whole milliseconds in both directions on both builds; those are uncapped
+`requestAnimationFrame` intervals and are read as noise.
+
+**The game layer costs +0.255 ms mean** when it is actually drawing — 2.073 ms
+in Free Ride Lab against 2.328 ms mid-run from the same fixed vantage, for
+22,370 triangles across 26 additional meshes. That is about 2.3% of the 11.1 ms
+frame allocation in `PERF.md`.
+
+Neither figure is a GPU completion time; Chrome's timestamp path still returns
+zero on this backend. Full tables are in `PERF.md`; raw records are under
+`screenshots/snow-burgers/perf/`.
 
 ## 15. WebGPU validation
 
@@ -234,7 +245,6 @@ screenshots/snow-burgers/placement-validation.json             100-seed sweep
   wants collision awareness in the rig.
 - **No audio at all.** There is no `src/audio/`, and the brief's rocket,
   ingredient, grill and interface sound is not started.
-- **No performance comparison** against the `PERF.md` baseline (item 14).
 - **No ghost playback.** Ghost samples are recorded and persisted; nothing
   replays them.
 - **`skipAssembly()` is unreachable** — written, but no input calls it.

@@ -138,3 +138,67 @@ With a production preview running:
 
 These commands reproduce the automated browser records. Final RTX 5070 Ti
 certification remains an external headed-browser profiling step.
+
+## Snow-Burgers game layer
+
+Two questions, measured separately, because they have different answers.
+
+### Does the snow study still perform as it did?
+
+`tools/profile-windows.cjs` was run against this branch and against the
+pre-game baseline `5291330`, both in Free Ride Lab, in headless Windows Chrome
+at 2560×1440 with `--disable-frame-rate-limit` and `--disable-gpu-vsync`. The
+baseline was served from a separate worktree on port 5174 so the two builds
+could be measured in the same session without a checkout between them.
+
+| Scenario | Baseline mean | Snow-Burgers mean | Δ |
+| --- | ---: | ---: | ---: |
+| baseline | 1.77 ms | 1.79 ms | +0.02 |
+| terrain-off | 1.20 ms | 1.21 ms | +0.01 |
+| mountains-off | 1.22 ms | 1.25 ms | +0.03 |
+| character-off | 1.72 ms | 1.74 ms | +0.02 |
+| shadows-cached | 1.60 ms | 1.63 ms | +0.03 |
+| finishing-off | 1.66 ms | 1.67 ms | +0.01 |
+| snowbound | 1.76 ms | 1.78 ms | +0.02 |
+| surf-active | 1.94 ms | 1.95 ms | +0.01 |
+| vortex-active | 2.04 ms | 2.04 ms | 0.00 |
+
+Draw calls and triangle counts are identical: 26 and 1,906,008. That is the
+expected result rather than a lucky one — in Free Ride Lab every ingredient,
+pickup site, base-camp piece and vehicle is disabled, so there is nothing extra
+to draw.
+
+The p99 and maximum figures move by whole milliseconds in both directions on
+both builds — the baseline records a 6.5 ms maximum on `terrain-off` where this
+branch records 2.5, and this branch records 8.8 ms on `mountains-off` where the
+baseline records 2.8. These are uncapped `requestAnimationFrame` presentation
+intervals on a machine that is not otherwise quiet; the outliers are noise and
+are not read as a regression in either direction.
+
+Raw records: `screenshots/snow-burgers/perf/baseline-5291330.json` and
+`screenshots/snow-burgers/perf/snow-burgers.json`.
+
+### What does the game layer cost when it is drawing?
+
+The measurement above deliberately says nothing about that, so
+`tools/snow-burgers/perf-game-layer-windows.cjs` samples the same build twice
+in one session, from the same fixed vantage at z = 240 — once in Free Ride Lab
+and once mid-run with the four pickups, their sites and Burger Base Camp all
+standing:
+
+| | Mean | p99 |
+| --- | ---: | ---: |
+| Free Ride Lab | 2.073 ms | 4.1 ms |
+| Burger Run | 2.328 ms | 4.6 ms |
+
+**+0.255 ms** for 22,370 triangles across 26 additional meshes, or about 2.3%
+of the 11.1 ms frame allocation this document sets out above. The same vantage
+is used for both samples because frame time here moves with what is on screen,
+and two samples taken in two places would measure the terrain rather than the
+change.
+
+Record: `screenshots/snow-burgers/perf/game-layer.json`.
+
+Neither figure is a GPU completion time. Chrome's command-encoder timestamp
+path still returns zero on this backend, as the record above already notes, so
+no GPU-millisecond result is claimed for the game layer either.
