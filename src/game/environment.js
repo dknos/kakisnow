@@ -42,11 +42,32 @@ import { Mesh } from "@babylonjs/core/Meshes/mesh.js";
 import { CreateCylinder } from "@babylonjs/core/Meshes/Builders/cylinderBuilder.js";
 import { CreateBox } from "@babylonjs/core/Meshes/Builders/boxBuilder.js";
 import { CreatePolyhedron } from "@babylonjs/core/Meshes/Builders/polyhedronBuilder.js";
+import { ImportMeshAsync } from "@babylonjs/core/Loading/sceneLoader.js";
+// Side effect, not a symbol. The fir set reuses its five trees across more
+// nodes than meshes, so the loader builds InstancedMesh — and in a tree-shaken
+// Babylon build that class is absent unless something imports it. The failure
+// is a load-time throw, which this system catches and answers by falling back
+// to cones, so the forest quietly stayed procedural until this line existed.
+import "@babylonjs/core/Meshes/instancedMesh.js";
 
 import { ShadedAsset } from "../render/shadedAsset.js";
 import {
     rng, protectedSpans, PIPES, ZONES, BASE_CAMP_Z, LANE_HALF,
 } from "./ingredientPlacement.js";
+
+const MODELS = (import.meta.env?.BASE_URL ?? "/") + "assets/models/snow-burgers/";
+/**
+ * The authored trees, in the order a placement draws from them.
+ *
+ * The fir set is five small trees at about 700 triangles each; the pine is one
+ * large one at six thousand, decimated from 246,000. They are weighted rather
+ * than picked evenly — a mountainside is mostly small trees with the occasional
+ * big one, and an even draw puts a hero pine every fifth trunk.
+ */
+const TREE_MODELS = [
+    { url: MODELS + "dressing-firs.glb", weight: 5 },
+    { url: MODELS + "dressing-pine.glb", weight: 1 },
+];
 
 const SNOW = new Color3(0.93, 0.95, 1.0);
 const NEEDLE = new Color3(0.12, 0.19, 0.15);
@@ -84,9 +105,9 @@ const ZONE_CLEAR = 26;
 const FAMILIES = [
     // Conifers want the sheltered lower-angle ground; they are also the tallest
     // thing out there, so they are the most separated.
-    { id: "conifer", radius: 15, slope: [0.0, 0.62], chance: 0.85 },
+    { id: "conifer", radius: 26, slope: [0.0, 0.62], chance: 0.7 },
     // Wind-bent trees live where the conifers give up: steeper and rougher.
-    { id: "bent", radius: 19, slope: [0.5, 0.95], chance: 0.55 },
+    { id: "bent", radius: 30, slope: [0.5, 0.95], chance: 0.45 },
     { id: "shrub", radius: 8, slope: [0.0, 0.8], chance: 0.7 },
     { id: "rock", radius: 11, slope: [0.35, 1.3], chance: 0.75 },
     // Ice forms on the steepest exposed faces and nowhere else.
@@ -107,9 +128,88 @@ export class MountainDressing {
         this.terrain = terrain;
         this.asset = new ShadedAsset({ scene, sky, shadows, depthPass, name: "dressing" });
         this.built = false;
+        /** @type {Array<object>} authored fir variants, empty until `load`. */
+        this.firs = [];
         this.propCount = 0;
         this.triangles = 0;
         this.drawCalls = 0;
+    }
+
+    /**
+     * Read the fir set, and turn it into placeable variants.
+     *
+     * Five authored trees at about 700 triangles each, split by material into
+     * needles, snow load and trunk. They replace the cones this system shipped
+     * with first — a cone is a cone at any distance, and the treeline was the
+     * one place the mountain looked authored by a programmer.
+     *
+     * The geometry is taken out of the import and the meshes are disposed
+     * immediately: what the dressing needs is vertex data to bake into merged
+     * buffers, and holding five trees as live meshes as well would be paying
+     * twice for one forest.
+     */
+    async load() {
+        const variants = new Map();
+        for (const model of TREE_MODELS) {
+            let result;
+            try {
+                result = await ImportMeshAsync(model.url, this.scene);
+            } catch (error) {
+                console.warn("[snow-burgers] tree model unavailable:", model.url, error);
+                continue;
+            }
+            this._collect(result, variants, model.weight);
+            for (const mesh of result.meshes) mesh.dispose(false, true);
+            for (const node of result.transformNodes || []) node.dispose();
+        }
+
+        this.firs = [];
+        for (const v of variants.values()) {
+            if (!v.parts.length) continue;
+            for (let i = 0; i < v.weight; i++) this.firs.push(v);
+        }
+        return this.firs.length > 0;
+    }
+
+    /** Pull every mesh out of one import and group it into tree variants. */
+    _collect(result, variants, weight) {
+        for (const mesh of result.meshes) {
+            if (mesh.getTotalVertices() <= 0) continue;
+            // "FirTreeSnowA_FirTreeGreen_0" — the variant is the part before
+            // the first underscore group, the material name is the rest.
+            const name = mesh.name;
+            const variant = name.split("_")[0];
+            const data = VertexData.ExtractFromMesh(mesh);
+            const src = mesh.material;
+            const colour = src?.albedoColor
+                ? new Color3(src.albedoColor.r, src.albedoColor.g, src.albedoColor.b)
+                : NEEDLE;
+            const bounds = mesh.getBoundingInfo().boundingBox;
+            const size = bounds.maximum.subtract(bounds.minimum);
+            let entry = variants.get(variant);
+            if (!entry) {
+                entry = { parts: [], height: 0, min: Infinity, weight };
+                variants.set(variant, entry);
+            }
+            entry.weight = weight;
+            entry.parts.push({ data, colour, key: name.split("_")[1] ?? name });
+            // The set is authored Z-up, so the tall axis is measured rather
+            // than assumed — a re-export that landed it Y-up would otherwise
+            // plant a forest of trees lying on their sides.
+            // Orientation comes from the biggest part of the tree, not the
+            // last one seen. A fir arrives as needles, a snow load and a
+            // trunk, and the trunk is very nearly a cube — asking it which way
+            // is up gives an answer that is arbitrary, and the first version of
+            // this planted whole variants on their sides because the trunk
+            // happened to be processed last.
+            const extent = Math.max(size.x, size.y, size.z);
+            if (extent > entry.height) {
+                entry.height = extent;
+                entry.tallAxis = size.y >= size.x && size.y >= size.z ? "y"
+                    : size.z >= size.x ? "z" : "x";
+            }
+            entry.min = Math.min(entry.min, bounds.minimum.y, bounds.minimum.z);
+        }
     }
 
     /**
@@ -278,6 +378,50 @@ export class MountainDressing {
     }
 
     /**
+     * One placed fir: a variant, scaled to a height and stood upright.
+     *
+     * The set is authored Z-up, so the upright is a measured rotation rather
+     * than an assumed one — and it is applied here rather than baked into the
+     * shipped file so a re-export that changes the convention is one line to
+     * absorb instead of a silent forest of fallen trees.
+     */
+    _fir(next, height, tilt) {
+        if (!this.firs.length) return this._coneFallback(next, height, tilt);
+        const v = this.firs[(next() * this.firs.length) | 0];
+        const s = height / Math.max(v.height, 1e-3);
+        const ry = next() * Math.PI * 2;
+        const out = [];
+        for (const part of v.parts) {
+            let m = Matrix.Scaling(s, s, s);
+            if (v.tallAxis === "z") m.multiplyToRef(Matrix.RotationX(-Math.PI / 2), m);
+            else if (v.tallAxis === "x") m.multiplyToRef(Matrix.RotationZ(Math.PI / 2), m);
+            if (tilt) m.multiplyToRef(Matrix.RotationZ(tilt), m);
+            m.multiplyToRef(Matrix.RotationY(ry), m);
+            out.push({ colourKey: part.key, colour: part.colour, data: part.data, matrix: m });
+        }
+        return out;
+    }
+
+    /** What the treeline was before the firs arrived. Kept as the fallback. */
+    _coneFallback(next, height, tilt) {
+        const w = height * 0.32;
+        const ry = next() * Math.PI * 2;
+        const M = (sx, sy, sz, oy) => {
+            const m = Matrix.Scaling(sx, sy, sz);
+            if (tilt) m.multiplyToRef(Matrix.RotationZ(tilt), m);
+            m.multiplyToRef(Matrix.RotationY(ry), m);
+            m.multiplyToRef(Matrix.Translation(0, oy, 0), m);
+            return m;
+        };
+        return [
+            { colourKey: "needle", colour: NEEDLE, data: this._cone,
+              matrix: M(w, height * 0.62, w, height * 0.24) },
+            { colourKey: "snow", colour: SNOW, data: this._cone,
+              matrix: M(w * 0.84, height * 0.5, w * 0.84, height * 0.44) },
+        ];
+    }
+
+    /**
      * One VertexData per shape, built once and reused for every copy.
      *
      * Each family returns a list of parts, so a conifer is a trunk and two
@@ -290,6 +434,7 @@ export class MountainDressing {
         const box = extract(CreateBox("t_box", { size: 1 }, this.scene));
         const rock = extract(CreatePolyhedron("t_rock", { type: 1, size: 0.5 }, this.scene));
         const shard = extract(CreatePolyhedron("t_shard", { type: 2, size: 0.5 }, this.scene));
+        this._cone = cone;
 
         const M = (sx, sy, sz, ry, ox, oy, oz, tilt = 0) => {
             const m = Matrix.Scaling(sx, sy, sz);
@@ -300,36 +445,16 @@ export class MountainDressing {
         };
 
         return {
-            conifer: (next) => {
-                const h = 5.4 + next() * 4.6;
-                const w = h * (0.30 + next() * 0.08);
-                const ry = next() * Math.PI * 2;
-                return [
-                    { colourKey: "trunk", colour: TRUNK, data: box,
-                      matrix: M(w * 0.13, h * 0.30, w * 0.13, ry, 0, h * 0.15, 0) },
-                    { colourKey: "needle", colour: NEEDLE, data: cone,
-                      matrix: M(w, h * 0.62, w, ry, 0, h * 0.24, 0) },
-                    // The snow load, a shade smaller and sat a little higher, so
-                    // it reads as settled on the branches rather than as a
-                    // second tree inside the first.
-                    { colourKey: "snow", colour: SNOW, data: cone,
-                      matrix: M(w * 0.84, h * 0.5, w * 0.84, ry, 0, h * 0.44, 0) },
-                ];
-            },
-            bent: (next, slope) => {
-                const h = 3.2 + next() * 2.4;
-                const w = h * 0.34;
-                const ry = next() * Math.PI * 2;
+            // The two tree families are the authored firs. Whichever variant a
+            // sample draws comes with its own needles, snow load and trunk
+            // already separated by material, so the merge buckets them
+            // correctly with no extra bookkeeping.
+            conifer: (next) => this._fir(next, 6.0 + next() * 4.2, 0),
+            bent: (next, slope) =>
                 // Leaned downhill, harder on steeper ground: this is what wind
-                // and creep do to anything that grows above the treeline.
-                const tilt = 0.22 + slope * 0.35 + next() * 0.12;
-                return [
-                    { colourKey: "trunk", colour: TRUNK, data: box,
-                      matrix: M(w * 0.16, h * 0.5, w * 0.16, ry, 0, h * 0.2, 0, tilt) },
-                    { colourKey: "needle", colour: NEEDLE, data: cone,
-                      matrix: M(w, h * 0.55, w, ry, 0, h * 0.42, 0, tilt) },
-                ];
-            },
+                // and creep do to anything growing near the treeline.
+                this._fir(next, 3.6 + next() * 2.2,
+                    0.20 + slope * 0.32 + next() * 0.10),
             shrub: (next) => {
                 const s = 0.7 + next() * 0.9;
                 const ry = next() * Math.PI * 2;

@@ -11,3 +11,5 @@ screenshots/_scratch/
 art/source-assets/snow-burgers/*.glb
 # Decimation sweep candidates: evidence, reproducible from optimize-assets.mjs.
 screenshots/snow-burgers/sweep/*.glb
+
+art/source-assets/snow-burgers/*-source.glb

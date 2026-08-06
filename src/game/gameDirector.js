@@ -164,6 +164,7 @@ export class GameDirector {
         // The camp is grounded on terrain heights, so it cannot be raised until
         // the bake has been read back — which it has by the time this runs.
         this.camp.build();
+        await this.dressing.load();
         this.dressing.build();
         const loaded = await this.field.load(INGREDIENT_IDS);
         const burgerOk = await this.burger.load(BURGER_MODEL);
