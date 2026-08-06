@@ -25,7 +25,25 @@ function arg(name, fallback) {
   return i >= 0 && process.argv[i + 1] ? process.argv[i + 1] : fallback;
 }
 
-const url = arg("--url", "http://127.0.0.1:5173");
+/**
+ * Every capture tool here photographs the snow study, not the game.
+ *
+ * Snow-Burgers boots to its title screen, and that screen carries a 90%
+ * darkening scrim over the whole viewport — which does not fail these tools'
+ * assertions, because they read numbers out of `KAKISNOW`, but does make every
+ * frame they save a dark title card. Measured at a mean brightness of 22 out of
+ * 255 before this was added.
+ *
+ * `?mode=free-ride` is the original open mountain with no game interface over
+ * it, which is the state all of these were written against.
+ */
+function freeRide(target) {
+  const u = new URL(target);
+  if (!u.searchParams.has("mode")) u.searchParams.set("mode", "free-ride");
+  return u.toString();
+}
+
+const url = freeRide(arg("--url", "http://127.0.0.1:5173"));
 const output = path.resolve(arg("--out", "screenshots/_scratch/board"));
 const viewport = { width: 2560, height: 1440 };
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), "kakisnow-board-"));

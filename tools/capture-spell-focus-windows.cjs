@@ -8,7 +8,25 @@ function readArgument(name, fallback) {
   return index >= 0 && process.argv[index + 1] ? process.argv[index + 1] : fallback;
 }
 
-const url = readArgument("--url", "http://127.0.0.1:5173");
+/**
+ * Every capture tool here photographs the snow study, not the game.
+ *
+ * Snow-Burgers boots to its title screen, and that screen carries a 90%
+ * darkening scrim over the whole viewport — which does not fail these tools'
+ * assertions, because they read numbers out of `KAKISNOW`, but does make every
+ * frame they save a dark title card. Measured at a mean brightness of 22 out of
+ * 255 before this was added.
+ *
+ * `?mode=free-ride` is the original open mountain with no game interface over
+ * it, which is the state all of these were written against.
+ */
+function freeRide(target) {
+  const u = new URL(target);
+  if (!u.searchParams.has("mode")) u.searchParams.set("mode", "free-ride");
+  return u.toString();
+}
+
+const url = freeRide(readArgument("--url", "http://127.0.0.1:5173"));
 const output = path.resolve(readArgument("--out", "screenshots/_scratch/spell-focus"));
 const spell = Number(readArgument("--spell", "1"));
 const cameraOffset = Number(readArgument("--camera-offset", "0"));

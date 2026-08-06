@@ -204,6 +204,12 @@ let context = null;
 
       if (state === "assembly" && !seen.has("__assembly")) {
         seen.add("__assembly");
+        // Not on the transition frame. The burger starts at one-hundredth
+        // scale and eases up, so a shot taken the instant the state changes
+        // photographs an empty finish line and would read as the reward
+        // failing to appear — which is exactly what the first version of this
+        // tool recorded.
+        await page.waitForTimeout(900);
         await shot(`${label}-assembly`);
       }
       if (state === "results") {
