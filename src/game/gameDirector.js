@@ -906,6 +906,9 @@ export class GameDirector {
             }
         }
 
+        // ---------------------------------------------------------- tutoring
+        this._updateTutor();
+
         // -------------------------------------------------------- the voice
         audio.updateBoard({
             speed01: c.speed01,
@@ -915,6 +918,57 @@ export class GameDirector {
             wind01: Math.min(1, c.speed01 * (c.airborne ? 1.0 : 0.7)),
             surfaceHardness: c.surfaceHardness,
         });
+    }
+
+    /**
+     * The first-run prompts: one short line at a time, each dismissed
+     * forever by the action it asks for. Summit Stack only — the classic is
+     * the onboarding; every later event assumes a rider who has served once.
+     * Never a wall of text, never a repeat: the book remembers.
+     */
+    _updateTutor() {
+        if (this.mode !== Mode.BURGER_RUN ||
+            this.run.event.id !== "summit-stack" ||
+            this.run.state !== RunState.RUN) {
+            this.ui.setTutor(null);
+            return;
+        }
+        const t = this.book.book.tutorial;
+        const c = this.controller;
+        if (!t.steer) {
+            if (Math.abs(c.carve) > 0.3) this.book.markTutorial("steer");
+            else this.ui.setTutor("steer with the mouse \u00b7 a / d to carve");
+            return;
+        }
+        if (!t.jump) {
+            if (c.airborne && c.airTime > 0.2) this.book.markTutorial("jump");
+            else this.ui.setTutor("space to jump \u00b7 hold it off a lip");
+            return;
+        }
+        if (!t.trick) {
+            if (this.tracker.trickCount > 0) this.book.markTutorial("trick");
+            else this.ui.setTutor("q / e to spin in the air \u00b7 land square");
+            return;
+        }
+        if (!t.collect) {
+            if (Object.keys(this.run.splits).length > 0) {
+                this.book.markTutorial("collect");
+            } else {
+                this.ui.setTutor("ride through the order \u00b7 chips top right");
+            }
+            return;
+        }
+        if (!t.finish) {
+            if (Object.keys(this.run.splits).length >=
+                this.run.event.required.length) {
+                this.ui.setTutor("full order \u00b7 the grill is at the bottom");
+                // Dismisses with the run itself; the assembly marks it.
+            } else {
+                this.ui.setTutor(null);
+            }
+            return;
+        }
+        this.ui.setTutor(null);
     }
 
     /**
@@ -1034,6 +1088,11 @@ export class GameDirector {
             _burgerPos.y = this.terrain.heightAt(_burgerPos.x, _burgerPos.z) + 0.55;
             this.burger.root.position.copyFrom(_burgerPos);
             this._camEntry.set(this.rig.yaw, this.rig.pitch, this.rig.distanceTarget);
+            // Stage the reward: the ride camera stays the finish camera (two
+            // committed attempts at a dedicated one photographed the inside
+            // of the arch), but it can at least lean in — the burger was the
+            // report's own "small in frame" limitation.
+            this.rig.distanceTarget = 4.4;
             this.burger.root.scaling.setAll(0.01);
             this.burger.setActive(true);
             this.ui.setHud(false);
@@ -1143,6 +1202,8 @@ export class GameDirector {
             this.ui.setClock(0);
         }
         if (next === RunState.ASSEMBLY) {
+            this.book.markTutorial("finish");
+            this.ui.setTutor(null);
             // The wall does not follow the rider into the cinematic.
             this.avalanche.stop();
             this.ui.setAvalanche(null);

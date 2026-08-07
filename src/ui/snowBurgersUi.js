@@ -295,6 +295,18 @@ const CSS = `
     pointer-events: none;
 }
 #sb-notice.on { opacity: 1; }
+/* The tutorial's one line: present until its action happens, never again. */
+#sb-tutor {
+    position: absolute; left: 50%; bottom: 158px; transform: translateX(-50%);
+    font: 400 12px/1.6 ui-monospace, "Cascadia Mono", monospace;
+    letter-spacing: 0.26em; text-transform: uppercase;
+    color: var(--warm);
+    opacity: 0; transition: opacity 260ms ease;
+    text-shadow: 0 2px 16px rgba(3,8,15,0.9);
+    pointer-events: none;
+}
+#sb-tutor.on { opacity: 1; }
+
 /* The avalanche: a distance that wants watching. */
 #sb-avalanche {
     position: absolute; top: max(24px, env(safe-area-inset-top));
@@ -489,6 +501,7 @@ export class SnowBurgersUi {
             grade: this.root.querySelector("#sb-grade"),
             combo: this.root.querySelector("#sb-combo"),
             notice: this.root.querySelector("#sb-notice"),
+            tutor: this.root.querySelector("#sb-tutor"),
             pause: this.root.querySelector("#sb-pause"),
             pauseTitle: this.root.querySelector("#sb-pause-title"),
             pauseDetail: this.root.querySelector("#sb-pause-detail"),
@@ -556,6 +569,7 @@ export class SnowBurgersUi {
   </div>
   <div id="sb-combo"></div>
   <div id="sb-notice"></div>
+  <div id="sb-tutor"></div>
 </div>
 
 <div class="sb-screen" id="sb-results">
@@ -810,6 +824,7 @@ export class SnowBurgersUi {
             this.el.grade.classList.remove("on");
             this.el.combo.classList.remove("on");
             this.el.notice.classList.remove("on");
+            this.el.tutor.classList.remove("on");
             this.el.avalanche.classList.remove("on");
         }
     }
@@ -929,6 +944,18 @@ export class SnowBurgersUi {
         }
         el.classList.add("on");
         el.classList.toggle("close", distance < 25);
+    }
+
+    /** The tutorial line: shown until dismissed, null hides. */
+    setTutor(text) {
+        if (!text) {
+            this.el.tutor.classList.remove("on");
+            return;
+        }
+        if (this.el.tutor.textContent !== text) {
+            this.el.tutor.textContent = text;
+        }
+        this.el.tutor.classList.add("on");
     }
 
     /** A short transient notice — the recovery penalty, a checkpoint. */

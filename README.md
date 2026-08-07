@@ -33,30 +33,25 @@ One order is one run.
 6. **Score the run.**
 7. **Retry the order, or take the next one.**
 
-What that loop has in the repository today is the course and the pickups: the
-five ingredient definitions in `src/game/ingredients.js`, the placement solver
-in `src/game/ingredientPlacement.js` that gives each ingredient an authored
-zone on Summit Line, validates candidate anchors against the baked terrain and
-picks one per ingredient from a seed so the same seed always produces the same
-run, the seven optimised runtime models under
-`public/assets/models/snow-burgers/`, and the course HUD.
-
-In development: the order card, the HUD chips, Burger Base Camp and its grill,
-the assembly sequence, scoring, retry, and the mode menu. The rocket chair
-snowboard is in development too — it is imported, optimised and committed, but
-the vehicle the hero currently rides is the snowboard described under
-[KAKISNOW Snow Technology](#kakisnow-snow-technology).
+That loop is complete, and it runs on five mountains. The Burger Tour opens
+on the Summit Line and unlocks Pinecone Pass, Glacier Gorge, Midnight Resort
+and Whiteout Ridge as the records earn them — twelve events across delivery,
+fixed-seed time trial, style, integrity and rocket rules, every medal ladder
+measured against the committed autopilot rather than guessed. Runs are seeded
+and race their own best ghost; tricks, grinds, crashes and near misses score;
+three Recipe Tapes hide on every course. Each course is one data file in
+`src/game/courses/` — terrain primitives, zones, hazards, surfaces, weather,
+events — validated at load and baked through the one shared heightfield
+shader.
 
 ## FREE RIDE LAB
 
 FREE RIDE LAB is the mode that preserves the original open-ended experience
 this project began as. Walk the field, carve persistent trails, ride the
-520-metre Summit Line through the original rolling snowfield, jump its three
-takeoffs, carve two halfpipes, and cast five snow-and-water spells. Nothing in
-it is ordered, timed or scored.
-
-It is also what the build boots into today, because the menu that will name it
-is one of the pieces still in development.
+active course through the original rolling snowfield, and cast five
+snow-and-water spells. Nothing in it is ordered, timed or scored, no new
+game audio plays over it, and the only game system that reaches into it is
+crash recovery — a tree should not be a softlock, even in a lab.
 
 ## Run locally
 
@@ -97,8 +92,12 @@ blender --background --factory-startup --python tools/validate-rockerkaki-rig.py
 - Mouse wheel — eased zoom
 - Hold right mouse button — snow-surf
 - `Space` — jump (also works at the lip with input buffering and coyote time)
+- `Q` / `E` — spin left / right in the air; gamepad bumpers do the same
+- Hold `F` + `W`/`S` — frontflip / backflip; `F` + `A`/`D` — tweak grabs
+- `R` / gamepad east — recover to the last safe spot (+2 s in a run)
 - `Left Shift` / gamepad right trigger — rocket thrust, when the chair is fitted
 - `Escape` / gamepad Start / touch corner button — pause
+- Arrows + `Enter` (or d-pad + south) — drive any menu without a mouse
 - `1` — Sweep
 - `2` — Ribbon
 - `3` — Bloom
@@ -113,6 +112,14 @@ Losing window focus or pointer lock during active play pauses automatically
 the player settings — quality, volume, mouse sensitivity, invert Y, camera
 shake, reduced motion, touch controls — which persist in `localStorage`
 separately from records.
+
+Landing square matters: the rotation left unfinished at touchdown grades the
+landing PERFECT / CLEAN / SKETCHY / CRASH, perfect pays speed, and a crash
+tumbles into a breadcrumb recovery. Rails catch from an aligned falling
+approach and pop off with Space. Five courses form the Burger Tour — records
+unlock mountains, three Recipe Tapes hide on every one, and each course's
+events, hazards (groomers, gusts, an avalanche), surfaces and weather come
+off its definition in `src/game/courses/`.
 
 The F1 overlay is the developer surface and stays hidden by default. It
 exposes the rolling frame-time graph, worst-1% rate, scene counts, quality

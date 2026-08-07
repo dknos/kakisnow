@@ -52,6 +52,9 @@ export const RunState = {
 };
 
 const COUNTDOWN_SECONDS = 3.2;
+/** Retries skip most of the ceremony: the player has seen this gate, and
+ *  the fastest way to make them stop retrying is to make retrying slow. */
+const RETRY_COUNTDOWN_SECONDS = 1.4;
 
 /** How often the ghost samples the rider, seconds. */
 const GHOST_INTERVAL = 0.25;
@@ -161,10 +164,11 @@ export class BurgerRun {
     /** Leave the order card and start the countdown. */
     dropIn() {
         if (this.state !== RunState.ORDER && this.state !== RunState.RESULTS) return;
+        const retry = this.state === RunState.RESULTS;
         this._resetRun();
         this.field.reset();
         this._placeAtGate();
-        this.countdown = COUNTDOWN_SECONDS;
+        this.countdown = retry ? RETRY_COUNTDOWN_SECONDS : COUNTDOWN_SECONDS;
         this._setState(RunState.COUNTDOWN);
     }
 

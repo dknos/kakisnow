@@ -294,3 +294,30 @@ What was done to each file, why, and the rendered before/after evidence for the
 decimation are in `art/source-assets/snow-burgers/OPTIMIZATION_REPORT.md`.
 Runtime SHA-256 hashes are in `OPTIMIZATION_REPORT.json`; validator results are
 in `VALIDATION.json`.
+
+## Camp and dressing derivatives (added with the game expansion)
+
+Six runtime GLBs produced by `tools/snow-burgers/optimize-dressing.mjs` from
+supplied sources at `art/source-assets/snow-burgers/` (bush/fir-set/hut/pine/
+rock/village-source.glb, preserved locally, excluded from git like the seven
+ingredient sources). **Provenance: unresolved**, the same status as the seven
+audited game assets — `copyright: null`, empty `extras`, supplied locally,
+which establishes nothing about redistribution rights. Recorded here so the
+count of unresolved assets is honest rather than smaller than reality.
+
+| Runtime file | Bytes | SHA-256 (first 16) | Used by |
+| --- | ---: | --- | --- |
+| `camp-hut.glb` | 969,572 | `2d37da8862e61495` | base camp lodges (two placements) |
+| `camp-village.glb` | 199,644 | `b6abc870231fd85e` | village below the finish |
+| `dressing-bush.glb` | 585,108 | `5c04764eaf032d34` | shrub dressing pool |
+| `dressing-firs.glb` | 50,032 | `a5616ac2a65e3550` | conifer/bent dressing pool |
+| `dressing-pine.glb` | 40,816 | `d8b855c4c124861f` | hero pine variant |
+| `dressing-rock.glb` | 407,980 | `295f13e604c06bdc` | rock dressing pool |
+
+Transforms applied: Draco compression, WebP textures, decimation per
+`optimize-dressing.mjs` job table. Note for future biome art: that tool lacks
+the specular-glossiness conversion `optimize-assets.mjs` performs — a
+spec-gloss source run through it will light as raw metal (the tomato trap).
+Everything the expansion itself added — rails, ice sheets, snowcats, tapes,
+camp primitives — is procedural geometry with no external source, and every
+sound remains synthesised at runtime.
