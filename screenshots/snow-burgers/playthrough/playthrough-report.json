@@ -1,96 +1,104 @@
 {
   "tool": "tools/snow-burgers/playthrough-windows.cjs",
-  "url": "http://127.0.0.1:5173",
+  "url": "http://127.0.0.1:5173/?course=whiteout-ridge&event=five-alarm",
   "viewport": {
     "width": 2560,
     "height": 1440
   },
   "seeds": 1,
-  "vehicle": "classic-snowboard",
+  "vehicle": "rocket-chair",
   "runs": [
     {
       "seed": 1,
-      "vehicle": "classic-snowboard",
+      "vehicle": "rocket-chair",
       "ok": true,
       "finalState": "results",
       "placements": [
         {
           "ingredient": "cheese",
-          "x": 17.11,
-          "y": -3.9,
-          "z": 120.86,
+          "x": -0.09,
+          "y": -3.02,
+          "z": -200.69,
           "zone": "cheese"
         },
         {
+          "ingredient": "onion",
+          "x": -40.85,
+          "y": -1.56,
+          "z": -87.56,
+          "zone": "onion"
+        },
+        {
           "ingredient": "patty",
-          "x": -20.13,
-          "y": -0.49,
-          "z": 231.19,
+          "x": -19.13,
+          "y": 1.2,
+          "z": 83.42,
           "zone": "patty"
         },
         {
           "ingredient": "tomato",
-          "x": -5.19,
-          "y": 2.5,
-          "z": 339.31,
+          "x": 26.6,
+          "y": 0.18,
+          "z": 263.11,
           "zone": "tomato"
         },
         {
           "ingredient": "lettuce",
           "x": 11.63,
-          "y": -4.2,
-          "z": 453.78,
+          "y": -0.98,
+          "z": 425.41,
           "zone": "lettuce"
         }
       ],
       "collected": [
         "cheese",
+        "onion",
         "patty",
         "tomato",
         "lettuce"
       ],
-      "lastZ": 551.9,
-      "fuelAtFinish": 1,
+      "lastZ": 592.2,
+      "fuelAtFinish": 0,
       "blocked": null,
       "result": {
         "completed": true,
-        "time": 31.5,
+        "time": 43.12,
         "medal": "gold",
-        "style": 37,
+        "style": 30,
         "integrity": 100,
         "stars": 4,
         "grade": "Summit Stack",
         "splits": {
-          "cheese": 8.905900000005927,
-          "patty": 14.940800000011896,
-          "tomato": 20.54700000000017,
-          "lettuce": 26.493100000024228
+          "cheese": 3.371399999976147,
+          "onion": 9.225599999994033,
+          "patty": 17.739599999994127,
+          "tomato": 26.916899999976508,
+          "lettuce": 34.96919999998866
         },
         "detail": {
-          "airTime": 0,
-          "airShare": 0,
-          "carve": 0.139,
+          "airTime": 0.35,
+          "airShare": 0.008,
+          "carve": 0.189,
           "pace": 1,
-          "pipeTime": 6.13,
-          "routeRisk": 0.4,
-          "landings": 0,
+          "pipeTime": 0,
+          "routeRisk": 0.5,
+          "landings": 1,
           "hardLandings": 0,
-          "worstLanding": 0,
-          "distance": 548.1
+          "worstLanding": 0.98,
+          "distance": 848.1
         },
-        "rocket": 0,
-        "notMeasured": [
-          "rocket efficiency"
-        ]
+        "rocket": 74,
+        "notMeasured": []
       }
     }
   ],
   "screenshots": [
     "00-title",
     "001-pickup-1-cheese",
-    "001-pickup-2-patty",
-    "001-pickup-3-tomato",
-    "001-pickup-4-lettuce",
+    "001-pickup-2-onion",
+    "001-pickup-3-patty",
+    "001-pickup-4-tomato",
+    "001-pickup-5-lettuce",
     "001-assembly",
     "001-results"
   ],
