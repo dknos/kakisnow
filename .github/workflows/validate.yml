@@ -1,0 +1,109 @@
+name: KAKISNOW Validation
+
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validation-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate source, registries, assets, and bundle
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Registry validation
+        run: npm run validate:registry
+
+      - name: Asset references and provenance gate
+        run: npm run validate:assets
+
+      - name: Documentation count consistency
+        run: npm run validate:docs
+
+      - name: Generate combined release validation report
+        if: always()
+        run: npm run validate:release:report
+
+      - name: Production build
+        run: npm run build
+
+      - name: Upload deterministic validation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kakisnow-validation-report-${{ github.run_id }}
+          path: reports/release-validation.json
+          if-no-files-found: warn
+
+  browser-smoke:
+    name: Production preview boot smoke
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Build production bundle
+        run: npm run build
+
+      - name: Preview and run boot smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p reports/browser-smoke
+          npm run preview -- --host 127.0.0.1 --port 4173 > reports/browser-smoke/preview.log 2>&1 &
+          preview_pid=$!
+          finish() {
+            kill "$preview_pid" 2>/dev/null || true
+            wait "$preview_pid" 2>/dev/null || true
+          }
+          trap finish EXIT
+          curl --fail --silent --show-error --retry 30 --retry-connrefused --retry-delay 1 \
+            --max-time 5 http://127.0.0.1:4173/ > /dev/null
+          npm run smoke:browser -- --url http://127.0.0.1:4173 --out reports/browser-smoke
+
+      - name: Upload browser smoke evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kakisnow-browser-smoke-${{ github.run_id }}
+          path: |
+            reports/browser-smoke/
+            reports/release-validation.json
+          if-no-files-found: warn
+
+      # The smoke accepts the authored WebGPU-unavailable screen when the
+      # hosted browser has no adapter. It is boot/presentation evidence only;
+      # the Windows discrete-GPU captures remain the hardware gate.
