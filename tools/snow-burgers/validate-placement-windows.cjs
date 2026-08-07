@@ -84,7 +84,9 @@ const validationPattern =
   /GPUValidationError|GPUInternalError|GPUOutOfMemoryError|WebGPU uncaptured error|WebGPU context lost|Validation Error|device lost|Destroyed texture/i;
 
 /** The order a run collects them in; the onion is optional and not routed. */
-const REQUIRED = ["cheese", "patty", "tomato", "lettuce"];
+/** The order swept, downhill order, restated per run of this tool. The
+ *  five-ingredient finals pass --required cheese,onion,patty,tomato,lettuce. */
+const REQUIRED = arg("--required", "cheese,patty,tomato,lettuce").split(",");
 
 /**
  * The reachability limits, restated here rather than imported.

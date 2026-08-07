@@ -1,0 +1,198 @@
+{
+  "tool": "tools/snow-burgers/playthrough-windows.cjs",
+  "url": "http://127.0.0.1:5173/?course=whiteout-ridge&event=five-alarm",
+  "viewport": {
+    "width": 2560,
+    "height": 1440
+  },
+  "seeds": 2,
+  "vehicle": "rocket-chair",
+  "runs": [
+    {
+      "seed": 1,
+      "vehicle": "rocket-chair",
+      "ok": true,
+      "finalState": "results",
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "x": -0.09,
+          "y": -3.02,
+          "z": -200.69,
+          "zone": "cheese"
+        },
+        {
+          "ingredient": "onion",
+          "x": -40.85,
+          "y": -1.56,
+          "z": -87.56,
+          "zone": "onion"
+        },
+        {
+          "ingredient": "patty",
+          "x": -19.13,
+          "y": 1.2,
+          "z": 83.42,
+          "zone": "patty"
+        },
+        {
+          "ingredient": "tomato",
+          "x": 26.6,
+          "y": 0.18,
+          "z": 263.11,
+          "zone": "tomato"
+        },
+        {
+          "ingredient": "lettuce",
+          "x": 11.63,
+          "y": -0.98,
+          "z": 425.41,
+          "zone": "lettuce"
+        }
+      ],
+      "collected": [
+        "cheese",
+        "onion",
+        "patty",
+        "tomato",
+        "lettuce"
+      ],
+      "lastZ": 592.2,
+      "fuelAtFinish": 0,
+      "blocked": null,
+      "result": {
+        "completed": true,
+        "time": 43.36,
+        "medal": "gold",
+        "style": 48,
+        "integrity": 86,
+        "stars": 4,
+        "grade": "Summit Stack",
+        "splits": {
+          "cheese": 3.40179999998211,
+          "onion": 9.310799999982095,
+          "patty": 17.83569999998805,
+          "tomato": 27.069900000006335,
+          "lettuce": 35.168799999982696
+        },
+        "detail": {
+          "airTime": 9.04,
+          "airShare": 0.208,
+          "carve": 0.162,
+          "pace": 1,
+          "pipeTime": 0,
+          "routeRisk": 0.5,
+          "landings": 21,
+          "hardLandings": 2,
+          "worstLanding": 1.5,
+          "distance": 848.1
+        },
+        "rocket": 45,
+        "notMeasured": []
+      }
+    },
+    {
+      "seed": 2,
+      "vehicle": "rocket-chair",
+      "ok": true,
+      "finalState": "results",
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "x": 23.36,
+          "y": -6.5,
+          "z": -201.12,
+          "zone": "cheese"
+        },
+        {
+          "ingredient": "onion",
+          "x": -39.3,
+          "y": -2.75,
+          "z": -75.54,
+          "zone": "onion"
+        },
+        {
+          "ingredient": "patty",
+          "x": -19.76,
+          "y": 1.51,
+          "z": 78.1,
+          "zone": "patty"
+        },
+        {
+          "ingredient": "tomato",
+          "x": 15.07,
+          "y": 1.05,
+          "z": 239.75,
+          "zone": "tomato"
+        },
+        {
+          "ingredient": "lettuce",
+          "x": -10.98,
+          "y": 1.49,
+          "z": 423.21,
+          "zone": "lettuce"
+        }
+      ],
+      "collected": [
+        "cheese",
+        "onion",
+        "patty",
+        "tomato",
+        "lettuce"
+      ],
+      "lastZ": 592.1,
+      "fuelAtFinish": 0,
+      "blocked": null,
+      "result": {
+        "completed": true,
+        "time": 44.05,
+        "medal": "gold",
+        "style": 50,
+        "integrity": 83,
+        "stars": 4,
+        "grade": "Summit Stack",
+        "splits": {
+          "cheese": 3.607700000017876,
+          "onion": 10.65699999999995,
+          "patty": 18.28699999999997,
+          "tomato": 26.467600000024053,
+          "lettuce": 35.77440000000655
+        },
+        "detail": {
+          "airTime": 13.5,
+          "airShare": 0.306,
+          "carve": 0.238,
+          "pace": 1,
+          "pipeTime": 0,
+          "routeRisk": 0.5,
+          "landings": 27,
+          "hardLandings": 4,
+          "worstLanding": 1.5,
+          "distance": 848.1
+        },
+        "rocket": 46,
+        "notMeasured": []
+      }
+    }
+  ],
+  "screenshots": [
+    "00-title",
+    "001-pickup-1-cheese",
+    "001-pickup-2-onion",
+    "001-pickup-3-patty",
+    "001-pickup-4-tomato",
+    "001-pickup-5-lettuce",
+    "001-assembly",
+    "001-results",
+    "002-pickup-1-cheese",
+    "002-pickup-2-onion",
+    "002-pickup-3-patty",
+    "002-pickup-4-tomato",
+    "002-pickup-5-lettuce",
+    "002-assembly",
+    "002-results"
+  ],
+  "consoleErrors": [],
+  "webgpuValidation": [],
+  "ok": true
+}

@@ -676,6 +676,12 @@ export class CharacterController {
 
     // ------------------------------------------------------------------- crash
 
+    /** The world can crash the rider — an avalanche catch, a scripted
+     *  hazard. Same tumble, same recovery, same accounting. */
+    forceCrash() {
+        this._startCrash();
+    }
+
     _startCrash() {
         if (this.crashed) return;
         this.crashed = true;

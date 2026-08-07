@@ -51,6 +51,7 @@ import { CollisionWorld } from "./collisionWorld.js";
 import { RailField } from "./railField.js";
 import { SurfaceStrips } from "./surfaceStrips.js";
 import { Snowcats } from "./snowcats.js";
+import { Avalanche } from "./avalanche.js";
 
 import { Mode } from "./modes.js";
 export { Mode };
@@ -172,6 +173,9 @@ export class GameDirector {
             scene: deps.scene, sky: deps.sky, shadows: deps.shadows,
             depthPass: deps.depthPass, terrain: deps.terrain,
         });
+        /** The wall, where a course brings one. */
+        this.avalanche = new Avalanche(deps.spray);
+        this.avalanche.configure(this.course.avalanche ?? null);
         /** The groomers, where a course fields them. */
         this.snowcats = new Snowcats({
             scene: deps.scene, sky: deps.sky, shadows: deps.shadows,
@@ -356,6 +360,9 @@ export class GameDirector {
         // the board bed and the grind loop. If the new mode drives them, the
         // next frame's update re-opens them.
         audio.updateRocket(0, 0, true);
+        audio.avalancheUpdate(0);
+        this.avalanche.stop();
+        this.ui.setAvalanche(null);
         audio.updateBoard({
             speed01: 0, carve: 0, grounded: true, airborne: false,
             wind01: 0, surfaceHardness: 0,
@@ -647,7 +654,22 @@ export class GameDirector {
                 }
                 break;
             }
-            case RunState.RUN:
+            case RunState.RUN: {
+                const ava = this.avalanche.update(
+                    dt, this.controller.position, this.terrain
+                );
+                if (ava) {
+                    this.ui.setAvalanche(ava.distance);
+                    audio.avalancheUpdate(
+                        Math.max(0, 1 - ava.distance / 70)
+                    );
+                    if (ava.caught && !this.controller.crashed) {
+                        // Caught: exactly one crash, and the wall grants the
+                        // relief window the reset gives it.
+                        this.controller.forceCrash();
+                        this.avalanche.wallZ -= 60;
+                    }
+                }
                 this.ui.setCountdown(null);
                 this.ui.setClock(this.run.time);
                 this.ghost.update(this.run.time, this.controller.position.z);
@@ -662,6 +684,7 @@ export class GameDirector {
                 );
                 this._updateAlert();
                 break;
+            }
             case RunState.ASSEMBLY:
                 // Space skips it, once it has been seen. The check is inside
                 // `skipAssembly`, so a first-time player cannot skip the thing
@@ -800,6 +823,18 @@ export class GameDirector {
                 }
             } else {
                 this._nearId = 0;
+            }
+        }
+
+        // ------------------------------------------------------------ gusts
+        // The wind owns parts of some mountains. Grounded only — airborne the
+        // rider is already the wind's.
+        if (c.grounded && !c.crashed) {
+            for (const g of this.course.gusts ?? []) {
+                if (c.position.z >= g.zFrom && c.position.z <= g.zTo &&
+                    c.position.x >= g.xFrom && c.position.x <= g.xTo) {
+                    c.velocity.x += g.push * dt;
+                }
             }
         }
 
@@ -1003,7 +1038,9 @@ export class GameDirector {
             // of the ghost's identity, and reading it any later would let an
             // overlay switch mid-run relabel a record.
             this.run.vehicleId = S.vehicle;
-            // A fresh gate is a fresh score and fresh breadcrumbs.
+            // A fresh gate is a fresh score, fresh breadcrumbs — and the
+            // wall back at its starting distance.
+            this.avalanche.reset(this.course.startZ);
             this.tracker.reset();
             this._nearMissPoints = 0;
             this._comboSettle = 0;
@@ -1035,6 +1072,10 @@ export class GameDirector {
             this.ui.setClock(0);
         }
         if (next === RunState.ASSEMBLY) {
+            // The wall does not follow the rider into the cinematic.
+            this.avalanche.stop();
+            this.ui.setAvalanche(null);
+            audio.avalancheUpdate(0);
             this._assembly = 0;
             // Whatever is still open banks at the line — crossing the finish
             // IS the successful settle.

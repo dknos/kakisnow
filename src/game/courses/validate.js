@@ -91,6 +91,21 @@ export function validateCourse(c) {
         if (g.height === 0) p.push(`ridge ${i} has zero height`);
     }
 
+    for (const [i, g] of (c.gusts ?? []).entries()) {
+        if (![g.zFrom, g.zTo, g.xFrom, g.xTo, g.push].every(Number.isFinite) ||
+            g.zFrom >= g.zTo || g.xFrom >= g.xTo || g.push === 0) {
+            p.push(`gust ${i} is malformed`);
+        }
+    }
+    if (c.avalanche) {
+        const a = c.avalanche;
+        if (![a.startBehind, a.lead, a.basePace, a.catchup, a.maxPace]
+            .every(Number.isFinite) ||
+            a.basePace <= 0 || a.maxPace < a.basePace || a.startBehind <= 0) {
+            p.push("avalanche block is malformed");
+        }
+    }
+
     for (const [i, sc] of (c.snowcats ?? []).entries()) {
         if (![sc.ax, sc.az, sc.bx, sc.bz, sc.speed].every(Number.isFinite) ||
             !(sc.speed > 0)) {

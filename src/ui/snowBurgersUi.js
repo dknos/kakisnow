@@ -285,6 +285,20 @@ const CSS = `
     pointer-events: none;
 }
 #sb-notice.on { opacity: 1; }
+/* The avalanche: a distance that wants watching. */
+#sb-avalanche {
+    position: absolute; top: max(24px, env(safe-area-inset-top));
+    left: max(30px, env(safe-area-inset-left));
+    font: 500 11px/1.5 ui-monospace, "Cascadia Mono", monospace;
+    letter-spacing: 0.22em; text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
+    color: rgba(219,230,242,0.6);
+    opacity: 0; transition: opacity 240ms ease;
+    text-shadow: 0 2px 14px rgba(3,8,15,0.9);
+    pointer-events: none;
+}
+#sb-avalanche.on { opacity: 1; }
+#sb-avalanche.close { color: #e2553a; }
 
 .sb-hud-alert {
     position: absolute; left: 50%; bottom: 84px; transform: translateX(-50%);
@@ -458,6 +472,7 @@ export class SnowBurgersUi {
             chips: this.root.querySelector("#sb-order-chips"),
             results: this.root.querySelector("#sb-results"),
             resultBody: this.root.querySelector("#sb-result-body"),
+            avalanche: this.root.querySelector("#sb-avalanche"),
             trick: this.root.querySelector("#sb-trick"),
             trickName: this.root.querySelector("#sb-trick-name"),
             trickScore: this.root.querySelector("#sb-trick-score"),
@@ -523,6 +538,7 @@ export class SnowBurgersUi {
     <div class="sb-alert-main" id="sb-alert-main"></div>
     <div class="sb-alert-sub" id="sb-alert-sub"></div>
   </div>
+  <div id="sb-avalanche"></div>
   <div id="sb-grade"></div>
   <div id="sb-trick">
     <div class="sb-trick-name" id="sb-trick-name"></div>
@@ -694,6 +710,7 @@ export class SnowBurgersUi {
             this.el.grade.classList.remove("on");
             this.el.combo.classList.remove("on");
             this.el.notice.classList.remove("on");
+            this.el.avalanche.classList.remove("on");
         }
     }
 
@@ -792,6 +809,26 @@ export class SnowBurgersUi {
             this.el.combo.innerHTML = text;
         }
         this.el.combo.classList.add("on");
+    }
+
+    /**
+     * The avalanche readout. Null hides it; metres show it, red under 25.
+     * @param {number|null} distance
+     */
+    setAvalanche(distance) {
+        const el = this.el.avalanche;
+        if (distance === null) {
+            el.classList.remove("on");
+            this._lastAva = null;
+            return;
+        }
+        const shown = Math.max(0, Math.round(distance));
+        if (shown !== this._lastAva) {
+            this._lastAva = shown;
+            el.textContent = `avalanche \u2212${shown} m`;
+        }
+        el.classList.add("on");
+        el.classList.toggle("close", distance < 25);
     }
 
     /** A short transient notice — the recovery penalty, a checkpoint. */

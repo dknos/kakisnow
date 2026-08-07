@@ -308,6 +308,67 @@ export const PARK_ORDER = {
     unlock: null,
 };
 
+/**
+ * The Avalanche Special — everything this game has, at once.
+ *
+ * All five ingredients ahead of a wall that keeps its own schedule. Medals
+ * measured 2026-08-07: the autopilot, which shops efficiently and never
+ * looks back, floors 45.7-46.5 s including the onion detour — with the wall
+ * live behind it. Gold sits wider over this floor than the calm courses'
+ * +3: the gusts do not push a robot that steers by writing the camera.
+ */
+export const AVALANCHE_SPECIAL = {
+    id: "avalanche-special",
+    version: 1,
+    courseId: "whiteout-ridge",
+    name: "The Avalanche Special",
+    tagline: "Five on the mountain. The mountain is coming too.",
+    mode: "final",
+    required: ["cheese", "onion", "patty", "tomato", "lettuce"],
+    seedPolicy: "random",
+    fixedSeed: null,
+    allowedVehicles: ["classic-snowboard", "rocket-chair"],
+    forcedVehicle: null,
+    startZ: -260,
+    finishZ: 588,
+    gold: 52,
+    silver: 66,
+    bronze: 84,
+    get medals() {
+        return { gold: this.gold, silver: this.silver, bronze: this.bronze };
+    },
+    unlock: null,
+};
+
+/**
+ * Five Alarm — the rocket final. Fuel, route, wind and the wall, all at
+ * once; every pickup refills a fifth of a tank that will not last the
+ * mountain otherwise. Difficult and meant to be, fair because every one of
+ * its pressures keeps a schedule.
+ */
+export const FIVE_ALARM = {
+    id: "five-alarm",
+    version: 1,
+    courseId: "whiteout-ridge",
+    name: "Five Alarm",
+    tagline: "Full order, full throttle, and the wall right behind.",
+    mode: "final",
+    required: ["cheese", "onion", "patty", "tomato", "lettuce"],
+    seedPolicy: "random",
+    fixedSeed: null,
+    allowedVehicles: ["rocket-chair"],
+    forcedVehicle: "rocket-chair",
+    startZ: -260,
+    finishZ: 588,
+    gold: 48,
+    silver: 62,
+    bronze: 80,
+    get medals() {
+        return { gold: this.gold, silver: this.silver, bronze: this.bronze };
+    },
+    unlock: null,
+};
+
 /** @type {Record<string, object>} every event, keyed by id. */
 export const EVENTS = {
     [SUMMIT_STACK.id]: SUMMIT_STACK,
@@ -319,6 +380,8 @@ export const EVENTS = {
     [HANDLE_WITH_CARE.id]: HANDLE_WITH_CARE,
     [NIGHT_SHIFT.id]: NIGHT_SHIFT,
     [PARK_ORDER.id]: PARK_ORDER,
+    [AVALANCHE_SPECIAL.id]: AVALANCHE_SPECIAL,
+    [FIVE_ALARM.id]: FIVE_ALARM,
 };
 
 for (const event of Object.values(EVENTS)) {

@@ -131,6 +131,7 @@ export class GameAudio {
         this._buildBoard();
         this._buildGrind();
         this._buildSnowcat();
+        this._buildRumble();
 
         const unlock = () => {
             if (this.unlocked) return;
@@ -440,6 +441,35 @@ export class GameAudio {
         rattle.start();
 
         this._snowcat = { bus, engine };
+    }
+
+    /** The mountain coming down, built once: deep filtered noise whose gain
+     *  and darkness are the avalanche's proximity. */
+    _buildRumble() {
+        const ctx = this.ctx;
+        const bus = ctx.createGain();
+        bus.gain.value = 0;
+        bus.connect(this.buses.ambience);
+        const src = ctx.createBufferSource();
+        src.buffer = this._noiseBuffer;
+        src.loop = true;
+        src.loopStart = 1.25;
+        const lp = ctx.createBiquadFilter();
+        lp.type = "lowpass";
+        lp.frequency.value = 90;
+        lp.Q.value = 0.6;
+        src.connect(lp).connect(bus);
+        src.start();
+        this._rumble = { bus, lp };
+    }
+
+    /** @param {number} intensity01 0 silent .. 1 at the heels */
+    avalancheUpdate(intensity01) {
+        if (!this.ready || !this._rumble) return;
+        const t = this.ctx.currentTime;
+        const v = Math.max(0, Math.min(1, intensity01));
+        this._rumble.bus.gain.setTargetAtTime(v * v * 0.55, t, 0.15);
+        this._rumble.lp.frequency.setTargetAtTime(70 + v * 160, t, 0.15);
     }
 
     /** @param {number} gain01 proximity-driven, 0 silent .. 1 alongside */
