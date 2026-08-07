@@ -287,6 +287,7 @@ async function boot() {
         scene, sky, shadows, depthPass, terrain,
         controller: character, rig, spray, rocketChair,
         course, event: eventDef,
+        setHintVisible: loading.setHintVisible,
     });
     await game.load();
 
