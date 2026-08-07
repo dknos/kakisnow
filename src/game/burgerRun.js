@@ -384,6 +384,8 @@ export class BurgerRun {
         // score here. The run still completes and records — only the metal
         // asks for both.
         if (medal && ev.styleTarget && style < ev.styleTarget) medal = null;
+        // Same lock for a park event: the medal wants banked trick score.
+        if (medal && ev.trickTarget && trickTotal < ev.trickTarget) medal = null;
 
         // Stack Integrity, 0..100. Starts whole and is reduced by violence —
         // and a crash is the most violent thing a stack can experience.

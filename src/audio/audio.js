@@ -130,6 +130,7 @@ export class GameAudio {
         this._buildRocket();
         this._buildBoard();
         this._buildGrind();
+        this._buildSnowcat();
 
         const unlock = () => {
             if (this.unlocked) return;
@@ -399,6 +400,57 @@ export class GameAudio {
      * through, which is why the loop gain ceiling looks high next to the
      * board layers — it is quieter than it reads.
      */
+    /**
+     * The groomer's diesel, built once and gain-driven like every other
+     * continuous layer. A machine that moves must be audible before it is in
+     * the line, so the director feeds proximity into `snowcatUpdate` and the
+     * idle is exactly silent.
+     */
+    _buildSnowcat() {
+        const ctx = this.ctx;
+        const bus = ctx.createGain();
+        bus.gain.value = 0;
+        bus.connect(this.buses.sfx);
+
+        const engine = ctx.createOscillator();
+        engine.type = "sawtooth";
+        engine.frequency.value = 46;
+        const engineGain = ctx.createGain();
+        engineGain.gain.value = 0.16;
+
+        const rattle = ctx.createBufferSource();
+        rattle.buffer = this._noiseBuffer;
+        rattle.loop = true;
+        rattle.loopStart = 0.75;
+        const rattleBand = ctx.createBiquadFilter();
+        rattleBand.type = "bandpass";
+        rattleBand.frequency.value = 240;
+        rattleBand.Q.value = 1.1;
+        const rattleGain = ctx.createGain();
+        rattleGain.gain.value = 0.35;
+
+        const tone = ctx.createBiquadFilter();
+        tone.type = "lowpass";
+        tone.frequency.value = 500;
+
+        engine.connect(engineGain).connect(tone);
+        rattle.connect(rattleBand).connect(rattleGain).connect(tone);
+        tone.connect(bus);
+        engine.start();
+        rattle.start();
+
+        this._snowcat = { bus, engine };
+    }
+
+    /** @param {number} gain01 proximity-driven, 0 silent .. 1 alongside */
+    snowcatUpdate(gain01) {
+        if (!this.ready || !this._snowcat) return;
+        const t = this.ctx.currentTime;
+        const v = Math.max(0, Math.min(1, gain01));
+        this._snowcat.bus.gain.setTargetAtTime(v * 0.34, t, 0.12);
+        this._snowcat.engine.frequency.setTargetAtTime(42 + v * 10, t, 0.12);
+    }
+
     _buildGrind() {
         const ctx = this.ctx;
         const src = ctx.createBufferSource();

@@ -50,6 +50,7 @@ import { SafeSpots } from "./recovery.js";
 import { CollisionWorld } from "./collisionWorld.js";
 import { RailField } from "./railField.js";
 import { SurfaceStrips } from "./surfaceStrips.js";
+import { Snowcats } from "./snowcats.js";
 
 import { Mode } from "./modes.js";
 export { Mode };
@@ -171,6 +172,12 @@ export class GameDirector {
             scene: deps.scene, sky: deps.sky, shadows: deps.shadows,
             depthPass: deps.depthPass, terrain: deps.terrain,
         });
+        /** The groomers, where a course fields them. */
+        this.snowcats = new Snowcats({
+            scene: deps.scene, sky: deps.sky, shadows: deps.shadows,
+            depthPass: deps.depthPass, terrain: deps.terrain,
+            collision: this.collision,
+        });
         this._scrapeCool = 0;
         this._wasAirborne = false;
         this._comboSettle = 0;
@@ -248,6 +255,7 @@ export class GameDirector {
         // it, and like the camp they ground on the finished terrain readback.
         this.rails.build(this.course);
         this.surfaces.build(this.course);
+        this.snowcats.build(this.course);
         return { ingredients: loaded, burger: burgerOk };
     }
 
@@ -300,6 +308,7 @@ export class GameDirector {
         await this.ghost.warmUp();
         await this.rails.warmUp();
         await this.surfaces.warmUp();
+        await this.snowcats.warmUp();
         await this.camp.warmUp();
         await this.field.warmUp();
         this.burger.setActive(true);
@@ -322,6 +331,7 @@ export class GameDirector {
         out.push(...this.dressing.beautyMaterials);
         out.push(...this.rails.beautyMaterials);
         out.push(...this.surfaces.beautyMaterials);
+        out.push(...this.snowcats.beautyMaterials);
         return out;
     }
 
@@ -582,6 +592,13 @@ export class GameDirector {
         // powder in the lab would make the lab a liar.
         const c = this.controller;
         c.surfaceHardness = this.surfaces.hardnessAt(c.position.x, c.position.z);
+        // The groomers work the scored modes and park for the lab — the snow
+        // study never asked for company. Their diesel is proximity-driven,
+        // audible well before the machine is in the line.
+        const catProx = this.snowcats.update(
+            this.mode === Mode.FREE_RIDE ? 0 : dt, c.position
+        );
+        if (this.mode !== Mode.FREE_RIDE) audio.snowcatUpdate(catProx);
 
         if (this.mode === Mode.FREE_RIDE) {
             // Only what safety demands: a crashed rider must stand back up in
@@ -860,6 +877,7 @@ export class GameDirector {
             this.dressing.sync(cameraPos);
             this.rails.sync(cameraPos);
             this.surfaces.sync(cameraPos);
+            this.snowcats.sync(cameraPos);
             return;
         }
         this.field.sync(cameraPos);
@@ -867,6 +885,7 @@ export class GameDirector {
         this.dressing.sync(cameraPos);
         this.rails.sync(cameraPos);
         this.surfaces.sync(cameraPos);
+        this.snowcats.sync(cameraPos);
         this.ghost.sync(cameraPos);
         this.burger.sync(cameraPos);
     }

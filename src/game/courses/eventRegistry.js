@@ -245,6 +245,69 @@ export const HANDLE_WITH_CARE = {
     unlock: null,
 };
 
+/**
+ * The Night Shift — Midnight Resort's delivery, under the lights.
+ *
+ * Medals measured 2026-08-07: the park autopilot floors 34.4-35.1 s. Gold a
+ * shade over it; the tables punish a robotic straight line less than the
+ * pipe punishes a human one, so the ladder sits at the Summit convention.
+ */
+export const NIGHT_SHIFT = {
+    id: "night-shift",
+    version: 1,
+    courseId: "midnight-resort",
+    name: "The Night Shift",
+    tagline: "Orders don't stop when the sun does.",
+    mode: "delivery",
+    required: ["cheese", "patty", "tomato", "lettuce"],
+    seedPolicy: "random",
+    fixedSeed: null,
+    allowedVehicles: ["classic-snowboard", "rocket-chair"],
+    forcedVehicle: null,
+    startZ: -40,
+    finishZ: 588,
+    gold: 38,
+    silver: 50,
+    bronze: 66,
+    get medals() {
+        return { gold: this.gold, silver: this.silver, bronze: this.bronze };
+    },
+    unlock: null,
+};
+
+/**
+ * Park Order — deliver, but the park is the point.
+ *
+ * The medal also needs banked trick score: three tables, three rails and a
+ * pipe are the invitation, 400 points is RSVPing to at least half of it.
+ * Repetition decay is what stops one safe 180 done eleven times from
+ * clearing the bar — the tracker pays novelty, not patience.
+ */
+export const PARK_ORDER = {
+    id: "park-order",
+    version: 1,
+    courseId: "midnight-resort",
+    name: "Park Order",
+    tagline: "The tables are set. Serve something with spin on it.",
+    mode: "style-delivery",
+    required: ["cheese", "patty", "tomato", "lettuce"],
+    seedPolicy: "random",
+    fixedSeed: null,
+    allowedVehicles: ["classic-snowboard"],
+    forcedVehicle: "classic-snowboard",
+    startZ: -40,
+    finishZ: 588,
+    /** A medal here also needs this much banked trick score. */
+    trickTarget: 400,
+    gold: 46,
+    silver: 58,
+    bronze: 74,
+    get medals() {
+        return { gold: this.gold, silver: this.silver, bronze: this.bronze };
+    },
+    unlock: null,
+};
+
 /** @type {Record<string, object>} every event, keyed by id. */
 export const EVENTS = {
     [SUMMIT_STACK.id]: SUMMIT_STACK,
@@ -254,6 +317,8 @@ export const EVENTS = {
     [BRANCH_MANAGER.id]: BRANCH_MANAGER,
     [BLUE_PLATE.id]: BLUE_PLATE,
     [HANDLE_WITH_CARE.id]: HANDLE_WITH_CARE,
+    [NIGHT_SHIFT.id]: NIGHT_SHIFT,
+    [PARK_ORDER.id]: PARK_ORDER,
 };
 
 for (const event of Object.values(EVENTS)) {

@@ -142,6 +142,14 @@ async function boot() {
             ? getEvent(eventParam)
             : getEvent(course.events[0]);
 
+    // The course's weather and light, applied before the sky solves and the
+    // heightfield bakes: every value is an existing `S` key, so the overlay
+    // can still push any of them around afterwards — the course just chooses
+    // where the sliders start. This is how midnight happens.
+    for (const [k, v] of Object.entries(course.atmosphere ?? {})) {
+        setSetting(k, v);
+    }
+
     // -------------------------------------------------------------- terrain
     await loading.phase("baking heightfield", 0.34);
     const terrain = new Terrain(scene, sky, shadows);

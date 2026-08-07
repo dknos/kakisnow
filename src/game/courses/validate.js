@@ -91,6 +91,15 @@ export function validateCourse(c) {
         if (g.height === 0) p.push(`ridge ${i} has zero height`);
     }
 
+    for (const [i, sc] of (c.snowcats ?? []).entries()) {
+        if (![sc.ax, sc.az, sc.bx, sc.bz, sc.speed].every(Number.isFinite) ||
+            !(sc.speed > 0)) {
+            p.push(`snowcat ${i} is malformed`);
+        } else if (sc.speed > 4) {
+            p.push(`snowcat ${i} is too fast to read (${sc.speed} m/s)`);
+        }
+    }
+
     for (const [i, r] of (c.rails ?? []).entries()) {
         if (![r.ax, r.az, r.bx, r.bz, r.height].every(Number.isFinite) ||
             !(r.height > 0)) {
@@ -203,6 +212,10 @@ export function validateEvent(e, course) {
             !(Number.isFinite(e[key]) && e[key] > 0 && e[key] <= 100)) {
             p.push(`${key} must be a number in 1..100`);
         }
+    }
+    if (e.trickTarget !== undefined &&
+        !(Number.isFinite(e.trickTarget) && e.trickTarget > 0)) {
+        p.push("trickTarget must be a positive number");
     }
 
     if (e.seedPolicy !== "random" && e.seedPolicy !== "fixed") {
