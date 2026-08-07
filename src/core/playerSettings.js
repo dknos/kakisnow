@@ -34,6 +34,8 @@ const PLAYER_KEYS = {
     invertY: (v) => typeof v === "boolean",
     shakeScale: (v) => Number.isFinite(v) && v >= 0 && v <= 1.5,
     reducedMotion: (v) => typeof v === "boolean",
+    showGhost: (v) => typeof v === "boolean",
+    forgivingLanding: (v) => typeof v === "boolean",
     touchControls: (v) => v === "auto" || v === "on" || v === "off",
     preset: (v) => typeof v === "string" && v in PRESETS,
 };

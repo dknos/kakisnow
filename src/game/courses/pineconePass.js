@@ -142,5 +142,11 @@ export const PINECONE_PASS = {
         zoneClear: 22,
     },
 
+    secrets: [
+        { id: "tape-1", x: 38, z: 200 },
+        { id: "tape-2", x: -36, z: 320 },
+        { id: "tape-3", x: 22, z: 528 },
+    ],
+
     events: ["timber-melt", "branch-manager"],
 };

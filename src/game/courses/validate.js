@@ -167,6 +167,23 @@ export function validateCourse(c) {
         }
     }
 
+    const secrets = c.secrets ?? [];
+    if (secrets.length !== 3) {
+        p.push(`course carries ${secrets.length} recipe tapes; the tour promises 3`);
+    }
+    const tapeIds = new Set();
+    for (const [i, tp] of secrets.entries()) {
+        if (typeof tp.id !== "string" || ![tp.x, tp.z].every(Number.isFinite)) {
+            p.push(`secret ${i} is malformed`);
+            continue;
+        }
+        if (tapeIds.has(tp.id)) p.push(`secret id "${tp.id}" repeats`);
+        tapeIds.add(tp.id);
+        if (Math.hypot(tp.x, tp.z) > PLAY_LIMIT - 10) {
+            p.push(`secret "${tp.id}" is outside the play radius`);
+        }
+    }
+
     if (!Array.isArray(c.events) || !c.events.length) {
         p.push("course offers no events");
     }

@@ -90,6 +90,16 @@ const CSS = `
     color: #f4f9ff; letter-spacing: 0.36em; text-indent: 0.36em; outline: none;
 }
 .sb-item:hover::before, .sb-item:focus-visible::before { opacity: 1; transform: none; }
+.sb-item.sb-locked {
+    color: rgba(219, 230, 242, 0.30);
+    cursor: default;
+}
+.sb-item.sb-locked:hover, .sb-item.sb-locked:focus-visible {
+    color: rgba(219, 230, 242, 0.30);
+    letter-spacing: 0.30em; text-indent: 0.30em;
+}
+.sb-item.sb-locked::before { display: none; }
+.sb-item.sb-locked .sb-sub { color: rgba(242, 161, 61, 0.40); }
 .sb-item .sb-sub {
     display: block; font-size: 9px; letter-spacing: 0.18em; text-indent: 0.18em;
     line-height: 1.4; color: rgba(219,230,242,0.34); margin-top: -0.5em;
@@ -577,12 +587,83 @@ export class SnowBurgersUi {
 </div>`;
     }
 
+    /** The screen whose buttons the keyboard and pad drive, or null. */
+    _visibleMenuRoot() {
+        for (const id of ["settings", "pause", "title", "order", "results"]) {
+            if (this.el[id]?.classList.contains("on")) return this.el[id];
+        }
+        return null;
+    }
+
+    /** @returns {HTMLButtonElement[]} actionable items, top to bottom */
+    menuButtons() {
+        const root = this._visibleMenuRoot();
+        if (!root) return [];
+        return [...root.querySelectorAll("button")]
+            .filter((b) => !b.classList.contains("sb-locked") &&
+                b.offsetParent !== null);
+    }
+
+    /** Move focus through the visible menu. @param {1|-1} dir */
+    menuMove(dir) {
+        const items = this.menuButtons();
+        if (!items.length) return false;
+        const i = items.indexOf(document.activeElement);
+        const next = i < 0
+            ? (dir > 0 ? 0 : items.length - 1)
+            : (i + dir + items.length) % items.length;
+        items[next].focus({ preventScroll: true });
+        return true;
+    }
+
+    /** Press the focused item, or the first one if nothing is focused yet. */
+    menuActivate() {
+        const items = this.menuButtons();
+        if (!items.length) return false;
+        const target = items.includes(document.activeElement)
+            ? document.activeElement
+            : items[0];
+        target.click();
+        return true;
+    }
+
+    anyScreenVisible() {
+        return this._visibleMenuRoot() !== null;
+    }
+
     _bind() {
+        // Arrows walk the visible menu, Enter presses. Captured here rather
+        // than in the input layer because arrows are ALSO steering keys, and
+        // a menu that is up owns them — preventDefault keeps the rider
+        // behind the title card from twitching in time with the cursor.
+        window.addEventListener("keydown", (e) => {
+            if (!this.anyScreenVisible()) return;
+            if (e.code === "ArrowUp") {
+                e.preventDefault();
+                this.menuMove(-1);
+            } else if (e.code === "ArrowDown") {
+                e.preventDefault();
+                this.menuMove(1);
+            } else if (e.code === "Enter") {
+                e.preventDefault();
+                this.menuActivate();
+            }
+        });
+
         this.root.addEventListener("click", (e) => {
             const btn = e.target.closest("button");
             if (!btn) return;
             if (btn.dataset.pause) {
                 this.onPauseAction?.(btn.dataset.pause);
+                return;
+            }
+            if (btn.classList.contains("sb-locked")) return;
+            if (btn.dataset.continue) {
+                this.hooks.onContinue?.();
+                return;
+            }
+            if (btn.dataset.titleSettings) {
+                this.showTitleSettings();
                 return;
             }
             if (btn.dataset.event) {
@@ -615,17 +696,26 @@ export class SnowBurgersUi {
     showTitle() { this._show("title"); this.setHud(false); }
 
     /**
-     * Fill the title menu for the booted course: its events, the two labs,
-     * and the other mountains. The real course-select screen is coming; until
-     * then the title IS the course's menu, driven by the same registries.
+     * Fill the title menu: Continue where the player left off, the booted
+     * course's events, the two labs, the other mountains with their tour
+     * locks, and Settings. The title IS the course's menu, driven by the
+     * same registries the game runs on.
      *
-     * @param {object} course the active course definition
-     * @param {{id:string, name:string, tagline:string}[]} events resolved defs
-     * @param {{id:string, title:string}[]} otherCourses switchable courses
+     * @param {object} opts
+     * @param {object} opts.course the active course definition
+     * @param {null|{name:string, courseTitle:string}} opts.continueEntry
+     * @param {{id:string, name:string, tagline:string}[]} opts.events
+     * @param {{id:string, title:string, subtitle:string, locked:boolean,
+     *          reason:string}[]} opts.otherCourses
      */
-    setTitleMenu(course, events, otherCourses) {
+    setTitleMenu({ course, continueEntry, events, otherCourses }) {
         const menu = this.root.querySelector("#sb-title-menu");
         const items = [];
+        if (continueEntry) {
+            items.push(`<button class="sb-item" data-continue="1">Continue
+                <span class="sb-sub">${continueEntry.name} · ${
+                    continueEntry.courseTitle}</span></button>`);
+        }
         for (const ev of events) {
             items.push(`<button class="sb-item" data-event="${ev.id}">${ev.name}
                 <span class="sb-sub">${ev.tagline}</span></button>`);
@@ -635,10 +725,20 @@ export class SnowBurgersUi {
         items.push(`<button class="sb-item" data-mode="free-ride">Free Ride Lab
             <span class="sb-sub">${course.title}, open and unscored</span></button>`);
         for (const other of otherCourses) {
-            items.push(`<button class="sb-item" data-course="${other.id}">
-                ${other.title}
-                <span class="sb-sub">travel to ${other.subtitle ?? other.title}</span></button>`);
+            if (other.locked) {
+                // Present but inert: a tour with invisible mountains reads as
+                // a shorter game, and the reason is the invitation.
+                items.push(`<button class="sb-item sb-locked" tabindex="-1">
+                    ${other.title}
+                    <span class="sb-sub">locked · ${other.reason}</span></button>`);
+            } else {
+                items.push(`<button class="sb-item" data-course="${other.id}">
+                    ${other.title}
+                    <span class="sb-sub">travel · ${other.subtitle}</span></button>`);
+            }
         }
+        items.push(`<button class="sb-item" data-title-settings="1">Settings
+            <span class="sb-sub">volume, controls, accessibility</span></button>`);
         menu.innerHTML = items.join("");
     }
 
@@ -894,9 +994,25 @@ export class SnowBurgersUi {
      * including anything the overlay changed in the meantime.
      */
     showPauseSettings() {
+        this._settingsFrom = "pause";
         this._buildSettingsRows();
         this.el.pause.classList.remove("on");
         this.el.settings.classList.add("on");
+    }
+
+    /** The same panel, reached from the title. Back returns there. */
+    showTitleSettings() {
+        this._settingsFrom = "title";
+        this._buildSettingsRows();
+        this._show(null);
+        this.el.settings.classList.add("on");
+    }
+
+    /** Where the settings panel's Back goes depends on where it came from. */
+    closeSettings() {
+        this.el.settings.classList.remove("on");
+        if (this._settingsFrom === "title") this._show("title");
+        return this._settingsFrom ?? "pause";
     }
 
     _buildSettingsRows() {
@@ -1060,6 +1176,8 @@ const PLAYER_SETTINGS = [
         min: 0, max: 1.5, step: 0.05, fmt: (v) => Math.round(v * 100) + "%",
     },
     { k: "reducedMotion", label: "Reduced motion", type: "toggle" },
+    { k: "showGhost", label: "Race your ghost", type: "toggle" },
+    { k: "forgivingLanding", label: "Forgiving landings", type: "toggle" },
     { k: "touchControls", label: "Touch controls", type: "seg", opts: ["auto", "on", "off"] },
 ];
 

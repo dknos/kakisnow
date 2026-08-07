@@ -49,7 +49,7 @@
         "tomato",
         "lettuce"
       ],
-      "lastZ": 551.8,
+      "lastZ": 551.9,
       "fuelAtFinish": 1,
       "blocked": null,
       "result": {
@@ -61,10 +61,10 @@
         "stars": 4,
         "grade": "Summit Stack",
         "splits": {
-          "cheese": 8.905100000023827,
-          "patty": 14.93300000000004,
-          "tomato": 20.540100000024104,
-          "lettuce": 26.491600000024395
+          "cheese": 8.905900000005927,
+          "patty": 14.940800000011896,
+          "tomato": 20.54700000000017,
+          "lettuce": 26.493100000024228
         },
         "detail": {
           "airTime": 0,

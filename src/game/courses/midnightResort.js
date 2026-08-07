@@ -153,5 +153,11 @@ export const MIDNIGHT_RESORT = {
         zoneClear: 26,
     },
 
+    secrets: [
+        { id: "tape-1", x: -38, z: 150 },
+        { id: "tape-2", x: 32, z: 300 },
+        { id: "tape-3", x: -22, z: 505 },
+    ],
+
     events: ["night-shift", "park-order"],
 };

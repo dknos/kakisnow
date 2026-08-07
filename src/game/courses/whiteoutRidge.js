@@ -164,5 +164,11 @@ export const WHITEOUT_RIDGE = {
         zoneClear: 24,
     },
 
+    secrets: [
+        { id: "tape-1", x: -38, z: -150 },
+        { id: "tape-2", x: 30, z: 250 },
+        { id: "tape-3", x: 22, z: 500 },
+    ],
+
     events: ["avalanche-special", "five-alarm"],
 };

@@ -16,6 +16,7 @@
 import { Vector3 } from "@babylonjs/core/Maths/math.vector.js";
 import { Scalar } from "@babylonjs/core/Maths/math.scalar.js";
 import { input } from "../core/input.js";
+import { S } from "../core/settings.js";
 import { expDamp } from "../core/camera.js";
 
 const _wish = new Vector3();
@@ -646,12 +647,17 @@ export class CharacterController {
         const spinRes = residual(this.trickSpin, Math.PI);
         const flipRes = residual(this.trickFlip, Math.PI * 2);
         const impact = this.landingImpact;
+        // Accessibility: every window half again as wide. The trick still
+        // has to be mostly finished; the game stops demanding the last
+        // fifteen degrees.
+        const w = S.forgivingLanding ? 1.5 : 1;
 
         let grade;
-        if (flipRes > GRADE_CRASH_FLIP || spinRes > GRADE_CRASH_SPIN) {
+        if (flipRes > GRADE_CRASH_FLIP * w || spinRes > GRADE_CRASH_SPIN * w) {
             grade = "crash";
-        } else if (flipRes > GRADE_SKETCHY_FLIP || spinRes > GRADE_SKETCHY_SPIN ||
-                   impact > GRADE_SKETCHY_IMPACT) {
+        } else if (flipRes > GRADE_SKETCHY_FLIP * w ||
+                   spinRes > GRADE_SKETCHY_SPIN * w ||
+                   impact > GRADE_SKETCHY_IMPACT * (1 + (w - 1) * 0.4)) {
             grade = "sketchy";
         } else if (spinRes < GRADE_PERFECT_RESIDUAL &&
                    flipRes < GRADE_PERFECT_RESIDUAL &&

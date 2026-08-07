@@ -52,6 +52,8 @@ import { RailField } from "./railField.js";
 import { SurfaceStrips } from "./surfaceStrips.js";
 import { Snowcats } from "./snowcats.js";
 import { Avalanche } from "./avalanche.js";
+import { RecipeTapes } from "./secrets.js";
+import { tourState } from "./progression.js";
 
 import { Mode } from "./modes.js";
 export { Mode };
@@ -176,6 +178,17 @@ export class GameDirector {
         /** The wall, where a course brings one. */
         this.avalanche = new Avalanche(deps.spray);
         this.avalanche.configure(this.course.avalanche ?? null);
+        /** Recipe Tapes: the course's three liner notes. */
+        this.tapes = new RecipeTapes({
+            scene: deps.scene, sky: deps.sky, shadows: deps.shadows,
+            depthPass: deps.depthPass, terrain: deps.terrain,
+            book: this.book,
+        });
+        this.tapes.onFound = (count, total) => {
+            audio.checkpoint();
+            this.ui.showNotice(`recipe tape ${count}/${total}`);
+            this._refreshTitleMenu();
+        };
         /** The groomers, where a course fields them. */
         this.snowcats = new Snowcats({
             scene: deps.scene, sky: deps.sky, shadows: deps.shadows,
@@ -196,6 +209,7 @@ export class GameDirector {
             onSelectMode: (m) => { audio.ui("confirm"); this.selectMode(m); },
             onSelectEvent: (id) => { audio.ui("confirm"); this.startEvent(id); },
             onSelectCourse: (id) => { audio.ui("confirm"); this.travelTo(id); },
+            onContinue: () => { audio.ui("confirm"); this.continueLast(); },
             onDropIn: () => { audio.ui("confirm"); this.run.dropIn(); },
             onRetry: () => { audio.ui("confirm"); this.run.retry(); },
             onNextOrder: () => { audio.ui("confirm"); this.startBurgerRun(); },
@@ -212,13 +226,60 @@ export class GameDirector {
         };
         this.run.onStateChange = (next, prev) => this._onRunState(next, prev);
 
-        // The title is the booted course's menu: its events, the labs, and
-        // the other mountains.
-        this.ui.setTitleMenu(
-            this.course,
-            this.course.events.map((id) => getEvent(id)),
-            Object.values(COURSES).filter((c) => c.id !== this.course.id)
-        );
+        this._refreshTitleMenu();
+    }
+
+    /**
+     * The title is the booted course's menu: Continue where the player left
+     * off, this course's events, the labs, and the other mountains with
+     * their tour locks. Rebuilt whenever the records move, because the
+     * records are what unlock things.
+     */
+    _refreshTitleMenu() {
+        const tour = tourState(this.book.book);
+        const last = this.book.book.lastSelected;
+        const continueEntry =
+            last && COURSES[last.courseId] && this._eventExists(last.eventId)
+                ? {
+                    courseId: last.courseId,
+                    eventId: last.eventId,
+                    name: getEvent(last.eventId).name,
+                    courseTitle: COURSES[last.courseId].title,
+                }
+                : null;
+        this.ui.setTitleMenu({
+            course: this.course,
+            continueEntry,
+            events: this.course.events.map((id) => getEvent(id)),
+            otherCourses: Object.values(COURSES)
+                .filter((c) => c.id !== this.course.id)
+                .map((c) => ({
+                    id: c.id,
+                    title: c.title,
+                    subtitle: c.subtitle,
+                    locked: !tour[c.id]?.unlocked,
+                    reason: tour[c.id]?.reason ?? "",
+                })),
+        });
+    }
+
+    _eventExists(id) {
+        try { return !!getEvent(id); } catch { return false; }
+    }
+
+    /** Continue: same course starts it; another course travels with intent. */
+    continueLast() {
+        const last = this.book.book.lastSelected;
+        if (!last) return;
+        if (last.courseId === this.course.id) {
+            this.startEvent(last.eventId);
+            return;
+        }
+        const url = new URL(location.href);
+        url.searchParams.set("course", last.courseId);
+        url.searchParams.set("event", last.eventId);
+        url.searchParams.delete("mode");
+        location.assign(url.toString());
     }
 
     /**
@@ -260,6 +321,7 @@ export class GameDirector {
         this.rails.build(this.course);
         this.surfaces.build(this.course);
         this.snowcats.build(this.course);
+        this.tapes.build(this.course);
         return { ingredients: loaded, burger: burgerOk };
     }
 
@@ -313,6 +375,7 @@ export class GameDirector {
         await this.rails.warmUp();
         await this.surfaces.warmUp();
         await this.snowcats.warmUp();
+        await this.tapes.warmUp();
         await this.camp.warmUp();
         await this.field.warmUp();
         this.burger.setActive(true);
@@ -336,6 +399,7 @@ export class GameDirector {
         out.push(...this.rails.beautyMaterials);
         out.push(...this.surfaces.beautyMaterials);
         out.push(...this.snowcats.beautyMaterials);
+        out.push(...this.tapes.beautyMaterials);
         return out;
     }
 
@@ -454,6 +518,7 @@ export class GameDirector {
         }
         this.eventDef = ev;
         this.run.event = ev;
+        this.book.setLastSelected(this.course.id, ev.id);
         this.selectMode(Mode.BURGER_RUN);
     }
 
@@ -606,6 +671,9 @@ export class GameDirector {
             this.mode === Mode.FREE_RIDE ? 0 : dt, c.position
         );
         if (this.mode !== Mode.FREE_RIDE) audio.snowcatUpdate(catProx);
+        // Tapes collect everywhere the board rides — the labs included; a
+        // secret that only counts during a scored run is homework.
+        this.tapes.update(c.position);
 
         if (this.mode === Mode.FREE_RIDE) {
             // Only what safety demands: a crashed rider must stand back up in
@@ -913,6 +981,7 @@ export class GameDirector {
             this.rails.sync(cameraPos);
             this.surfaces.sync(cameraPos);
             this.snowcats.sync(cameraPos);
+            this.tapes.sync(cameraPos);
             return;
         }
         this.field.sync(cameraPos);
@@ -921,6 +990,7 @@ export class GameDirector {
         this.rails.sync(cameraPos);
         this.surfaces.sync(cameraPos);
         this.snowcats.sync(cameraPos);
+        this.tapes.sync(cameraPos);
         this.ghost.sync(cameraPos);
         this.burger.sync(cameraPos);
     }
@@ -1057,7 +1127,8 @@ export class GameDirector {
             // retry, and a retry never goes through the order screen.
             // The full identity has to match, not just the seed: a ghost set
             // on the rocket chair is not a line a classic board can race.
-            this.ghost.arm(this.book.event(this.run.event.id).bestGhost, {
+            if (S.showGhost === false) this.ghost.clear();
+            else this.ghost.arm(this.book.event(this.run.event.id).bestGhost, {
                 seed: this.run.seed,
                 courseId: this.course.id,
                 courseVersion: this.course.version,
@@ -1084,6 +1155,7 @@ export class GameDirector {
         }
         if (next === RunState.RESULTS) {
             if (this.run.result?.completed) audio.finish();
+            this._refreshTitleMenu();
             // Hand the camera back the way it was found, or the next run starts
             // with the finish sequence's framing still applied.
             this.rig.distanceTarget = this._camEntry.z || this.rig.distanceTarget;

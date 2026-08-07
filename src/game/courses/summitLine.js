@@ -167,6 +167,13 @@ export const SUMMIT_LINE = {
         seed: 20260805,
     },
 
+    /** Recipe Tapes: three authored detours, off the fast line. */
+    secrets: [
+        { id: "tape-1", x: -48, z: 130 },
+        { id: "tape-2", x: 44, z: 320 },
+        { id: "tape-3", x: -30, z: 470 },
+    ],
+
     /** Event ids this course offers, in menu order. */
     events: ["summit-stack", "summit-gold", "rocket-reheat"],
 };

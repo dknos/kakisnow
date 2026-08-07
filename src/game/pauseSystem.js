@@ -128,6 +128,8 @@ export class PauseSystem {
 
         /** Per-pad Start button state, for edge detection. */
         this._padStart = [];
+        /** Per-pad menu-navigation button states, same family. */
+        this._padNav = [];
 
         /** Whether the pointer was locked when the pause began. */
         this._relockOnResume = false;
@@ -193,6 +195,32 @@ export class PauseSystem {
                 else if (this._canPause()) this.pause("user");
             }
             this._padStart[i] = down;
+
+            // Menus on the pad: d-pad walks, south presses, east backs out.
+            // Edge-detected against the same per-pad state family as Start.
+            if (!pad || !pad.connected) continue;
+            const edges = this._padNav[i] ?? (this._padNav[i] = {});
+            const read = (idx, name) => {
+                const now = !!pad.buttons[idx]?.pressed;
+                const was = edges[name] ?? false;
+                edges[name] = now;
+                return now && !was;
+            };
+            const up = read(12, "up");
+            const dn = read(13, "down");
+            const south = read(0, "south");
+            const east = read(1, "east");
+            if (!this.ui.anyScreenVisible()) continue;
+            if (up) this.ui.menuMove(-1);
+            if (dn) this.ui.menuMove(1);
+            if (south) this.ui.menuActivate();
+            if (east) {
+                if (this.ui.el.settings.classList.contains("on")) {
+                    this._onAction("settings-back");
+                } else if (this.active) {
+                    this.resume();
+                }
+            }
         }
     }
 
@@ -296,9 +324,15 @@ export class PauseSystem {
             case "settings":
                 this.ui.showPauseSettings();
                 break;
-            case "settings-back":
-                this.ui.showPause(this._context());
+            case "settings-back": {
+                // The panel serves the pause menu AND the title; only the
+                // pause path re-raises the veil.
+                const from = this.ui.closeSettings();
+                if (from === "pause" && this.active) {
+                    this.ui.showPause(this._context());
+                }
                 break;
+            }
             case "quit":
                 this.active = false;
                 this.reason = null;

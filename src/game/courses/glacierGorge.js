@@ -158,5 +158,11 @@ export const GLACIER_GORGE = {
         zoneClear: 26,
     },
 
+    secrets: [
+        { id: "tape-1", x: -42, z: 100 },
+        { id: "tape-2", x: 17, z: 300 },
+        { id: "tape-3", x: 32, z: 524 },
+    ],
+
     events: ["blue-plate", "handle-with-care"],
 };

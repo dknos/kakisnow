@@ -154,6 +154,10 @@ export const S = {
     shakeScale: 1.0,
     /** Accessibility: kills shake and speed streaks outright. */
     reducedMotion: false,
+    /** Race the stored best as a marker on matching runs. */
+    showGhost: true,
+    /** Accessibility: widens every landing-grade window by half again. */
+    forgivingLanding: false,
     /**
      * A second multiplier on the rocket chair, on top of `boardScale`.
      *
@@ -286,6 +290,8 @@ export const SCHEMA = [
             { k: "invertY", l: "Invert Y", t: "b" },
             { k: "shakeScale", l: "Cam shake", t: "f", min: 0, max: 1.5, step: 0.05 },
             { k: "reducedMotion", l: "Reduced motion", t: "b" },
+            { k: "showGhost", l: "Ghost", t: "b" },
+            { k: "forgivingLanding", l: "Forgiving landings", t: "b" },
             { k: "touchControls", l: "Touch", t: "e", opts: ["auto", "on", "off"] },
             {
                 k: "vehicle", l: "Vehicle", t: "e",
