@@ -53,9 +53,78 @@ export const SUMMIT_STACK = {
     unlock: null,
 };
 
+/**
+ * Summit Gold — the fixed-line time trial.
+ *
+ * One seed forever, so every attempt races the same route and the ghost is
+ * always eligible; two ingredients instead of four, so the line matters more
+ * than the shopping. Classic board only: a time trial with an engine is a
+ * fuel event wearing a stopwatch.
+ *
+ * Medals measured 2026-08-06: the autopilot's near-optimal line on seed 7
+ * runs 30.5 s. Gold just above the floor, the ladder wider above it.
+ */
+export const SUMMIT_GOLD = {
+    id: "summit-gold",
+    version: 1,
+    courseId: "summit-line",
+    name: "Summit Gold",
+    tagline: "One line. Two stops. Race your ghost.",
+    mode: "time-trial",
+    required: ["cheese", "lettuce"],
+    seedPolicy: "fixed",
+    fixedSeed: 7,
+    allowedVehicles: ["classic-snowboard"],
+    forcedVehicle: "classic-snowboard",
+    startZ: 0,
+    finishZ: 548,
+    gold: 33,
+    silver: 40,
+    bronze: 52,
+    get medals() {
+        return { gold: this.gold, silver: this.silver, bronze: this.bronze };
+    },
+    unlock: null,
+};
+
+/**
+ * Rocket Reheat — the full order, delivered hot.
+ *
+ * The rocket chair is mandatory and fuel is the route: every pickup refills
+ * a fifth of the tank, so the detour that costs time buys back the boost
+ * that wins it — the engine and the order are the same decision.
+ *
+ * Medals measured 2026-08-06: the rocket autopilot floors ~28 s holding the
+ * throttle open. Gold demands the fuel loop actually work for the rider.
+ */
+export const ROCKET_REHEAT = {
+    id: "rocket-reheat",
+    version: 1,
+    courseId: "summit-line",
+    name: "Rocket Reheat",
+    tagline: "Full order. Full throttle. Watch the tank.",
+    mode: "rocket-rush",
+    required: ["cheese", "patty", "tomato", "lettuce"],
+    seedPolicy: "random",
+    fixedSeed: null,
+    allowedVehicles: ["rocket-chair"],
+    forcedVehicle: "rocket-chair",
+    startZ: 0,
+    finishZ: 548,
+    gold: 31,
+    silver: 40,
+    bronze: 54,
+    get medals() {
+        return { gold: this.gold, silver: this.silver, bronze: this.bronze };
+    },
+    unlock: null,
+};
+
 /** @type {Record<string, object>} every event, keyed by id. */
 export const EVENTS = {
     [SUMMIT_STACK.id]: SUMMIT_STACK,
+    [SUMMIT_GOLD.id]: SUMMIT_GOLD,
+    [ROCKET_REHEAT.id]: ROCKET_REHEAT,
 };
 
 for (const event of Object.values(EVENTS)) {

@@ -491,10 +491,14 @@ export class SnowBurgersUi {
     <div class="sb-rule"></div>
     <div class="sb-tagline">Shred. Stack. Serve.</div>
     <nav class="sb-menu">
-      <button class="sb-item" data-mode="burger-run">Burger Run
-        <span class="sb-sub">The Summit Stack</span></button>
+      <button class="sb-item" data-event="summit-stack">The Summit Stack
+        <span class="sb-sub">Four on the mountain · the classic</span></button>
+      <button class="sb-item" data-event="summit-gold">Summit Gold
+        <span class="sb-sub">Fixed-line time trial · race your ghost</span></button>
+      <button class="sb-item" data-event="rocket-reheat">Rocket Reheat
+        <span class="sb-sub">Full order on the rocket chair</span></button>
       <button class="sb-item" data-mode="rocket-test">Rocket Board Test
-        <span class="sb-sub">In development</span></button>
+        <span class="sb-sub">Infinite fuel, nothing recorded</span></button>
       <button class="sb-item" data-mode="free-ride">Free Ride Lab
         <span class="sb-sub">The original open mountain</span></button>
     </nav>
@@ -574,6 +578,10 @@ export class SnowBurgersUi {
             if (!btn) return;
             if (btn.dataset.pause) {
                 this.onPauseAction?.(btn.dataset.pause);
+                return;
+            }
+            if (btn.dataset.event) {
+                this.hooks.onSelectEvent?.(btn.dataset.event);
                 return;
             }
             if (btn.dataset.mode) this.hooks.onSelectMode?.(btn.dataset.mode);

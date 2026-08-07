@@ -529,6 +529,20 @@ export class GameAudio {
     }
 
     /**
+     * A glancing hit on something solid — bark, rock, board edge. Grittier
+     * than the near-miss whoosh, briefer than a sketchy landing's scrape.
+     * @param {number} level01 0..1; soft brushes pass low values
+     */
+    scrape(level01 = 0.6) {
+        if (!this.ready) return;
+        const v = Math.max(0, Math.min(1, level01));
+        this._noiseHit({
+            level: 0.08 + v * 0.14, attack: 0.004, decay: 0.14 + v * 0.1,
+            from: 2100, to: 500, q: 1.8,
+        });
+    }
+
+    /**
      * Trick score banked: a two-note confirm that climbs mildly with the
      * score — up to about a minor third, so a monster line sounds a little
      * sweeter without ever going jackpot.

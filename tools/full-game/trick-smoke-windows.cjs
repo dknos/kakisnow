@@ -179,6 +179,42 @@ function check(name, ok, detail) {
     Math.abs(recovered.z - before.z) < 80, `z ${before.z} -> ${recovered.z}`);
   await shot("04-recovered");
 
+  // ------------------------------------------------------------ rail grind
+  // Drop the rider onto the Summit rail, aligned and falling — the same
+  // state a player reaches by jumping at it from uphill.
+  await page.evaluate(() => {
+    const k = window.KAKISNOW;
+    const seg = k.game.director.rails.segments[0];
+    const c = k.character;
+    c.position.set(seg.ax, seg.ay + 0.55, seg.az + 6);
+    c.velocity.set(0, 0, 12);
+    c.verticalVelocity = -1.5;
+    c.grounded = false;
+    c.airborne = true;
+    c.facing = 0;
+    k.rig.yaw = 0;
+  });
+  await page.waitForTimeout(400);
+  const grind = await page.evaluate(() => ({
+    grinding: window.KAKISNOW.character.grinding,
+    z: window.KAKISNOW.character.position.z,
+  }));
+  check("rail catches an aligned falling rider", grind.grinding,
+    JSON.stringify(grind));
+  await shot("05-grinding");
+
+  await page.keyboard.press("Space");
+  await page.waitForTimeout(300);
+  const popped = await page.evaluate(() => ({
+    grinding: window.KAKISNOW.character.grinding,
+    airborne: window.KAKISNOW.character.airborne,
+    log: window.KAKISNOW.game.director.tracker.log.slice(-1),
+  }));
+  check("space pops off the rail into air",
+    !popped.grinding && popped.airborne, JSON.stringify(popped));
+  check("the grind scored", popped.log[0]?.name === "Grind",
+    JSON.stringify(popped.log));
+
   const report = {
     tool: "tools/full-game/trick-smoke-windows.cjs",
     url, viewport, failures,

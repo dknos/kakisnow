@@ -108,6 +108,17 @@ const CRASH_FRICTION = 2.6;
 /** The rider's collision body. */
 const BODY_RADIUS = 0.42;
 const BODY_CENTRE_Y = 0.7;
+
+// -------------------------------------------------------------------- rails
+/** How close to a rail's line the falling board has to pass to catch it. */
+const RAIL_CATCH_RADIUS = 1.1;
+/** Approach heading may differ from the rail's by this much, radians (~35°). */
+const RAIL_CATCH_ANGLE = 0.62;
+const RAIL_MIN_SPEED = 6;
+/** Grinding bleeds speed gently; a rail is a line, not an engine. */
+const RAIL_DRAG = 0.55;
+/** Popping off a rail is most of a jump, not all of one. */
+const RAIL_POP_SPEED = JUMP_SPEED * 0.8;
 /** Hitting something head-on above this speed is a crash, not a scrape. */
 const CRASH_FRONTAL_DOT = 0.62;
 const CRASH_MIN_SPEED = 8;
@@ -239,6 +250,21 @@ export class CharacterController {
          * @type {null|{sweepSphere(x0,y0,z0,x1,y1,z1,r):object|null}}
          */
         this.world = null;
+
+        // ------------------------------------------------------------- rails
+        /** Attached to a rail. Grounded is false; ballistics are suspended. */
+        this.grinding = false;
+        /** One-frame: caught a rail this frame. */
+        this.grindStarted = false;
+        /** One-frame with the exit: {clean} — rode off or popped off = clean. */
+        this.grindEnded = null;
+        this._rail = null;
+        this._railT = 0;
+        this._railDir = 1;
+        this._railLen = 1;
+        /** Re-attach lockout after a detach — popping off a rail at its own
+         *  apex otherwise lands the board straight back on the beam. */
+        this._railCool = 0;
     }
 
     /**
@@ -257,9 +283,12 @@ export class CharacterController {
         this.brushedSoft = false;
         this.trickDSpin = 0;
         this.trickDFlip = 0;
+        this.grindStarted = false;
+        this.grindEnded = null;
 
         if (input.jumpPressed) this._jumpBuffer = JUMP_BUFFER;
         else this._jumpBuffer = Math.max(0, this._jumpBuffer - h);
+        this._railCool = Math.max(0, this._railCool - h);
         if (this.grounded) this._coyote = COYOTE_TIME;
         else this._coyote = Math.max(0, this._coyote - h);
 
@@ -269,6 +298,12 @@ export class CharacterController {
         rig.getFlatForward(_fwd);
         rig.getFlatRight(_right);
 
+        if (this.grinding) {
+            // The rail owns everything: position, velocity, heading. The
+            // ballistic block below is skipped whole — a grind is neither
+            // grounded nor falling.
+            this._grindStep(h);
+        } else {
         if (this.crashed) this._crashStep(h);
         else if (this.surf > 0.5) this._surfStep(h, rig);
         else this._walkStep(h);
@@ -355,6 +390,13 @@ export class CharacterController {
                 if (!this.crashed) this._gradeLanding(airTimeWas);
             }
         }
+
+        // Falling near a rail, aligned and fast enough: catch it.
+        if (!this.grounded && !this.crashed && this.world &&
+            this.verticalVelocity < 1.5 && this._railCool <= 0) {
+            this._tryCatchRail();
+        }
+        } // end of the non-grinding block
 
         // ------------------------------------------------------------ tricks
         this._updateTricks(h);
@@ -542,7 +584,7 @@ export class CharacterController {
             this.trickSpin += this.trickDSpin;
             return;
         }
-        if (!this.grounded) {
+        if (!this.grounded && !this.grinding) {
             const spinWant = input.spin * TRICK_SPIN_RATE;
             const flipWant = (input.trickMod ? input.moveZ : 0) * TRICK_FLIP_RATE;
             this._spinRate = expDamp(this._spinRate, spinWant, TRICK_RAMP, h);
@@ -560,7 +602,7 @@ export class CharacterController {
             }
             return;
         }
-        // Grounded: whatever rotation remains blends away into the landing.
+        // Grounded (or on a rail): whatever rotation remains blends away.
         // Toward the nearest half-turn rather than toward zero — a 180 lands
         // travelling switch, and unwinding it the long way would pirouette
         // the rider on the snow.
@@ -660,6 +702,114 @@ export class CharacterController {
         this.trickFlip = 0;
         this._spinRate = 0;
         this._flipRate = 0;
+    }
+
+    // ------------------------------------------------------------------- rails
+
+    /** Kinds filter reused by the catch query. */
+    static _RAIL_KINDS = ["rail"];
+
+    /**
+     * Catch a rail if this falling frame passes close enough, aligned enough,
+     * fast enough. The gate is deliberately strict on angle — attaching from
+     * a perpendicular approach reads as magnetism, not as landing a grind.
+     */
+    _tryCatchRail() {
+        const near = this.world.nearest(
+            this.position.x, this.position.y, this.position.z,
+            RAIL_CATCH_RADIUS, CharacterController._RAIL_KINDS
+        );
+        if (!near) return;
+        const s = near.collider.data;
+        if (!s) return;
+
+        const dx = s.bx - s.ax;
+        const dy = s.by - s.ay;
+        const dz = s.bz - s.az;
+        const len = Math.hypot(dx, dy, dz);
+        if (len < 1) return;
+
+        // Closest param along the segment, then the true gates.
+        const px = this.position.x - s.ax;
+        const pz = this.position.z - s.az;
+        let t = (px * dx + pz * dz) / (dx * dx + dz * dz);
+        t = Math.max(0.02, Math.min(0.98, t));
+        const railY = s.ay + dy * t;
+        // The board must arrive from above, close to the beam's top.
+        if (this.position.y < railY - 0.15 || this.position.y > railY + 0.9) return;
+
+        const speed = Math.hypot(this.velocity.x, this.velocity.z);
+        if (speed < RAIL_MIN_SPEED) return;
+
+        const railHeading = Math.atan2(dx, dz);
+        const velHeading = Math.atan2(this.velocity.x, this.velocity.z);
+        const along = angleDelta(velHeading, railHeading);
+        let dir = 1;
+        let misalign = Math.abs(along);
+        if (misalign > Math.PI / 2) {
+            dir = -1;
+            misalign = Math.PI - misalign;
+        }
+        if (misalign > RAIL_CATCH_ANGLE) return;
+
+        this.grinding = true;
+        this.grindStarted = true;
+        this._rail = s;
+        this._railLen = len;
+        this._railT = t;
+        this._railDir = dir;
+        this.airborne = false;
+        this.verticalVelocity = 0;
+        this.airTime = 0;
+    }
+
+    /**
+     * Ride the rail. Position is the segment evaluated at the param; speed
+     * bleeds gently; Space pops off; the far end simply runs out. Both exits
+     * are clean — falling off sideways is not modelled, because a balance
+     * minigame on a 44 m beam is a course's worth of design this rail does
+     * not carry. The brief asked for limited balance influence; the limit
+     * chosen is zero.
+     */
+    _grindStep(h) {
+        const s = this._rail;
+        const dx = s.bx - s.ax;
+        const dy = s.by - s.ay;
+        const dz = s.bz - s.az;
+
+        let speed = Math.hypot(this.velocity.x, this.velocity.z);
+        speed = Math.max(RAIL_MIN_SPEED * 0.7, speed - RAIL_DRAG * h);
+        this._railT += (this._railDir * speed * h) / this._railLen;
+
+        const off = this._railT <= 0 || this._railT >= 1;
+        const pop = input.jumpPressed;
+        if (off || pop) {
+            this.grinding = false;
+            this.grindEnded = { clean: true };
+            this._rail = null;
+            this._railCool = 0.6;
+            this.grounded = false;
+            this.airborne = true;
+            this.verticalVelocity = pop ? RAIL_POP_SPEED : 0.6;
+            if (pop) {
+                this.jumpCount++;
+                this._jumpBuffer = 0;
+                this._coyote = 0;
+                this._beginAir();
+            }
+            return;
+        }
+
+        const t = this._railT;
+        this.position.set(s.ax + dx * t, s.ay + dy * t + 0.02, s.az + dz * t);
+        const inv = this._railDir / this._railLen;
+        this.velocity.x = dx * inv * speed;
+        this.velocity.z = dz * inv * speed;
+        const heading = Math.atan2(dx * this._railDir, dz * this._railDir);
+        this.facing = angleDamp(this.facing, heading, 14, h);
+        this.grounded = false;
+        this.airborne = false;
+        this.groundY = this.terrain.heightAt(this.position.x, this.position.z);
     }
 
     // --------------------------------------------------------------- obstacles

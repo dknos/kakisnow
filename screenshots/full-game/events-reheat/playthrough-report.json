@@ -1,0 +1,178 @@
+{
+  "tool": "tools/snow-burgers/playthrough-windows.cjs",
+  "url": "http://127.0.0.1:5173/?event=rocket-reheat",
+  "viewport": {
+    "width": 2560,
+    "height": 1440
+  },
+  "seeds": 2,
+  "vehicle": "rocket-chair",
+  "runs": [
+    {
+      "seed": 1,
+      "vehicle": "rocket-chair",
+      "ok": true,
+      "finalState": "results",
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "x": 17.11,
+          "y": -3.9,
+          "z": 120.86,
+          "zone": "cheese"
+        },
+        {
+          "ingredient": "patty",
+          "x": -20.13,
+          "y": -0.49,
+          "z": 231.19,
+          "zone": "patty"
+        },
+        {
+          "ingredient": "tomato",
+          "x": -5.19,
+          "y": 2.5,
+          "z": 339.31,
+          "zone": "tomato"
+        },
+        {
+          "ingredient": "lettuce",
+          "x": 11.63,
+          "y": -4.2,
+          "z": 453.78,
+          "zone": "lettuce"
+        }
+      ],
+      "collected": [
+        "cheese",
+        "patty",
+        "tomato",
+        "lettuce"
+      ],
+      "lastZ": 551.8,
+      "fuelAtFinish": 0,
+      "blocked": null,
+      "result": {
+        "completed": true,
+        "time": 27.99,
+        "medal": "gold",
+        "style": 38,
+        "integrity": 100,
+        "stars": 4,
+        "grade": "Summit Stack",
+        "splits": {
+          "cheese": 6.778499999999967,
+          "patty": 12.441500000000048,
+          "tomato": 17.725300000012084,
+          "lettuce": 23.313700000018255
+        },
+        "detail": {
+          "airTime": 0,
+          "airShare": 0,
+          "carve": 0.197,
+          "pace": 1,
+          "pipeTime": 5.78,
+          "routeRisk": 0.4,
+          "landings": 0,
+          "hardLandings": 0,
+          "worstLanding": 0,
+          "distance": 548
+        },
+        "rocket": 67,
+        "notMeasured": []
+      }
+    },
+    {
+      "seed": 2,
+      "vehicle": "rocket-chair",
+      "ok": true,
+      "finalState": "results",
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "x": -10.76,
+          "y": 0.55,
+          "z": 133,
+          "zone": "cheese"
+        },
+        {
+          "ingredient": "patty",
+          "x": -5.46,
+          "y": 3.26,
+          "z": 239.11,
+          "zone": "patty"
+        },
+        {
+          "ingredient": "tomato",
+          "x": -5.11,
+          "y": 0.26,
+          "z": 320.73,
+          "zone": "tomato"
+        },
+        {
+          "ingredient": "lettuce",
+          "x": -0.45,
+          "y": -2.5,
+          "z": 438.57,
+          "zone": "lettuce"
+        }
+      ],
+      "collected": [
+        "cheese",
+        "patty",
+        "tomato",
+        "lettuce"
+      ],
+      "lastZ": 552,
+      "fuelAtFinish": 0,
+      "blocked": null,
+      "result": {
+        "completed": true,
+        "time": 27.57,
+        "medal": "gold",
+        "style": 55,
+        "integrity": 69,
+        "stars": 4,
+        "grade": "Summit Stack",
+        "splits": {
+          "cheese": 7.435999999999987,
+          "patty": 12.509199999988041,
+          "tomato": 16.34390000000591,
+          "lettuce": 22.13219999998826
+        },
+        "detail": {
+          "airTime": 5.73,
+          "airShare": 0.208,
+          "carve": 0.048,
+          "pace": 1,
+          "pipeTime": 5.66,
+          "routeRisk": 0.4,
+          "landings": 7,
+          "hardLandings": 3,
+          "worstLanding": 1.44,
+          "distance": 548.1
+        },
+        "rocket": 57,
+        "notMeasured": []
+      }
+    }
+  ],
+  "screenshots": [
+    "00-title",
+    "001-pickup-1-cheese",
+    "001-pickup-2-patty",
+    "001-pickup-3-tomato",
+    "001-pickup-4-lettuce",
+    "001-assembly",
+    "001-results",
+    "002-pickup-1-cheese",
+    "002-pickup-2-patty",
+    "002-pickup-3-tomato",
+    "002-pickup-4-lettuce",
+    "002-assembly",
+    "002-results"
+  ],
+  "consoleErrors": [],
+  "webgpuValidation": [],
+  "ok": true
+}

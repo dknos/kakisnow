@@ -40,6 +40,7 @@ import { BurgerBaseCamp } from "./baseCamp.js";
 import { MountainDressing } from "./environment.js";
 import { INGREDIENT_IDS, INGREDIENTS, BURGER_MODEL } from "./ingredients.js";
 import { activeCourse } from "./courses/index.js";
+import { getEvent } from "./courses/eventRegistry.js";
 import { SnowBurgersUi, formatTime } from "../ui/snowBurgersUi.js";
 import { FUEL_PER_INGREDIENT } from "../vehicles/rocketThrust.js";
 import { audio } from "../audio/audio.js";
@@ -47,6 +48,7 @@ import { GhostPlayback, formatDelta } from "./ghost.js";
 import { TrickTracker } from "./trickScore.js";
 import { SafeSpots } from "./recovery.js";
 import { CollisionWorld } from "./collisionWorld.js";
+import { RailField } from "./railField.js";
 
 import { Mode } from "./modes.js";
 export { Mode };
@@ -155,6 +157,13 @@ export class GameDirector {
         this.safeSpots = new SafeSpots(this.course);
         /** Solid things. Filled from the dressing's records after load. */
         this.collision = new CollisionWorld();
+        /** Grind rails: meshes plus their segment colliders. */
+        this.rails = new RailField({
+            scene: deps.scene, sky: deps.sky, shadows: deps.shadows,
+            depthPass: deps.depthPass, terrain: deps.terrain,
+            collision: this.collision,
+        });
+        this._scrapeCool = 0;
         this._wasAirborne = false;
         this._comboSettle = 0;
         this._crashHandled = false;
@@ -166,6 +175,7 @@ export class GameDirector {
 
         this.ui = new SnowBurgersUi({
             onSelectMode: (m) => { audio.ui("confirm"); this.selectMode(m); },
+            onSelectEvent: (id) => { audio.ui("confirm"); this.startEvent(id); },
             onDropIn: () => { audio.ui("confirm"); this.run.dropIn(); },
             onRetry: () => { audio.ui("confirm"); this.run.retry(); },
             onNextOrder: () => { audio.ui("confirm"); this.startBurgerRun(); },
@@ -197,6 +207,9 @@ export class GameDirector {
             console.warn("[snow-burgers] the reward burger failed to load");
         }
         this._buildCollision();
+        // After the collision world exists: the rails register segments into
+        // it, and like the camp they ground on the finished terrain readback.
+        this.rails.build(this.course);
         return { ingredients: loaded, burger: burgerOk };
     }
 
@@ -247,6 +260,7 @@ export class GameDirector {
     async warmUp() {
         await this.dressing.warmUp();
         await this.ghost.warmUp();
+        await this.rails.warmUp();
         await this.camp.warmUp();
         await this.field.warmUp();
         this.burger.setActive(true);
@@ -267,6 +281,7 @@ export class GameDirector {
         out.push(...this.camp.beautyMaterials);
         out.push(...this.ghost.beautyMaterials);
         out.push(...this.dressing.beautyMaterials);
+        out.push(...this.rails.beautyMaterials);
         return out;
     }
 
@@ -369,11 +384,37 @@ export class GameDirector {
         });
     }
 
+    /**
+     * Switch to another of this course's events and take its order.
+     * The registry validated the reference at load; an id from a stale menu
+     * still gets a loud throw rather than a silent wrong ruleset.
+     */
+    startEvent(eventId) {
+        const ev = getEvent(eventId);
+        if (ev.courseId !== this.course.id) {
+            console.warn(`[snow-burgers] event ${eventId} is not on ${this.course.id}`);
+            return;
+        }
+        this.eventDef = ev;
+        this.run.event = ev;
+        this.selectMode(Mode.BURGER_RUN);
+    }
+
     startBurgerRun() {
         this.mode = Mode.BURGER_RUN;
         this.burger.setActive(false);
         this.camp.setActive(true);
         this._setCourseHudVisible(false);
+        // The event's vehicle rules apply at the order, not mid-run: a forced
+        // vehicle is fitted here, and a vehicle the event does not allow is
+        // swapped for the first one it does.
+        const ev = this.run.event;
+        if (ev.forcedVehicle) {
+            setSetting("vehicle", ev.forcedVehicle);
+        } else if (ev.allowedVehicles?.length &&
+                   !ev.allowedVehicles.includes(S.vehicle)) {
+            setSetting("vehicle", ev.allowedVehicles[0]);
+        }
         // A run starts with a full tank whether or not a thrusting vehicle is
         // fitted, so switching vehicles between attempts never inherits the
         // last one's fuel.
@@ -381,7 +422,11 @@ export class GameDirector {
             this.rocketChair.thrust.reset();
             this.rocketChair.thrust.infinite = false;
         }
-        const seed = this.run.begin();
+        // A fixed-seed event rides the same mountain forever — that is the
+        // whole point of it; everything else rolls fresh.
+        const seed = this.run.begin(
+            ev.seedPolicy === "fixed" ? ev.fixedSeed : null
+        );
         this.ui.resetCollected();
         this.ui.setOrderSlots(this.run.event.required);
         this.ui.showOrder(
@@ -593,6 +638,20 @@ export class GameDirector {
             const res = this.tracker.land(grade);
             this.ui.flashGrade(grade);
             audio.land(grade, Math.min(1, c.landingImpact / 1.5));
+            // A perfect landing stamps the snow: one compact ring of powder
+            // out of the shared pool, gone in half a second.
+            if (grade === "perfect" && this.deps.spray) {
+                for (let i = 0; i < 16; i++) {
+                    const a = (i / 16) * Math.PI * 2;
+                    this.deps.spray.emit(
+                        c.position.x + Math.cos(a) * 0.5,
+                        c.position.y + 0.12,
+                        c.position.z + Math.sin(a) * 0.5,
+                        Math.cos(a) * 5.2, 1.4, Math.sin(a) * 5.2,
+                        0.26, 0.5, 0, 5.2
+                    );
+                }
+            }
             if (res && res.score > 0) {
                 this.ui.showTrick(res);
                 audio.trickBank(Math.min(1, res.score / 400));
@@ -610,6 +669,34 @@ export class GameDirector {
         }
         this.ui.setCombo(this.tracker.open);
         this._wasAirborne = c.airborne;
+
+        // ------------------------------------------------------------ rails
+        if (c.grindStarted) {
+            audio.grindStart();
+            // Whatever rotation was in the air banks as a landing on steel.
+            const res = this.tracker.land("clean");
+            if (res && res.score > 0) this.ui.showTrick(res);
+        }
+        if (c.grinding) {
+            this.tracker.addRailTime(dt);
+            audio.grindUpdate(Math.min(1, c.speed01 + 0.25));
+        }
+        if (c.grindEnded) {
+            audio.grindEnd();
+            const res = this.tracker.endRail(c.grindEnded.clean);
+            if (res && res.score > 0) {
+                this.ui.showTrick(res);
+                audio.trickBank(Math.min(1, res.score / 400));
+                this._comboSettle = 1.2;
+            }
+        }
+
+        // ---------------------------------------------------------- scrapes
+        this._scrapeCool = Math.max(0, this._scrapeCool - dt);
+        if ((c.scraped || c.brushedSoft) && this._scrapeCool <= 0) {
+            this._scrapeCool = 0.16;
+            audio.scrape(c.scraped ? 0.65 : 0.25);
+        }
 
         // ------------------------------------------------------------ crash
         if (c.crashed && !this._crashHandled) {
@@ -726,11 +813,13 @@ export class GameDirector {
         if (this.mode !== Mode.BURGER_RUN) {
             this.camp.sync(cameraPos);
             this.dressing.sync(cameraPos);
+            this.rails.sync(cameraPos);
             return;
         }
         this.field.sync(cameraPos);
         this.camp.sync(cameraPos);
         this.dressing.sync(cameraPos);
+        this.rails.sync(cameraPos);
         this.ghost.sync(cameraPos);
         this.burger.sync(cameraPos);
     }

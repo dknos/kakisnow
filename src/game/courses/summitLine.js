@@ -74,6 +74,16 @@ export const SUMMIT_LINE = {
     },
 
     /**
+     * Grind rails. Endpoints in XZ; the builder grounds each end on the baked
+     * terrain and stands the beam `height` metres above it. This one runs the
+     * left edge of the upper mountain — outside the Cheese Chute so it never
+     * shadows a pickup, inside the lane so choosing it is a line, not a leave.
+     */
+    rails: [
+        { ax: -30, az: 96, bx: -30, bz: 140, height: 1.05 },
+    ],
+
+    /**
      * Ingredient zones. `pipeZone` marks the two that live inside a pipe and
      * get the softer wall rule; `excludeInnerX` carves the onion's annulus.
      */
@@ -158,5 +168,5 @@ export const SUMMIT_LINE = {
     },
 
     /** Event ids this course offers, in menu order. */
-    events: ["summit-stack"],
+    events: ["summit-stack", "summit-gold", "rocket-reheat"],
 };

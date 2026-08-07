@@ -1,0 +1,142 @@
+{
+  "tool": "tools/snow-burgers/playthrough-windows.cjs",
+  "url": "http://127.0.0.1:5173/?event=summit-gold",
+  "viewport": {
+    "width": 2560,
+    "height": 1440
+  },
+  "seeds": 2,
+  "vehicle": "classic-snowboard",
+  "runs": [
+    {
+      "seed": 7,
+      "vehicle": "classic-snowboard",
+      "ok": true,
+      "finalState": "results",
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "x": -24.31,
+          "y": -1.08,
+          "z": 95.1,
+          "zone": "cheese"
+        },
+        {
+          "ingredient": "lettuce",
+          "x": -4.75,
+          "y": 0.95,
+          "z": 422.9,
+          "zone": "lettuce"
+        }
+      ],
+      "collected": [
+        "cheese",
+        "lettuce"
+      ],
+      "lastZ": 551.9,
+      "fuelAtFinish": 1,
+      "blocked": null,
+      "result": {
+        "completed": true,
+        "time": 31.14,
+        "medal": "gold",
+        "style": 40,
+        "integrity": 100,
+        "stars": 4,
+        "grade": "Summit Stack",
+        "splits": {
+          "cheese": 7.680499999999953,
+          "lettuce": 24.5733000000123
+        },
+        "detail": {
+          "airTime": 1.42,
+          "airShare": 0.046,
+          "carve": 0.039,
+          "pace": 1,
+          "pipeTime": 6.07,
+          "routeRisk": 0.35,
+          "landings": 2,
+          "hardLandings": 0,
+          "worstLanding": 0.77,
+          "distance": 548.1
+        },
+        "rocket": 0,
+        "notMeasured": [
+          "rocket efficiency"
+        ]
+      }
+    },
+    {
+      "seed": 8,
+      "vehicle": "classic-snowboard",
+      "ok": true,
+      "finalState": "results",
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "x": -21.84,
+          "y": -0.24,
+          "z": 105.15,
+          "zone": "cheese"
+        },
+        {
+          "ingredient": "lettuce",
+          "x": -6.46,
+          "y": -4.32,
+          "z": 449.06,
+          "zone": "lettuce"
+        }
+      ],
+      "collected": [
+        "cheese",
+        "lettuce"
+      ],
+      "lastZ": 551.9,
+      "fuelAtFinish": 1,
+      "blocked": null,
+      "result": {
+        "completed": true,
+        "time": 31.1,
+        "medal": "gold",
+        "style": 38,
+        "integrity": 100,
+        "stars": 4,
+        "grade": "Summit Stack",
+        "splits": {
+          "cheese": 8.177400000005939,
+          "lettuce": 25.881300000012224
+        },
+        "detail": {
+          "airTime": 0.98,
+          "airShare": 0.032,
+          "carve": 0.028,
+          "pace": 1,
+          "pipeTime": 6.06,
+          "routeRisk": 0.35,
+          "landings": 2,
+          "hardLandings": 0,
+          "worstLanding": 0.78,
+          "distance": 548
+        },
+        "rocket": 0,
+        "notMeasured": [
+          "rocket efficiency"
+        ]
+      }
+    }
+  ],
+  "screenshots": [
+    "00-title",
+    "007-pickup-1-cheese",
+    "007-pickup-2-lettuce",
+    "007-assembly",
+    "007-results",
+    "008-pickup-1-cheese",
+    "008-pickup-2-lettuce",
+    "008-assembly",
+    "008-results"
+  ],
+  "consoleErrors": [],
+  "webgpuValidation": [],
+  "ok": true
+}
