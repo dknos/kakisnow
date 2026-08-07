@@ -91,6 +91,39 @@ export function validateCourse(c) {
         if (g.height === 0) p.push(`ridge ${i} has zero height`);
     }
 
+    for (const [i, s] of (t.skiJumps ?? []).entries()) {
+        const fields = ["fadeInFrom", "holdFrom", "lipZ", "inrunLen", "inrunDrop",
+            "tableLen", "lipRise", "hillLen", "hillDrop", "outrunLen",
+            "outrunDrop", "closeLen", "gateXFrom", "gateXTo", "bowl"];
+        const missing = fields.filter(k => !Number.isFinite(s[k]));
+        if (missing.length) {
+            p.push(`ski jump ${i} is missing ${missing.join(", ")}`);
+            continue;
+        }
+        if (s.fadeInFrom >= s.holdFrom) p.push(`ski jump ${i} fade-in is inverted`);
+        // The profile must not start before the gate has finished opening, or
+        // the in-run begins as a step out of the natural field.
+        if (s.holdFrom > s.lipZ - s.inrunLen) {
+            p.push(`ski jump ${i} in-run starts before its gate is open`);
+        }
+        if (!(s.tableLen > 0) || !(s.inrunLen > s.tableLen)) {
+            p.push(`ski jump ${i} needs 0 < tableLen < inrunLen`);
+        }
+        if (!(s.lipRise > 0)) {
+            p.push(`ski jump ${i} has no lip rise, so it has no takeoff`);
+        }
+        // A hill that does not fall below the lip is a drop onto flat ground.
+        if (!(s.hillDrop > s.lipRise)) {
+            p.push(`ski jump ${i} landing hill does not fall below its lip`);
+        }
+        for (const k of ["hillLen", "outrunLen", "closeLen"]) {
+            if (!(s[k] > 0)) p.push(`ski jump ${i} needs a positive ${k}`);
+        }
+        if (s.gateXFrom >= s.gateXTo) {
+            p.push(`ski jump ${i} lateral gate is inverted`);
+        }
+    }
+
     for (const [i, g] of (c.gusts ?? []).entries()) {
         if (![g.zFrom, g.zTo, g.xFrom, g.xTo, g.push].every(Number.isFinite) ||
             g.zFrom >= g.zTo || g.xFrom >= g.xTo || g.push === 0) {

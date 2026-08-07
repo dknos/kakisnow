@@ -133,10 +133,31 @@ export function rng(seed) {
 
 // ------------------------------------------------------------------ exclusions
 
-/** Spans of z that no pickup may occupy, with the reason. */
-export function protectedSpans(jumps = JUMPS) {
+/**
+ * Spans of z that no pickup may occupy, with the reason.
+ *
+ * Takes the whole terrain block rather than the jumps array, because a course
+ * can carry more than one kind of thing you must not stand a tomato on: the
+ * kind-4 jumping hill is a hundred and twenty metres of falling snow that no
+ * `jumps` entry describes. `SafeSpots` reads the same list, so this is also
+ * what stops crash recovery from breadcrumbing the takeoff table and
+ * respawning a rider into the air.
+ */
+export function protectedSpans(terrain = SUMMIT_LINE.terrain) {
     const spans = [];
-    for (const j of jumps) {
+    for (const s of terrain.skiJumps ?? []) {
+        spans.push({
+            from: s.lipZ - s.inrunLen - APPROACH_MARGIN,
+            to: s.lipZ,
+            reason: `in-run to the table at z=${s.lipZ}`,
+        });
+        spans.push({
+            from: s.lipZ,
+            to: s.lipZ + s.hillLen + LANDING_MARGIN,
+            reason: `landing hill below the table at z=${s.lipZ}`,
+        });
+    }
+    for (const j of terrain.jumps ?? []) {
         spans.push({
             from: j.lip - j.runIn - APPROACH_MARGIN,
             to: j.lip,
@@ -152,23 +173,23 @@ export function protectedSpans(jumps = JUMPS) {
 }
 
 /**
- * Protected spans, cached per jumps array. Keyed by reference: course
+ * Protected spans, cached per terrain block. Keyed by reference: course
  * definitions are module singletons, so identity is exactly right, and a
  * synthetic test course simply pays the derivation once.
  */
 const _spansCache = new Map();
 
-function spansFor(jumps) {
-    let spans = _spansCache.get(jumps);
+function spansFor(terrain) {
+    let spans = _spansCache.get(terrain);
     if (!spans) {
-        spans = protectedSpans(jumps);
-        _spansCache.set(jumps, spans);
+        spans = protectedSpans(terrain);
+        _spansCache.set(terrain, spans);
     }
     return spans;
 }
 
-function inProtectedSpan(z, jumps) {
-    for (const s of spansFor(jumps)) if (z >= s.from && z <= s.to) return s;
+function inProtectedSpan(z, terrain) {
+    for (const s of spansFor(terrain)) if (z >= s.from && z <= s.to) return s;
     return null;
 }
 
@@ -250,13 +271,17 @@ export function candidatesFor(zone, field, seed = 1, course = SUMMIT_LINE) {
 
 /** @returns {string|null} why this position is unusable, or null if it is fine. */
 function rejectReason(zone, x, z, field, course) {
-    const { jumps, pipes } = course.terrain;
+    const { pipes } = course.terrain;
 
     if (zone.excludeInnerX && Math.abs(x) < zone.excludeInnerX) {
         return "inside the lane, which belongs to the fast line";
     }
 
-    const span = inProtectedSpan(z, jumps);
+    // The whole terrain block, not `jumps` — `protectedSpans` reads more than
+    // one primitive kind now, and handing it the bare array returns an empty
+    // list rather than an error, which would silently un-protect every jump on
+    // every course.
+    const span = inProtectedSpan(z, course.terrain);
     if (span) return span.reason;
 
     if (!zone.pipeZone && onPipeWall(x, z, pipes)) {

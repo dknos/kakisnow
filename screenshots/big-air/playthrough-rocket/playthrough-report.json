@@ -1,0 +1,178 @@
+{
+  "tool": "tools/snow-burgers/playthrough-windows.cjs",
+  "url": "http://127.0.0.1:5173/?course=big-air-basin&event=big-air-basin-stack",
+  "viewport": {
+    "width": 2560,
+    "height": 1440
+  },
+  "seeds": 2,
+  "vehicle": "rocket-chair",
+  "runs": [
+    {
+      "seed": 1,
+      "vehicle": "rocket-chair",
+      "ok": true,
+      "finalState": "results",
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "x": -2.96,
+          "y": -4.59,
+          "z": -216.53,
+          "zone": "cheese"
+        },
+        {
+          "ingredient": "patty",
+          "x": -3.64,
+          "y": -4.5,
+          "z": -73.69,
+          "zone": "patty"
+        },
+        {
+          "ingredient": "tomato",
+          "x": 6.55,
+          "y": 1.01,
+          "z": 103.27,
+          "zone": "tomato"
+        },
+        {
+          "ingredient": "lettuce",
+          "x": 19.98,
+          "y": -60.69,
+          "z": 465.04,
+          "zone": "lettuce"
+        }
+      ],
+      "collected": [
+        "cheese",
+        "patty",
+        "tomato",
+        "lettuce"
+      ],
+      "lastZ": 564,
+      "fuelAtFinish": 0,
+      "blocked": null,
+      "result": {
+        "completed": true,
+        "time": 43.32,
+        "medal": "gold",
+        "style": 44,
+        "integrity": 36,
+        "stars": 4,
+        "grade": "Summit Stack",
+        "splits": {
+          "cheese": 4.598599999994019,
+          "patty": 11.622500000000018,
+          "tomato": 20.376800000012203,
+          "lettuce": 38.60309999999493
+        },
+        "detail": {
+          "airTime": 3.4,
+          "airShare": 0.078,
+          "carve": 0.032,
+          "pace": 1,
+          "pipeTime": 19.26,
+          "routeRisk": 0.375,
+          "landings": 2,
+          "hardLandings": 2,
+          "worstLanding": 1.5,
+          "distance": 860
+        },
+        "rocket": 63,
+        "notMeasured": []
+      }
+    },
+    {
+      "seed": 2,
+      "vehicle": "rocket-chair",
+      "ok": true,
+      "finalState": "results",
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "x": -2.05,
+          "y": -4.36,
+          "z": -211.52,
+          "zone": "cheese"
+        },
+        {
+          "ingredient": "patty",
+          "x": 2.78,
+          "y": -5.72,
+          "z": -64.57,
+          "zone": "patty"
+        },
+        {
+          "ingredient": "tomato",
+          "x": -0.94,
+          "y": 1.15,
+          "z": 94.61,
+          "zone": "tomato"
+        },
+        {
+          "ingredient": "lettuce",
+          "x": -20.26,
+          "y": -60.43,
+          "z": 454.09,
+          "zone": "lettuce"
+        }
+      ],
+      "collected": [
+        "cheese",
+        "patty",
+        "tomato",
+        "lettuce"
+      ],
+      "lastZ": 564,
+      "fuelAtFinish": 0,
+      "blocked": null,
+      "result": {
+        "completed": true,
+        "time": 43.39,
+        "medal": "gold",
+        "style": 44,
+        "integrity": 36,
+        "stars": 4,
+        "grade": "Summit Stack",
+        "splits": {
+          "cheese": 4.875499999999968,
+          "patty": 12.145699999988079,
+          "tomato": 20.01469999998831,
+          "lettuce": 38.117900000006784
+        },
+        "detail": {
+          "airTime": 3.24,
+          "airShare": 0.075,
+          "carve": 0.035,
+          "pace": 1,
+          "pipeTime": 19.2,
+          "routeRisk": 0.375,
+          "landings": 2,
+          "hardLandings": 2,
+          "worstLanding": 1.5,
+          "distance": 860.1
+        },
+        "rocket": 59,
+        "notMeasured": []
+      }
+    }
+  ],
+  "screenshots": [
+    "00-title",
+    "001-pickup-1-cheese",
+    "001-pickup-2-patty",
+    "001-pickup-3-tomato",
+    "001-pickup-4-lettuce",
+    "001-assembly",
+    "001-results",
+    "002-pickup-1-cheese",
+    "002-pickup-2-patty",
+    "002-pickup-3-tomato",
+    "002-pickup-4-lettuce",
+    "002-assembly",
+    "002-results"
+  ],
+  "consoleErrors": [],
+  "webgpuValidation": [],
+  "ok": true
+}

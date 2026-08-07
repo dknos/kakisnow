@@ -1,0 +1,19 @@
+{
+  "uid": "d3a5fd33af2a46ada3f1b59fc0ac4584",
+  "name": "Steel Scaffolding Structure",
+  "author": "MR.AnyCAD",
+  "authorUrl": "https://sketchfab.com/MRAnyCAD",
+  "viewerUrl": "https://sketchfab.com/3d-models/steel-scaffolding-structure-d3a5fd33af2a46ada3f1b59fc0ac4584",
+  "license": "CC Attribution",
+  "licenseUrl": "http://creativecommons.org/licenses/by/4.0/",
+  "requiresAttribution": "Author must be credited. Commercial use is allowed.",
+  "faceCount": 25464,
+  "vertexCount": 12778,
+  "textureCount": 0,
+  "isDownloadable": true,
+  "slug": "scaffold",
+  "downloadKind": "glb",
+  "file": "art/source-assets/big-air/scaffold.glb",
+  "bytes": 1103940,
+  "sha256": "b22312a41d16361bc38a69093fe8d341fbf76ec69165d135358679b5e09ef3cf"
+}

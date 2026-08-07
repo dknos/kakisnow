@@ -37,6 +37,7 @@ import { IngredientField } from "./ingredientField.js";
 import { BurgerRun, RunState, SUMMIT_STACK } from "./burgerRun.js";
 import { BurgerBook } from "./burgerBook.js";
 import { BurgerBaseCamp } from "./baseCamp.js";
+import { JumpVenue } from "./venue.js";
 import { MountainDressing } from "./environment.js";
 import { INGREDIENT_IDS, INGREDIENTS, BURGER_MODEL } from "./ingredients.js";
 import { activeCourse, COURSES } from "./courses/index.js";
@@ -131,6 +132,16 @@ export class GameDirector {
 
         /** The finish: arch, grill, order board and lodge. */
         this.camp = new BurgerBaseCamp({
+            scene: deps.scene,
+            sky: deps.sky,
+            shadows: deps.shadows,
+            depthPass: deps.depthPass,
+            terrain: deps.terrain,
+            course: this.course,
+        });
+
+        /** The jump venue: stands, flags, gantry, judges' tower, lift. */
+        this.venue = new JumpVenue({
             scene: deps.scene,
             sky: deps.sky,
             shadows: deps.shadows,
@@ -318,6 +329,10 @@ export class GameDirector {
         await this.camp.load();
         await this.dressing.load();
         this.dressing.build();
+        // Grounds on the same readback the camp does, and marches the stand
+        // rows up the bowl wall by sampling it.
+        await this.venue.load();
+        this.venue.build();
         const loaded = await this.field.load(INGREDIENT_IDS);
         const burgerOk = await this.burger.load(BURGER_MODEL);
         if (!burgerOk) {
@@ -384,6 +399,7 @@ export class GameDirector {
         await this.surfaces.warmUp();
         await this.snowcats.warmUp();
         await this.tapes.warmUp();
+        await this.venue.warmUp();
         await this.camp.warmUp();
         await this.field.warmUp();
         this.burger.setActive(true);
@@ -408,6 +424,7 @@ export class GameDirector {
         out.push(...this.surfaces.beautyMaterials);
         out.push(...this.snowcats.beautyMaterials);
         out.push(...this.tapes.beautyMaterials);
+        out.push(...this.venue.beautyMaterials);
         return out;
     }
 
@@ -441,6 +458,9 @@ export class GameDirector {
         });
         audio.grindEnd();
         this.dressing.setActive(true);
+        // The venue is scenery, not game state: it stands in every mode the
+        // mountain is visible in, including the free-ride lab.
+        this.venue.setActive(true);
         switch (mode) {
             case Mode.BURGER_RUN:
                 this.startBurgerRun();
@@ -1065,6 +1085,7 @@ export class GameDirector {
             this.surfaces.sync(cameraPos);
             this.snowcats.sync(cameraPos);
             this.tapes.sync(cameraPos);
+            this.venue.sync(cameraPos);
             return;
         }
         this.field.sync(cameraPos);
@@ -1074,6 +1095,7 @@ export class GameDirector {
         this.surfaces.sync(cameraPos);
         this.snowcats.sync(cameraPos);
         this.tapes.sync(cameraPos);
+        this.venue.sync(cameraPos);
         this.ghost.sync(cameraPos);
         this.burger.sync(cameraPos);
     }

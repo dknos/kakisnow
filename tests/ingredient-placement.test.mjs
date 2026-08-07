@@ -6,6 +6,7 @@ import {
     ZONES, JUMPS, PIPES, BASE_CAMP_Z, candidatesFor, selectRoute, protectedSpans, rng,
 } from "../src/game/ingredientPlacement.js";
 import { INGREDIENTS, INGREDIENT_IDS } from "../src/game/ingredients.js";
+import { BIG_AIR_BASIN } from "../src/game/courses/bigAirBasin.js";
 
 /**
  * A stand-in for the baked heightfield.
@@ -68,6 +69,40 @@ test("zones are ordered downhill and do not overlap along the course", () => {
             `${lane[i].id} starts at ${lane[i].z[0]} before ${lane[i - 1].id} ends`
         );
     }
+});
+
+/**
+ * `protectedSpans` takes a terrain BLOCK, and handing it the bare `jumps`
+ * array returns an empty list rather than throwing — which un-protects every
+ * jump on every course, silently. That is exactly the mistake the signature
+ * change introduced at one internal call site, and the reason this asserts on
+ * the failure mode rather than on the happy path.
+ */
+test("protectedSpans reads a terrain block, not a jumps array", () => {
+    const fromBlock = protectedSpans(BIG_AIR_BASIN.terrain);
+    assert.ok(fromBlock.length >= 2, "the jumping hill contributes spans");
+    const fromArray = protectedSpans(BIG_AIR_BASIN.terrain.skiJumps);
+    assert.equal(fromArray.length, 0, "an array has no jumps or skiJumps keys");
+});
+
+test("the jumping hill's in-run and landing are protected end to end", () => {
+    const jump = BIG_AIR_BASIN.terrain.skiJumps[0];
+    const spans = protectedSpans(BIG_AIR_BASIN.terrain);
+    const covered = (z) => spans.some(s => z >= s.from && z <= s.to);
+    for (const z of [
+        jump.lipZ - jump.inrunLen + 1,   // top of the in-run
+        jump.lipZ - 1,                   // the table
+        jump.lipZ + 1,                   // the knoll
+        jump.lipZ + jump.hillLen - 1,    // the bottom of the landing hill
+    ]) {
+        assert.ok(covered(z), `z=${z} is on the hill and must be protected`);
+    }
+    // The outrun is NOT protected: crash recovery has to be able to drop a
+    // breadcrumb on the flat, or a fall on the runout rewinds the whole jump.
+    assert.ok(
+        !covered(jump.lipZ + jump.hillLen + jump.outrunLen - 10),
+        "the outrun flat stays available to crash recovery"
+    );
 });
 
 test("no zone overlaps a jump approach or landing", () => {

@@ -312,3 +312,49 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+==============================================================================
+Big Air Basin venue models — Creative Commons Attribution 4.0 International
+==============================================================================
+
+The grandstands, course flags, wind sleeves, start gantry, floodlight heads,
+judges' tower and lift chairs on the Big Air Basin course are derived from
+the following models, each licensed CC BY 4.0
+(https://creativecommons.org/licenses/by/4.0/). Each was decimated, had its
+textures re-encoded and its material workflow converted; the derivatives are
+distributed under the same licence.
+
+  "Sports Bleachers" by justice2free
+      https://sketchfab.com/3d-models/sports-bleachers-10a22c724d1a4083bab2d64cdbac6f01
+      Licensed under CC Attribution — http://creativecommons.org/licenses/by/4.0/
+      Runtime derivative: public/assets/models/big-air/venue-bleacher.glb
+
+  "Chairlift from Poly by Google" by IronEqual
+      https://sketchfab.com/3d-models/chairlift-from-poly-by-google-bd3647efca8f46ebb9b2d1e48571c974
+      Licensed under CC Attribution — http://creativecommons.org/licenses/by/4.0/
+      Runtime derivative: public/assets/models/big-air/venue-chairlift.glb
+
+  "Low Poly Red Flag - Wooden Pole Banner" by marishka1611
+      https://sketchfab.com/3d-models/low-poly-red-flag-wooden-pole-banner-8d52d2408ef84046bc0a0f6102ec41be
+      Licensed under CC Attribution — http://creativecommons.org/licenses/by/4.0/
+      Runtime derivative: public/assets/models/big-air/venue-flag.glb
+
+  "Floodlight" by Dreadler
+      https://sketchfab.com/3d-models/floodlight-bfc9a3305fd344679d3d88a3a9a26e04
+      Licensed under CC Attribution — http://creativecommons.org/licenses/by/4.0/
+      Runtime derivative: public/assets/models/big-air/venue-floodlight.glb
+
+  "Steel Scaffolding Structure" by MR.AnyCAD
+      https://sketchfab.com/3d-models/steel-scaffolding-structure-d3a5fd33af2a46ada3f1b59fc0ac4584
+      Licensed under CC Attribution — http://creativecommons.org/licenses/by/4.0/
+      Runtime derivative: public/assets/models/big-air/venue-scaffold.glb
+
+  "Wooden Watchtower" by MaX3Dd
+      https://sketchfab.com/3d-models/wooden-watchtower-6ae46294301a480c8c6d4968ec2cdb76
+      Licensed under CC Attribution — http://creativecommons.org/licenses/by/4.0/
+      Runtime derivative: public/assets/models/big-air/venue-judges.glb
+
+  "Wind sleeve" by mira9
+      https://sketchfab.com/3d-models/wind-sleeve-3b99ba8bd6c6481687dcc95f2f861e42
+      Licensed under CC Attribution — http://creativecommons.org/licenses/by/4.0/
+      Runtime derivative: public/assets/models/big-air/venue-windsock.glb

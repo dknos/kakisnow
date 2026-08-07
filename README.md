@@ -33,11 +33,15 @@ One order is one run.
 6. **Score the run.**
 7. **Retry the order, or take the next one.**
 
-That loop is complete, and it runs on five mountains. The Burger Tour opens
+That loop is complete, and it runs on six mountains. The Burger Tour opens
 on the Summit Line and unlocks Pinecone Pass, Glacier Gorge, Midnight Resort
-and Whiteout Ridge as the records earn them — twelve events across delivery,
+and Whiteout Ridge as the records earn them — thirteen events across delivery,
 fixed-seed time trial, style, integrity and rocket rules, every medal ladder
-measured against the committed autopilot rather than guessed. Runs are seeded
+measured against the committed autopilot rather than guessed. The sixth,
+**Big Air Basin**, is four hundred metres of superpipe that opens onto an iced
+in-run and a jumping hill: a takeoff table, two and a half seconds of air, and
+a landing hill falling forty-eight metres away underneath it, in a stadium
+basin cut into the snowfield with grandstands up both walls. Runs are seeded
 and race their own best ghost; tricks, grinds, crashes and near misses score;
 three Recipe Tapes hide on every course. Each course is one data file in
 `src/game/courses/` — terrain primitives, zones, hazards, surfaces, weather,
@@ -204,12 +208,19 @@ project. What follows describes that renderer rather than the game layer.
 - `src/ui/` — hidden settings/performance overlay and course HUD
 - `tools/` — Windows Chrome capture and profiling helpers
 - `tools/snow-burgers/` — game asset import, optimisation, and validation
+- `tools/big-air/` — Big Air Basin: Sketchfab fetch, venue asset optimisation,
+  the centreline profile probe, and the showcase/flight capture
 
 ## Evidence and provenance
 
 - [ASSETS.md](./ASSETS.md) records vendored assets, checksums, use status, and
   the unresolved redistribution caveats: RockerKaki's, and the seven
-  Snow-Burgers game assets, none of which arrived carrying a licence.
+  Snow-Burgers game assets, none of which arrived carrying a licence. The Big
+  Air Basin venue models are the one asset group with a clean answer — all CC
+  BY 4.0, attributed in `public/THIRD_PARTY_NOTICES.txt`.
+- [BIG_AIR_BASIN.md](./BIG_AIR_BASIN.md) is the honest build report for the
+  sixth course: what was measured, what was rebuilt after the measurement
+  disagreed with it, and what is still weak.
 - [DECISIONS.md](./DECISIONS.md) records deliberate departures from the brief.
 - [PERF.md](./PERF.md) records measured runtime evidence and its limits.
 - [art/source-assets/snow-burgers/OPTIMIZATION_REPORT.md](./art/source-assets/snow-burgers/OPTIMIZATION_REPORT.md)

@@ -1,0 +1,19 @@
+{
+  "uid": "bfc9a3305fd344679d3d88a3a9a26e04",
+  "name": "Floodlight",
+  "author": "Dreadler",
+  "authorUrl": "https://sketchfab.com/Dreadler",
+  "viewerUrl": "https://sketchfab.com/3d-models/floodlight-bfc9a3305fd344679d3d88a3a9a26e04",
+  "license": "CC Attribution",
+  "licenseUrl": "http://creativecommons.org/licenses/by/4.0/",
+  "requiresAttribution": "Author must be credited. Commercial use is allowed.",
+  "faceCount": 272,
+  "vertexCount": 207,
+  "textureCount": 2,
+  "isDownloadable": true,
+  "slug": "floodlight",
+  "downloadKind": "glb",
+  "file": "art/source-assets/big-air/floodlight.glb",
+  "bytes": 406340,
+  "sha256": "9c3b79c38b7261cb567ec385c607a7387da3a23deadbf01fb14d4a6574c218f6"
+}

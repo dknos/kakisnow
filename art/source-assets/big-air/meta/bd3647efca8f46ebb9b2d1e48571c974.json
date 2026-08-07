@@ -1,0 +1,19 @@
+{
+  "uid": "bd3647efca8f46ebb9b2d1e48571c974",
+  "name": "Chairlift from Poly by Google",
+  "author": "IronEqual",
+  "authorUrl": "https://sketchfab.com/ie-niels",
+  "viewerUrl": "https://sketchfab.com/3d-models/chairlift-from-poly-by-google-bd3647efca8f46ebb9b2d1e48571c974",
+  "license": "CC Attribution",
+  "licenseUrl": "http://creativecommons.org/licenses/by/4.0/",
+  "requiresAttribution": "Author must be credited. Commercial use is allowed.",
+  "faceCount": 1514,
+  "vertexCount": 789,
+  "textureCount": 0,
+  "isDownloadable": true,
+  "slug": "chairlift",
+  "downloadKind": "glb",
+  "file": "art/source-assets/big-air/chairlift.glb",
+  "bytes": 64364,
+  "sha256": "8e16f898c30d7eeb57ba8d829f6ace19332194dfc116920f214df907087af94f"
+}

@@ -13,3 +13,11 @@ art/source-assets/snow-burgers/*.glb
 screenshots/snow-burgers/sweep/*.glb
 
 art/source-assets/snow-burgers/*-source.glb
+
+# Big Air Basin venue sources: the raw Sketchfab downloads. Preserved locally
+# and hashed in art/source-assets/big-air/meta/*.json and in ASSETS.md; kept
+# out of git for the same reason as the snow-burgers sources — this repository
+# publishes to GitHub Pages and binaries are permanent in its history. The
+# runtime derivatives under public/assets/models/big-air/ ARE committed.
+art/source-assets/big-air/*.glb
+art/source-assets/big-air/*.zip

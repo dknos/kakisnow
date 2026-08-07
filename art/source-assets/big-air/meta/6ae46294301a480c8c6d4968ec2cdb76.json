@@ -1,0 +1,19 @@
+{
+  "uid": "6ae46294301a480c8c6d4968ec2cdb76",
+  "name": "Wooden Watchtower",
+  "author": "MaX3Dd",
+  "authorUrl": "https://sketchfab.com/MaX3Dd",
+  "viewerUrl": "https://sketchfab.com/3d-models/wooden-watchtower-6ae46294301a480c8c6d4968ec2cdb76",
+  "license": "CC Attribution",
+  "licenseUrl": "http://creativecommons.org/licenses/by/4.0/",
+  "requiresAttribution": "Author must be credited. Commercial use is allowed.",
+  "faceCount": 446,
+  "vertexCount": 468,
+  "textureCount": 5,
+  "isDownloadable": true,
+  "slug": "watchtower",
+  "downloadKind": "glb",
+  "file": "art/source-assets/big-air/watchtower.glb",
+  "bytes": 2539868,
+  "sha256": "a6ea48d4fe87589b69f72ea4930690127aaa2e8f17ebca1a252a2b72909407aa"
+}

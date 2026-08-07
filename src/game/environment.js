@@ -272,7 +272,7 @@ export class MountainDressing {
         if (this.built) return;
         this.propRecords.length = 0;
         const templates = this._templates();
-        const spans = protectedSpans(this.course.terrain.jumps);
+        const spans = protectedSpans(this.course.terrain);
         const _n = new Vector3();
 
         // One accumulator per (family, band). Each becomes one mesh.
@@ -381,6 +381,15 @@ export class MountainDressing {
         for (const s of spans) if (z >= s.from - 8 && z <= s.to + 8) return false;
         for (const p of this.course.terrain.pipes ?? []) {
             if (z >= p.from - 12 && z <= p.to + 12 && ax < 60) return false;
+        }
+        // A jumping hill's whole footprint, not just the spans above. The
+        // protected spans stop at the bottom of the landing; the basin carries
+        // on for another hundred and thirty metres of outrun whose walls are
+        // where the grandstands stand, and a spruce growing out of row four is
+        // not a look any venue has.
+        for (const s of this.course.terrain.skiJumps ?? []) {
+            if (z >= s.fadeInFrom && z <= s.lipZ + s.hillLen + s.outrunLen
+                && ax < s.gateXTo) return false;
         }
         for (const zone of Object.values(this.course.zones)) {
             if (z >= zone.z[0] - this._zoneClear && z <= zone.z[1] + this._zoneClear

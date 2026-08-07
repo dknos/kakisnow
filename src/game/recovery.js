@@ -25,7 +25,7 @@ export class SafeSpots {
      */
     constructor(course) {
         this.course = course;
-        this._spans = protectedSpans(course.terrain.jumps);
+        this._spans = protectedSpans(course.terrain);
         /** @type {{x:number,z:number,facing:number}[]} newest last */
         this._ring = [];
         this._acc = 0;
@@ -35,7 +35,7 @@ export class SafeSpots {
 
     setCourse(course) {
         this.course = course;
-        this._spans = protectedSpans(course.terrain.jumps);
+        this._spans = protectedSpans(course.terrain);
         this.clear();
     }
 

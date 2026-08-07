@@ -14,6 +14,13 @@
  *   kind 3, RIDGE: t0 = (3, zFrom, zTo, featherZ)     t1 = (xCentre, halfWidth, featherX, height)
  *     Signed height: positive is a mound, negative is a creek bed. Not
  *     lane-gated — ridges are course architecture and may sit at the edge.
+ *   kind 4, SKIJUMP: t0 = (4, fadeInFrom, holdFrom, lipZ)
+ *                    t1 = (inrunLen, inrunDrop, tableLen, lipRise)
+ *                    t2 = (hillLen, hillDrop, outrunLen, outrunDrop)
+ *                    t3 = (closeLen, gateXFrom, gateXTo, bowl)
+ *     A whole jumping hill, replace-blended like a pipe. All four texels are
+ *     used, which is the row budget exactly — a fifth field would need
+ *     PRIM_COLS raised and the bake texture re-laid.
  */
 
 export const PRIM_COLS = 4;
@@ -48,6 +55,13 @@ export function encodeCoursePrimitives(terrain, data) {
     for (const g of terrain.ridges ?? []) {
         put(0, 3, g.zFrom, g.zTo, g.featherZ);
         put(1, g.xCentre, g.halfWidth, g.featherX, g.height);
+        row++;
+    }
+    for (const s of terrain.skiJumps ?? []) {
+        put(0, 4, s.fadeInFrom, s.holdFrom, s.lipZ);
+        put(1, s.inrunLen, s.inrunDrop, s.tableLen, s.lipRise);
+        put(2, s.hillLen, s.hillDrop, s.outrunLen, s.outrunDrop);
+        put(3, s.closeLen, s.gateXFrom, s.gateXTo, s.bowl);
         row++;
     }
 

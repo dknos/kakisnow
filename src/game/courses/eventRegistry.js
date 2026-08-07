@@ -369,6 +369,45 @@ export const FIVE_ALARM = {
     unlock: null,
 };
 
+/**
+ * The Big Air Stack — the pipe run, and the hill that ends it.
+ *
+ * Four ingredients strung down four hundred metres of halfpipe, and then a
+ * takeoff the rider cannot avoid: the lane runs through the jump, so the only
+ * question is how fast they arrive at it. Both vehicles are legal — the rocket
+ * chair is faster into the in-run and much harder to land.
+ *
+ * Medals measured 2026-08-07 on the finished terrain: the autopilot floors
+ * 45.34-45.40 s on the classic board and 43.32-43.39 s on the rocket chair,
+ * and both vehicles are legal here, so the ladder is set off the rocket. Gold
+ * sits +4.7 over that floor rather than the calm courses' +3, because the one
+ * pressure this course applies is the pressure the robot is immune to: a bad
+ * landing off a fifty-metre hill costs a human the crash-recovery rewind, and
+ * the autopilot's landings are graded but never fatal.
+ */
+export const BIG_AIR_STACK = {
+    id: "big-air-basin-stack",
+    version: 1,
+    courseId: "big-air-basin",
+    name: "The Big Air Stack",
+    tagline: "Four in the pipe. One in the air.",
+    mode: "delivery",
+    required: ["cheese", "patty", "tomato", "lettuce"],
+    seedPolicy: "random",
+    fixedSeed: null,
+    allowedVehicles: ["classic-snowboard", "rocket-chair"],
+    forcedVehicle: null,
+    startZ: -300,
+    finishZ: 560,
+    gold: 48,
+    silver: 62,
+    bronze: 80,
+    get medals() {
+        return { gold: this.gold, silver: this.silver, bronze: this.bronze };
+    },
+    unlock: null,
+};
+
 /** @type {Record<string, object>} every event, keyed by id. */
 export const EVENTS = {
     [SUMMIT_STACK.id]: SUMMIT_STACK,
@@ -382,6 +421,7 @@ export const EVENTS = {
     [PARK_ORDER.id]: PARK_ORDER,
     [AVALANCHE_SPECIAL.id]: AVALANCHE_SPECIAL,
     [FIVE_ALARM.id]: FIVE_ALARM,
+    [BIG_AIR_STACK.id]: BIG_AIR_STACK,
 };
 
 for (const event of Object.values(EVENTS)) {

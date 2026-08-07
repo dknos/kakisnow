@@ -1,0 +1,19 @@
+{
+  "uid": "10a22c724d1a4083bab2d64cdbac6f01",
+  "name": "Sports Bleachers",
+  "author": "justice2free",
+  "authorUrl": "https://sketchfab.com/justice2free",
+  "viewerUrl": "https://sketchfab.com/3d-models/sports-bleachers-10a22c724d1a4083bab2d64cdbac6f01",
+  "license": "CC Attribution",
+  "licenseUrl": "http://creativecommons.org/licenses/by/4.0/",
+  "requiresAttribution": "Author must be credited. Commercial use is allowed.",
+  "faceCount": 572,
+  "vertexCount": 300,
+  "textureCount": 0,
+  "isDownloadable": true,
+  "slug": "bleacher",
+  "downloadKind": "glb",
+  "file": "art/source-assets/big-air/bleacher.glb",
+  "bytes": 36064,
+  "sha256": "ada1565e976b8064f065d2b74217fa196930bc9743bf91566a95828ae4420bfc"
+}

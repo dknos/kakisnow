@@ -16,6 +16,7 @@ import { PINECONE_PASS } from "./pineconePass.js";
 import { GLACIER_GORGE } from "./glacierGorge.js";
 import { MIDNIGHT_RESORT } from "./midnightResort.js";
 import { WHITEOUT_RIDGE } from "./whiteoutRidge.js";
+import { BIG_AIR_BASIN } from "./bigAirBasin.js";
 import { validateCourse } from "./validate.js";
 
 /** @type {Record<string, object>} every playable course, keyed by id. */
@@ -25,6 +26,7 @@ export const COURSES = {
     [GLACIER_GORGE.id]: GLACIER_GORGE,
     [MIDNIGHT_RESORT.id]: MIDNIGHT_RESORT,
     [WHITEOUT_RIDGE.id]: WHITEOUT_RIDGE,
+    [BIG_AIR_BASIN.id]: BIG_AIR_BASIN,
 };
 
 export const DEFAULT_COURSE_ID = SUMMIT_LINE.id;

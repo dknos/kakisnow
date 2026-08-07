@@ -321,3 +321,60 @@ spec-gloss source run through it will light as raw metal (the tomato trap).
 Everything the expansion itself added — rails, ice sheets, snowcats, tapes,
 camp primitives — is procedural geometry with no external source, and every
 sound remains synthesised at runtime.
+
+## Big Air Basin venue — CC BY 4.0, runtime
+
+The built things around the jumping hill: grandstands up both bowl walls,
+course flags, wind sleeves, the start gantry, floodlight heads, the judges'
+tower and a lift line. Pulled from Sketchfab through
+`tools/big-air/sketchfab.mjs`, which records bytes and SHA-256 **at download
+time** into `art/source-assets/big-air/meta/<uid>.json` — provenance recorded
+when it is known rather than reconstructed later, which is the failure this
+file already documents seven times over.
+
+Every one of these is **CC Attribution (CC BY 4.0)**, which is a licence this
+project can satisfy: attribution is carried here and in
+`public/THIRD_PARTY_NOTICES.txt`. None is unresolved.
+
+### Sources — `art/source-assets/big-air/` (excluded from git)
+
+| Source file | Model | Author | Licence | Bytes | SHA-256 |
+| --- | --- | --- | --- | ---: | --- |
+| `bleacher.glb` | [Sports Bleachers](https://sketchfab.com/3d-models/sports-bleachers-10a22c724d1a4083bab2d64cdbac6f01) | [justice2free](https://sketchfab.com/justice2free) | CC Attribution | 36064 | `ada1565e976b8064f065d2b74217fa196930bc9743bf91566a95828ae4420bfc` |
+| `chairlift.glb` | [Chairlift from Poly by Google](https://sketchfab.com/3d-models/chairlift-from-poly-by-google-bd3647efca8f46ebb9b2d1e48571c974) | [IronEqual](https://sketchfab.com/ie-niels) | CC Attribution | 64364 | `8e16f898c30d7eeb57ba8d829f6ace19332194dfc116920f214df907087af94f` |
+| `flag.glb` | [Low Poly Red Flag - Wooden Pole Banner](https://sketchfab.com/3d-models/low-poly-red-flag-wooden-pole-banner-8d52d2408ef84046bc0a0f6102ec41be) | [marishka1611](https://sketchfab.com/marishka1611) | CC Attribution | 21688 | `a8ac71da99624af18141bbf31b132f261bd199473fc473fff0bed257d1435947` |
+| `floodlight.glb` | [Floodlight](https://sketchfab.com/3d-models/floodlight-bfc9a3305fd344679d3d88a3a9a26e04) | [Dreadler](https://sketchfab.com/Dreadler) | CC Attribution | 406340 | `9c3b79c38b7261cb567ec385c607a7387da3a23deadbf01fb14d4a6574c218f6` |
+| `scaffold.glb` | [Steel Scaffolding Structure](https://sketchfab.com/3d-models/steel-scaffolding-structure-d3a5fd33af2a46ada3f1b59fc0ac4584) | [MR.AnyCAD](https://sketchfab.com/MRAnyCAD) | CC Attribution | 1103940 | `b22312a41d16361bc38a69093fe8d341fbf76ec69165d135358679b5e09ef3cf` |
+| `watchtower.glb` | [Wooden Watchtower](https://sketchfab.com/3d-models/wooden-watchtower-6ae46294301a480c8c6d4968ec2cdb76) | [MaX3Dd](https://sketchfab.com/MaX3Dd) | CC Attribution | 2539868 | `a6ea48d4fe87589b69f72ea4930690127aaa2e8f17ebca1a252a2b72909407aa` |
+| `windsock.glb` | [Wind sleeve](https://sketchfab.com/3d-models/wind-sleeve-3b99ba8bd6c6481687dcc95f2f861e42) | [mira9](https://sketchfab.com/mira9) | CC Attribution | 450296 | `edef2131e525fd676fd57bbdc46d59365f29c39a3c3b3f5e9a054f3998d59119` |
+
+### Runtime derivatives — `public/assets/models/big-air/`
+
+Produced by `tools/big-air/optimize-venue.mjs`: specular-glossiness converted
+to metallic-roughness offline, TANGENT and TEXCOORD_1 stripped, node
+transforms baked, decimated per the job table, WebP textures, Draco.
+
+| Runtime file | Bytes | SHA-256 (first 16) |
+| --- | ---: | --- |
+| `venue-bleacher.glb` | 3,000 | `4bdcc241983f8b9a` |
+| `venue-chairlift.glb` | 7,140 | `6c6e1118680fadc4` |
+| `venue-flag.glb` | 5,620 | `ce684410aac30f95` |
+| `venue-floodlight.glb` | 17,412 | `c4e0a7235cede780` |
+| `venue-judges.glb` | 118,172 | `f50466384995cbc2` |
+| `venue-scaffold.glb` | 44,432 | `c782024f820f1a03` |
+| `venue-windsock.glb` | 24,440 | `1cfd4fb683dbb3bc` |
+
+A Blender QA render of each is in `screenshots/big-air/asset-qa/` — one
+angle per prop, which is what the licence evidence needs; the four-angle
+turntables `tools/snow-burgers/qa-render.py` produces are reproducible and were
+not worth 18 MB of permanent git history.
+
+### One model was pulled and deleted
+
+Sketchfab `fc6fd6cf871b48bfab0d81741e0cb917`, an inflatable race arch, was
+downloaded as a finish gate and then removed before it reached the runtime: its
+texture carries real third-party trademarks (KMC Wheels, Rockstar, "Best in the
+Desert"). The model's own CC BY licence says nothing about those marks, and
+shipping them in a published game is not a question the licence answers. The
+camp keeps its primitive-built arch. Recorded here because a deletion nobody
+wrote down is a decision that gets made again.

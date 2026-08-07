@@ -1,0 +1,19 @@
+{
+  "uid": "3b99ba8bd6c6481687dcc95f2f861e42",
+  "name": "Wind sleeve",
+  "author": "mira9",
+  "authorUrl": "https://sketchfab.com/mira9",
+  "viewerUrl": "https://sketchfab.com/3d-models/wind-sleeve-3b99ba8bd6c6481687dcc95f2f861e42",
+  "license": "CC Attribution",
+  "licenseUrl": "http://creativecommons.org/licenses/by/4.0/",
+  "requiresAttribution": "Author must be credited. Commercial use is allowed.",
+  "faceCount": 548,
+  "vertexCount": 292,
+  "textureCount": 1,
+  "isDownloadable": true,
+  "slug": "windsock",
+  "downloadKind": "glb",
+  "file": "art/source-assets/big-air/windsock.glb",
+  "bytes": 450296,
+  "sha256": "edef2131e525fd676fd57bbdc46d59365f29c39a3c3b3f5e9a054f3998d59119"
+}
