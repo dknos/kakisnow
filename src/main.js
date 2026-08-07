@@ -15,7 +15,11 @@ import {
     sample, checkSpike, stats, mark, installDrawCounter, endFrameDraws,
 } from "./core/perf.js";
 import { initInput, pollInput, endFrame, input } from "./core/input.js";
-import { initTouch, setTouchVisible, shouldShowTouch } from "./core/touchInput.js";
+import {
+    initTouch, setTouchVisible, shouldShowTouch, setTouchPauseHandler,
+} from "./core/touchInput.js";
+import { initPlayerSettings } from "./core/playerSettings.js";
+import { PauseSystem, suppressGameplayInput } from "./game/pauseSystem.js";
 import { CameraRig } from "./core/camera.js";
 import { CharacterController } from "./character/controller.js";
 import { Character } from "./character/character.js";
@@ -80,6 +84,10 @@ async function boot() {
 
     installDrawCounter(engine);
     registerShaders();
+    // Saved player settings land before anything derives one-shot state from
+    // them; the resolutionScale listener above is already armed, so a stored
+    // quality preset re-scales the swapchain the moment it hydrates.
+    initPlayerSettings();
 
     await loading.phase("building scene", 0.12);
 
@@ -261,6 +269,13 @@ async function boot() {
     initTouch(canvas);
     onChange("touchControls", () => setTouchVisible(shouldShowTouch()));
 
+    // The pause veil. It owns Escape, gamepad Start, the touch corner button,
+    // and the focus/pointer-lock safety nets; the render loop below reads
+    // `pause.active` as a second reason for the dt=0 the freeze-time toggle
+    // already proved safe everywhere.
+    const pause = new PauseSystem({ director: game, canvas });
+    setTouchPauseHandler(() => pause.toggle());
+
     // ------------------------------------------------------------- warm-up
     // Everything that can compile, compiles here — behind the loading screen.
     await loading.phase("compiling pipelines", 0.78);
@@ -331,10 +346,18 @@ async function boot() {
         let dtMs = now - prev;
         prev = now;
         if (dtMs > 100) dtMs = 100;
-        const dt = S.freezeTime ? 0 : dtMs / 1000;
+        // One dt for the whole frame. Paused and frozen are two reasons for
+        // the same zero: rendering continues, simulated time does not.
+        const dt = (S.freezeTime || pause.active) ? 0 : dtMs / 1000;
         time += dt;
 
         pollInput();
+        // In the poll-to-controller window, like everything that overrides
+        // input: the gamepad Start edge is polled here, and a paused frame
+        // zeroes the struct so held keys steer nothing and nothing pressed
+        // during the veil can fire on resume.
+        pause.update();
+        if (pause.active) suppressGameplayInput();
         // Between the poll and the controller, because holding a rider at a
         // start gate means overwriting the input struct the controller is
         // about to read — see `GameDirector.beforePhysics`.
@@ -425,6 +448,8 @@ async function boot() {
     // press a button. `?mode=free-ride` is the original open mountain with no
     // game interface over it, which is what those tools were written against.
     onChange("audio", (v) => gameAudio.setEnabled(v));
+    onChange("masterVolume", (v) => gameAudio.setVolume(v));
+    gameAudio.setVolume(S.masterVolume);
     gameAudio.setEnabled(S.audio !== false);
 
     const requestedMode = new URLSearchParams(location.search).get("mode");
@@ -439,6 +464,7 @@ async function boot() {
         rocker, overlay, courseHud, terrain, sky, shadows, post, depthPass,
         game: game.api,
         rocketChair,
+        pause,
         S, input, perfStats: stats, set: setSetting,
         setHeroStyle(style) {
             setSetting("heroStyle", style === "rockerkaki" ? "rockerkaki" : "snowbound");

@@ -181,6 +181,23 @@ export class BurgerRun {
         this.dropIn();
     }
 
+    /**
+     * Restart from anywhere in a live run — the pause menu's restart.
+     *
+     * `dropIn` deliberately only answers the order card and the results
+     * screen, because those are the places a button exists. A pause can happen
+     * mid-countdown, mid-run or mid-assembly, and from all of those "restart"
+     * means the same thing: same seed, same route, back to the gate.
+     */
+    restart() {
+        if (this.state === RunState.IDLE) return;
+        this._resetRun();
+        this.field.reset();
+        this._placeAtGate();
+        this.countdown = COUNTDOWN_SECONDS;
+        this._setState(RunState.COUNTDOWN);
+    }
+
     /** Take a new order — a new seed on the same event. */
     nextOrder() {
         this.begin(null);

@@ -41,6 +41,11 @@ import { INGREDIENTS } from "../game/ingredients.js";
 /** Master level. Deliberately conservative: this plays over a browser tab. */
 const MASTER = 0.42;
 
+/** How far the mix drops while the game is paused. Ducked, not silenced: the
+ *  pause menu's own clicks still ride the same master, and a world that goes
+ *  dead quiet reads as a mute bug rather than as a held breath. */
+const DUCK = 0.16;
+
 export class GameAudio {
     constructor() {
         /** @type {AudioContext|null} */
@@ -49,6 +54,9 @@ export class GameAudio {
         this.unlocked = false;
         this._rocket = null;
         this._noiseBuffer = null;
+        /** Player volume 0..1, multiplied under the conservative MASTER. */
+        this.volume = 1;
+        this._ducked = false;
     }
 
     /**
@@ -68,7 +76,7 @@ export class GameAudio {
         }
 
         this.master = this.ctx.createGain();
-        this.master.gain.value = MASTER;
+        this.master.gain.value = this.enabled ? MASTER * this.volume : 0;
         // A limiter rather than a compressor in spirit: the rocket and a pickup
         // landing on the same frame should not clip, and the ratio is high
         // enough that it never audibly pumps.
@@ -96,11 +104,33 @@ export class GameAudio {
 
     setEnabled(on) {
         this.enabled = !!on;
-        if (this.master) {
-            this.master.gain.setTargetAtTime(
-                this.enabled ? MASTER : 0, this.ctx.currentTime, 0.05
-            );
-        }
+        this._applyGain();
+    }
+
+    /** @param {number} v 0..1 */
+    setVolume(v) {
+        this.volume = Math.max(0, Math.min(1, v));
+        this._applyGain();
+    }
+
+    /**
+     * Duck the whole mix for a pause.
+     *
+     * The rocket loop, any future board layers and the one-shots all hang off
+     * the master, so one gain covers everything that should recede — while UI
+     * clicks, which are quiet and short, remain audible inside the duck.
+     */
+    setDucked(on) {
+        this._ducked = !!on;
+        this._applyGain();
+    }
+
+    _applyGain() {
+        if (!this.master) return;
+        const level = this.enabled
+            ? MASTER * this.volume * (this._ducked ? DUCK : 1)
+            : 0;
+        this.master.gain.setTargetAtTime(level, this.ctx.currentTime, 0.05);
     }
 
     get ready() {

@@ -27,6 +27,7 @@
 
 import { INGREDIENTS } from "../game/ingredients.js";
 import { RunState } from "../game/burgerRun.js";
+import { S, set as setSetting, applyPreset } from "../core/settings.js";
 
 const ICONS = (import.meta.env?.BASE_URL ?? "/") + "assets/ui/snow-burgers/";
 
@@ -241,6 +242,76 @@ const CSS = `
     color: rgba(219,230,242,0.55);
 }
 
+/* ----------------------------------------------------------------- pause */
+/* A lighter veil than the full screens: those carry a 90% blackout scrim
+   because they play over a bright idle snowfield, but a pause sits over the
+   player's own run and the mountain should stay present behind it. */
+#sb-ui .sb-screen.sb-lite {
+    background: rgba(6, 10, 16, 0.55);
+    backdrop-filter: blur(9px) saturate(0.82);
+    -webkit-backdrop-filter: blur(9px) saturate(0.82);
+}
+.sb-pause-card { text-align: center; width: min(560px, 86vw); }
+.sb-pause-detail {
+    margin-top: 0.9em;
+    font: 400 11px/1.6 ui-monospace, "Cascadia Mono", monospace;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
+    color: rgba(219, 230, 242, 0.55);
+}
+.sb-item.sb-armed { color: #e2553a; }
+.sb-item.sb-armed::before { background: #e2553a; opacity: 1; transform: none; }
+
+/* -------------------------------------------------------------- settings */
+.sb-settings-card { width: min(520px, 88vw); }
+.sb-set-rows { margin-top: 2.4em; display: grid; gap: 15px; }
+.sb-set-row {
+    display: grid; grid-template-columns: 148px 1fr 56px;
+    align-items: center; gap: 14px;
+}
+.sb-set-row .sb-k {
+    font: 500 9px/1.3 ui-monospace, "Cascadia Mono", monospace;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    color: rgba(219,230,242,0.55); text-align: left;
+}
+.sb-set-row .sb-v {
+    text-align: right;
+    font: 400 11px/1 ui-monospace, monospace; letter-spacing: 0.06em;
+    font-variant-numeric: tabular-nums; color: rgba(232,242,251,0.85);
+}
+.sb-set-row input[type="range"] {
+    appearance: none; -webkit-appearance: none;
+    width: 100%; height: 18px; background: none; cursor: pointer;
+}
+.sb-set-row input[type="range"]::-webkit-slider-runnable-track {
+    height: 2px; background: rgba(219,230,242,0.18);
+}
+.sb-set-row input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 11px; height: 11px; margin-top: -4.5px;
+    background: var(--warm); border: 0; border-radius: 0;
+}
+.sb-set-row input[type="range"]:focus-visible { outline: 1px solid var(--warm); outline-offset: 4px; }
+.sb-set-row input[type="range"]::-moz-range-track {
+    height: 2px; background: rgba(219,230,242,0.18);
+}
+.sb-set-row input[type="range"]::-moz-range-thumb {
+    width: 11px; height: 11px; background: var(--warm);
+    border: 0; border-radius: 0;
+}
+.sb-seg { display: flex; gap: 2px; }
+.sb-seg button {
+    appearance: none; border: 0; cursor: pointer;
+    flex: 1; padding: 7px 0;
+    background: rgba(219,230,242,0.06);
+    color: rgba(219,230,242,0.55);
+    font: 500 9px/1 ui-monospace, "Cascadia Mono", monospace;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    transition: background 160ms ease, color 160ms ease;
+}
+.sb-seg button:hover, .sb-seg button:focus-visible { color: #f4f9ff; outline: none; }
+.sb-seg button.on { background: rgba(242,161,61,0.16); color: var(--warm); }
+
 /* --------------------------------------------------------------- results */
 .sb-results { width: min(700px, 90vw); }
 .sb-grade {
@@ -327,7 +398,17 @@ export class SnowBurgersUi {
             chips: this.root.querySelector("#sb-order-chips"),
             results: this.root.querySelector("#sb-results"),
             resultBody: this.root.querySelector("#sb-result-body"),
+            pause: this.root.querySelector("#sb-pause"),
+            pauseTitle: this.root.querySelector("#sb-pause-title"),
+            pauseDetail: this.root.querySelector("#sb-pause-detail"),
+            pauseResume: this.root.querySelector("#sb-pause-resume"),
+            pauseRestart: this.root.querySelector("#sb-pause-restart"),
+            settings: this.root.querySelector("#sb-settings"),
+            setRows: this.root.querySelector("#sb-set-rows"),
         };
+
+        /** Set by the pause system. Receives the data-pause action strings. */
+        this.onPauseAction = null;
 
         this._bind();
         this._lastClock = -1;
@@ -387,6 +468,30 @@ export class SnowBurgersUi {
 
 <div class="sb-screen" id="sb-results">
   <div class="sb-results" id="sb-result-body"></div>
+</div>
+
+<div class="sb-screen sb-lite" id="sb-pause">
+  <div class="sb-pause-card">
+    <div class="sb-kicker">Paused</div>
+    <div class="sb-event" id="sb-pause-title">Snow-Burgers</div>
+    <div class="sb-pause-detail" id="sb-pause-detail"></div>
+    <nav class="sb-menu">
+      <button class="sb-item" data-pause="resume" id="sb-pause-resume">Resume</button>
+      <button class="sb-item" data-pause="restart" id="sb-pause-restart">Restart run</button>
+      <button class="sb-item" data-pause="settings">Settings</button>
+      <button class="sb-item" data-pause="quit">Quit to menu</button>
+    </nav>
+  </div>
+</div>
+
+<div class="sb-screen sb-lite" id="sb-settings">
+  <div class="sb-settings-card">
+    <div class="sb-kicker">Settings</div>
+    <div class="sb-set-rows" id="sb-set-rows"></div>
+    <div class="sb-actions">
+      <button class="sb-item" data-pause="settings-back">Back</button>
+    </div>
+  </div>
 </div>`;
     }
 
@@ -394,6 +499,10 @@ export class SnowBurgersUi {
         this.root.addEventListener("click", (e) => {
             const btn = e.target.closest("button");
             if (!btn) return;
+            if (btn.dataset.pause) {
+                this.onPauseAction?.(btn.dataset.pause);
+                return;
+            }
             if (btn.dataset.mode) this.hooks.onSelectMode?.(btn.dataset.mode);
             switch (btn.dataset.action) {
                 case "drop-in": this.hooks.onDropIn?.(); break;
@@ -542,6 +651,102 @@ export class SnowBurgersUi {
         this.el.alert.classList.add("on");
     }
 
+    // --------------------------------------------------------------- pause
+
+    /**
+     * The pause veil. An overlay, not a screen: it never joins `_show`'s
+     * exclusive set, so whatever the run had on screen is exactly what is
+     * there when the veil lifts.
+     *
+     * @param {{title:string, detail:string, canRestart:boolean}} context
+     */
+    showPause(context) {
+        this.el.pauseTitle.textContent = context.title;
+        this.el.pauseDetail.textContent = context.detail;
+        this.el.pauseRestart.style.display = context.canRestart ? "" : "none";
+        this.armRestart(false);
+        this.el.settings.classList.remove("on");
+        this.el.pause.classList.add("on");
+        // Keyboard and gamepad players land on the safe default.
+        this.el.pauseResume.focus({ preventScroll: true });
+    }
+
+    hidePause() {
+        this.el.pause.classList.remove("on");
+        this.el.settings.classList.remove("on");
+    }
+
+    /** Restart wants a second press; show that state on the button itself. */
+    armRestart(on) {
+        this.el.pauseRestart.classList.toggle("sb-armed", !!on);
+        this.el.pauseRestart.textContent = on ? "Press again to restart" : "Restart run";
+    }
+
+    // ------------------------------------------------------------- settings
+
+    /**
+     * The player settings panel, reached from the pause menu.
+     *
+     * This is the one part of the interface allowed to touch the settings
+     * store directly — it is a settings surface, the same way the F1 overlay
+     * is. Rows are rebuilt on every open so they always show the live values,
+     * including anything the overlay changed in the meantime.
+     */
+    showPauseSettings() {
+        this._buildSettingsRows();
+        this.el.pause.classList.remove("on");
+        this.el.settings.classList.add("on");
+    }
+
+    _buildSettingsRows() {
+        const rows = PLAYER_SETTINGS.map((def, i) => {
+            if (def.type === "range") {
+                return `<div class="sb-set-row">
+                    <div class="sb-k">${def.label}</div>
+                    <input type="range" data-si="${i}" min="${def.min}" max="${def.max}"
+                        step="${def.step}" value="${S[def.k]}" aria-label="${def.label}" />
+                    <div class="sb-v" id="sb-sv-${i}">${def.fmt(S[def.k])}</div>
+                </div>`;
+            }
+            const opts = def.type === "toggle" ? ["on", "off"] : def.opts;
+            const current = def.type === "toggle" ? (S[def.k] ? "on" : "off") : String(S[def.k]);
+            return `<div class="sb-set-row">
+                <div class="sb-k">${def.label}</div>
+                <div class="sb-seg" role="group" aria-label="${def.label}">${opts.map((o) =>
+                    `<button data-si="${i}" data-opt="${o}"
+                        class="${o === current ? "on" : ""}">${o}</button>`).join("")}
+                </div>
+                <div class="sb-v"></div>
+            </div>`;
+        }).join("");
+        this.el.setRows.innerHTML = rows;
+
+        if (!this._settingsBound) {
+            this._settingsBound = true;
+            this.el.setRows.addEventListener("input", (e) => {
+                const el = e.target;
+                if (!(el instanceof HTMLInputElement) || el.type !== "range") return;
+                const def = PLAYER_SETTINGS[+el.dataset.si];
+                const v = parseFloat(el.value);
+                setSetting(def.k, v);
+                const label = this.root.querySelector(`#sb-sv-${el.dataset.si}`);
+                if (label) label.textContent = def.fmt(v);
+            });
+            this.el.setRows.addEventListener("click", (e) => {
+                const btn = e.target.closest("button[data-opt]");
+                if (!btn) return;
+                const def = PLAYER_SETTINGS[+btn.dataset.si];
+                const opt = btn.dataset.opt;
+                if (def.type === "toggle") setSetting(def.k, opt === "on");
+                else if (def.apply) def.apply(opt);
+                else setSetting(def.k, opt);
+                for (const b of btn.parentElement.children) {
+                    b.classList.toggle("on", b === btn);
+                }
+            });
+        }
+    }
+
     // ------------------------------------------------------------- results
 
     /**
@@ -603,6 +808,35 @@ Seed ${result.seed} · not measured this run: ${result.notMeasured.join(", ")}</
         this._style.remove();
     }
 }
+
+/**
+ * What the player may change without opening the F1 overlay.
+ *
+ * Every key persists via `playerSettings.js`. The quality preset routes
+ * through `applyPreset` so its member keys fire their own listeners.
+ */
+const PLAYER_SETTINGS = [
+    {
+        k: "preset", label: "Quality", type: "seg",
+        opts: ["balanced", "high", "ultra"], apply: (v) => applyPreset(v),
+    },
+    { k: "audio", label: "Audio", type: "toggle" },
+    {
+        k: "masterVolume", label: "Volume", type: "range",
+        min: 0, max: 1, step: 0.01, fmt: (v) => Math.round(v * 100) + "%",
+    },
+    {
+        k: "mouseSensitivity", label: "Mouse sensitivity", type: "range",
+        min: 0.2, max: 3, step: 0.05, fmt: (v) => v.toFixed(2) + "×",
+    },
+    { k: "invertY", label: "Invert look Y", type: "toggle" },
+    {
+        k: "shakeScale", label: "Camera shake", type: "range",
+        min: 0, max: 1.5, step: 0.05, fmt: (v) => Math.round(v * 100) + "%",
+    },
+    { k: "reducedMotion", label: "Reduced motion", type: "toggle" },
+    { k: "touchControls", label: "Touch controls", type: "seg", opts: ["auto", "on", "off"] },
+];
 
 function row(key, width, value, unmeasured = false) {
     return `<div class="sb-row${unmeasured ? " sb-unmeasured" : ""}">

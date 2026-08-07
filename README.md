@@ -97,17 +97,27 @@ blender --background --factory-startup --python tools/validate-rockerkaki-rig.py
 - Mouse wheel — eased zoom
 - Hold right mouse button — snow-surf
 - `Space` — jump (also works at the lip with input buffering and coyote time)
+- `Left Shift` / gamepad right trigger — rocket thrust, when the chair is fitted
+- `Escape` / gamepad Start / touch corner button — pause
 - `1` — Sweep
 - `2` — Ribbon
 - `3` — Bloom
 - `4` — Crystallize
 - `5` — Vortex
-- `F1` or backtick — settings and performance overlay
+- `F1` or backtick — developer overlay
 
-The overlay is hidden by default. It exposes the rolling frame-time graph,
-worst-1% rate, scene counts, quality presets, individual system and
-post-process toggles, art-direction controls, debug views, and the hero
-selector.
+Pausing freezes the run clock, the countdown, fuel, the ghost and every
+simulated system while the mountain keeps rendering behind a light veil.
+Losing window focus or pointer lock during active play pauses automatically
+(`?autopause=off` disables that for headless tooling). The pause menu carries
+the player settings — quality, volume, mouse sensitivity, invert Y, camera
+shake, reduced motion, touch controls — which persist in `localStorage`
+separately from records.
+
+The F1 overlay is the developer surface and stays hidden by default. It
+exposes the rolling frame-time graph, worst-1% rate, scene counts, quality
+presets, individual system and post-process toggles, art-direction controls,
+debug views, and the hero selector.
 
 ## KAKISNOW Snow Technology
 

@@ -14,6 +14,7 @@ import { Vector3, Matrix, Quaternion } from "@babylonjs/core/Maths/math.vector.j
 import { Scalar } from "@babylonjs/core/Maths/math.scalar.js";
 import { UniversalCamera } from "@babylonjs/core/Cameras/universalCamera.js";
 import { input } from "./input.js";
+import { S } from "./settings.js";
 
 // ------------------------------------------------------- module-scope scratch
 const _pivot = new Vector3();
@@ -148,9 +149,13 @@ export class CameraRig {
         this.roll = expDamp(this.roll, this.rollTarget, 5.0, dt);
 
         // ------------------------------------------------------------ shake
+        // Scaled where trauma becomes displacement rather than where it is
+        // added, so landings, carving and anything future obey the one player
+        // slider without each call site knowing about it.
         this.trauma = Math.max(0, this.trauma - dt * 1.15);
         this.shakeTime += dt;
-        const shake = this.trauma * this.trauma;
+        const shakeScale = S.reducedMotion ? 0 : S.shakeScale;
+        const shake = this.trauma * this.trauma * shakeScale;
 
         // ------------------------------------------------------ compose xform
         const cp = Math.cos(this.pitch);

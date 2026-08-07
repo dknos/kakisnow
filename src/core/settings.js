@@ -133,6 +133,22 @@ export const S = {
     touchControls: "auto",
     /** Master audio. Everything the game plays is synthesised at runtime. */
     audio: true,
+    /** Master volume, 0..1, on top of the audio system's own conservative level. */
+    masterVolume: 1.0,
+    /** Multiplier on mouse look. 1 is the tuning everything shipped with. */
+    mouseSensitivity: 1.0,
+    /** Invert mouse look Y. */
+    invertY: false,
+    /**
+     * Multiplier on camera shake, 0..1.5.
+     *
+     * Applied where trauma becomes displacement rather than where it is added,
+     * so every source of shake — landings, carving, future crashes — obeys the
+     * one slider without each call site knowing it exists.
+     */
+    shakeScale: 1.0,
+    /** Accessibility: kills shake and speed streaks outright. */
+    reducedMotion: false,
     /**
      * A second multiplier on the rocket chair, on top of `boardScale`.
      *
@@ -256,6 +272,11 @@ export const SCHEMA = [
             { k: "showBoard", l: "Snowboard", t: "b" },
             { k: "boardScale", l: "Board size", t: "f", min: 0.7, max: 1.8, step: 0.01 },
             { k: "audio", l: "Audio", t: "b" },
+            { k: "masterVolume", l: "Volume", t: "f", min: 0, max: 1, step: 0.01 },
+            { k: "mouseSensitivity", l: "Mouse sens.", t: "f", min: 0.2, max: 3, step: 0.05 },
+            { k: "invertY", l: "Invert Y", t: "b" },
+            { k: "shakeScale", l: "Cam shake", t: "f", min: 0, max: 1.5, step: 0.05 },
+            { k: "reducedMotion", l: "Reduced motion", t: "b" },
             { k: "touchControls", l: "Touch", t: "e", opts: ["auto", "on", "off"] },
             {
                 k: "vehicle", l: "Vehicle", t: "e",

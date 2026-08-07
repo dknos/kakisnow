@@ -31,7 +31,7 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector.js";
 import { Scalar } from "@babylonjs/core/Maths/math.scalar.js";
 
 import { input } from "../core/input.js";
-import { set as setSetting } from "../core/settings.js";
+import { S, set as setSetting } from "../core/settings.js";
 import { ShadedAsset } from "../render/shadedAsset.js";
 import { IngredientField } from "./ingredientField.js";
 import { BurgerRun, RunState, SUMMIT_STACK } from "./burgerRun.js";
@@ -45,12 +45,8 @@ import { FUEL_PER_INGREDIENT } from "../vehicles/rocketThrust.js";
 import { audio } from "../audio/audio.js";
 import { GhostPlayback, formatDelta } from "./ghost.js";
 
-export const Mode = {
-    TITLE: "title",
-    BURGER_RUN: "burger-run",
-    FREE_RIDE: "free-ride",
-    ROCKET_TEST: "rocket-test",
-};
+import { Mode } from "./modes.js";
+export { Mode };
 
 /** Seconds the burger assembly plays before the results screen. */
 const ASSEMBLY_TIME = 3.4;
@@ -131,6 +127,10 @@ export class GameDirector {
         });
 
         this.mode = Mode.TITLE;
+        /** Written by the pause system; read by anything that must not creep. */
+        this.paused = false;
+        /** What the rider was on before the Rocket Board Test borrowed them. */
+        this._vehicleBeforeTest = null;
         this._assembly = 0;
         this._assemblyTotal = ASSEMBLY_TIME;
         this._alertShown = null;
@@ -212,7 +212,23 @@ export class GameDirector {
     // ------------------------------------------------------------------ modes
 
     selectMode(mode) {
+        const prev = this.mode;
         this.mode = mode;
+        // Leaving the Rocket Board Test hands back what it borrowed. Without
+        // this the test leaked `vehicle=rocket-chair` and an infinite tank
+        // into whatever mode came next.
+        if (prev === Mode.ROCKET_TEST && mode !== Mode.ROCKET_TEST) {
+            if (this.rocketChair) {
+                this.rocketChair.thrust.infinite = false;
+                this.rocketChair.thrust.reset();
+            }
+            setSetting("vehicle", this._vehicleBeforeTest ?? "classic-snowboard");
+            this._vehicleBeforeTest = null;
+        }
+        // The engine's voice is only driven inside a run; leaving one mid-
+        // throttle used to freeze the rocket bus at its last gain. If the new
+        // mode runs the engine, next frame's update re-drives it.
+        audio.updateRocket(0, 0, true);
         this.dressing.setActive(true);
         switch (mode) {
             case Mode.BURGER_RUN:
@@ -257,6 +273,9 @@ export class GameDirector {
         this.burger.setActive(false);
         this.ui.hideAll();
         this._setCourseHudVisible(true);
+        if (this._vehicleBeforeTest === null) {
+            this._vehicleBeforeTest = S.vehicle;
+        }
         if (!this.rocketChair?.available) {
             this.ui.setHud(true);
             this.ui.setAlert({
@@ -306,6 +325,45 @@ export class GameDirector {
             }))
         );
         return seed;
+    }
+
+    /**
+     * The pause menu's restart: same event, same seed, back to the start.
+     *
+     * Per mode, because "restart" means different things: a Burger Run goes
+     * back to its gate on the same route, the Rocket Board Test re-seats the
+     * rider at the summit with a fresh infinite tank, and Free Ride simply
+     * returns to the top of the mountain.
+     */
+    restartCurrent() {
+        switch (this.mode) {
+            case Mode.BURGER_RUN:
+                // The reward may be mid-rise if the pause came during the
+                // assembly; a restart must not leave a giant burger standing.
+                this.burger.setActive(false);
+                this.ui.resetCollected();
+                this.run.restart();
+                break;
+            case Mode.ROCKET_TEST:
+                this._startRocketTest();
+                break;
+            case Mode.FREE_RIDE: {
+                const c = this.controller;
+                c.position.set(0, 0, 0);
+                c.position.y = this.terrain.heightAt(0, 0);
+                c.velocity.setAll(0);
+                c.verticalVelocity = 0;
+                c.facing = 0;
+                break;
+            }
+            default:
+                break;
+        }
+    }
+
+    /** The pause menu's quit. A quit discards the run — nothing is recorded. */
+    quitToTitle() {
+        this.selectMode(Mode.TITLE);
     }
 
     // ----------------------------------------------------------------- update
@@ -555,6 +613,14 @@ export class GameDirector {
         // starts.
         if (next === RunState.COUNTDOWN) {
             this.ui.hideScreens();
+            // Full tank at every gate, however the rider got there — first
+            // drop, retry from the results, or a restart out of the pause
+            // menu. This is where "a run starts with a full tank" is actually
+            // enforced; doing it only when an order is taken let a retry
+            // inherit the last attempt's dregs.
+            if (this.rocketChair && this.mode === Mode.BURGER_RUN) {
+                this.rocketChair.thrust.reset();
+            }
             // Arm the ghost here rather than when an order is taken, because
             // this is the one place both paths pass through. Taking a new
             // order rolls a fresh seed, and a stored ghost belongs to the seed

@@ -87,11 +87,32 @@ const CSS = `
     color: #fff; transform: scale(0.94);
 }
 #sb-touch .key.wide { grid-column: span 2; width: 178px; height: 54px; border-radius: 27px; }
+#sb-touch .pause {
+    position: absolute; top: max(18px, env(safe-area-inset-top));
+    right: max(18px, env(safe-area-inset-right));
+    width: 44px; height: 44px; border-radius: 50%;
+    border: 1px solid rgba(219,230,242,0.26);
+    background: rgba(9,14,22,0.30);
+    color: rgba(232,242,251,0.82);
+    font: 500 12px/1 ui-monospace, "Cascadia Mono", monospace;
+    display: grid; place-items: center;
+    pointer-events: auto;
+    transition: background 120ms ease, border-color 120ms ease;
+}
+#sb-touch .pause:active { background: rgba(242,161,61,0.28); border-color: #f2a13d; }
 `;
 
 let root = null;
 let padEl = null;
 let nubEl = null;
+/** @type {(() => void)|null} the pause system's tap handler */
+let onPauseTap = null;
+
+/** Wire the pause button. A callback rather than a `touch` field, because a
+ *  tap is an intent for the flow layer, not per-frame input for the poll. */
+export function setTouchPauseHandler(fn) {
+    onPauseTap = fn;
+}
 /** @type {Map<number, {kind: string, el?: HTMLElement, x: number, y: number}>} */
 const pointers = new Map();
 
@@ -123,7 +144,8 @@ export function initTouch(canvas) {
   <button class="key" data-hold="boost">Boost</button>
   <button class="key" data-tap="jump">Jump</button>
   <button class="key wide" data-hold="ride">Ride</button>
-</div>`;
+</div>
+<button class="pause" aria-label="Pause">&#9613;&#9613;</button>`;
     document.body.appendChild(root);
     padEl = root.querySelector("#sb-pad");
     nubEl = root.querySelector("#sb-nub");
@@ -156,6 +178,13 @@ export function initTouch(canvas) {
             if (!key.hasPointerCapture?.(e.pointerId)) release(e);
         });
     }
+
+    // The pause corner button. `pointerdown` for parity with the other keys,
+    // but it is a tap, not a hold — one intent per press.
+    root.querySelector(".pause").addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        onPauseTap?.();
+    });
 
     // The stick.
     padEl.addEventListener("pointerdown", (e) => {

@@ -6,6 +6,7 @@
  */
 
 import { touch, endTouchFrame } from "./touchInput.js";
+import { S } from "./settings.js";
 
 export const input = {
     // Movement axes, camera-relative, already normalised to a unit disc.
@@ -44,6 +45,16 @@ export const input = {
 const keys = Object.create(null);
 /** Whether the right mouse button is currently holding the ride. */
 let mouseSurf = false;
+/**
+ * Whether the poll's own sources (RMB, touch ride) held the ride last frame.
+ *
+ * The touch merge made `pollInput` clear `input.surf` every frame the button
+ * was up — which silently broke the committed smoke tools, whose contract is
+ * that a one-shot `input.surf = true` persists the way it always had. Clearing
+ * only on the frame a real source *releases* keeps both: buttons still behave
+ * as holds, and an external write survives until something actually lets go.
+ */
+let ownSurfHeld = false;
 
 const LOOK_SCALE = 0.0022;
 
@@ -74,8 +85,9 @@ export function initInput(canvas, hooks) {
 
     document.addEventListener("mousemove", (e) => {
         if (!input.locked) return;
-        input.lookX += e.movementX * LOOK_SCALE;
-        input.lookY += e.movementY * LOOK_SCALE;
+        const scale = LOOK_SCALE * S.mouseSensitivity;
+        input.lookX += e.movementX * scale;
+        input.lookY += e.movementY * scale * (S.invertY ? -1 : 1);
     });
 
     canvas.addEventListener("contextmenu", (e) => e.preventDefault());
@@ -170,9 +182,12 @@ export function pollInput() {
     input.sprint = !!(keys.ShiftLeft || keys.ShiftRight);
     input.boost = Math.max(pollBoost(), touch.boost);
     // Held, not toggled: the ride button behaves like the right mouse button
-    // it stands in for.
-    if (touch.ride) input.surf = true;
-    else if (!mouseSurf) input.surf = false;
+    // it stands in for. Cleared on release rather than reconciled every frame
+    // — see `ownSurfHeld`.
+    const ownSurf = touch.ride || mouseSurf;
+    if (ownSurf) input.surf = true;
+    else if (ownSurfHeld) input.surf = false;
+    ownSurfHeld = ownSurf;
     if (touch.jump) input.jumpPressed = true;
     input.lookX += touch.lookX;
     input.lookY += touch.lookY;
