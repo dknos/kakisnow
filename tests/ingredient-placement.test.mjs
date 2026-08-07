@@ -85,7 +85,7 @@ test("protectedSpans reads a terrain block, not a jumps array", () => {
     assert.equal(fromArray.length, 0, "an array has no jumps or skiJumps keys");
 });
 
-test("the jumping hill's in-run and landing are protected end to end", () => {
+test("the jumping hill's in-run, table and knoll are protected", () => {
     const jump = BIG_AIR_BASIN.terrain.skiJumps[0];
     const spans = protectedSpans(BIG_AIR_BASIN.terrain);
     const covered = (z) => spans.some(s => z >= s.from && z <= s.to);
@@ -93,7 +93,7 @@ test("the jumping hill's in-run and landing are protected end to end", () => {
         jump.lipZ - jump.inrunLen + 1,   // top of the in-run
         jump.lipZ - 1,                   // the table
         jump.lipZ + 1,                   // the knoll
-        jump.lipZ + jump.hillLen - 1,    // the bottom of the landing hill
+        jump.lipZ + 30,                  // still on the steep face
     ]) {
         assert.ok(covered(z), `z=${z} is on the hill and must be protected`);
     }
@@ -102,6 +102,20 @@ test("the jumping hill's in-run and landing are protected end to end", () => {
     assert.ok(
         !covered(jump.lipZ + jump.hillLen + jump.outrunLen - 10),
         "the outrun flat stays available to crash recovery"
+    );
+    // Nor is the shallow bottom of the landing hill. The span exists so a
+    // rider is not stood up on a face they fall straight back down, and it
+    // doubles as the size of the rewind a crash costs — so it stops where the
+    // hill stops being steep, not where the hill stops.
+    assert.ok(
+        !covered(jump.lipZ + jump.hillLen - 10),
+        "the shallow bottom of the landing hill stays available"
+    );
+    const landing = spans.find(s => /landing hill/.test(s.reason));
+    assert.ok(
+        landing.to - landing.from < jump.hillLen,
+        `the landing span (${(landing.to - landing.from).toFixed(0)} m) must be ` +
+        `shorter than the hill (${jump.hillLen} m)`
     );
 });
 

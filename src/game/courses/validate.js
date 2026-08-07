@@ -217,6 +217,57 @@ export function validateCourse(c) {
         }
     }
 
+    /**
+     * The venue block, if there is one.
+     *
+     * Every other course subsystem fails loudly at module load; this one used
+     * to fail as a frozen tab, because `venue.js` walks `for (let z = zFrom;
+     * z <= zTo; z += spacing)` and a spacing of zero — or a mistyped key,
+     * which reads as `undefined` and then `NaN` — is an infinite loop inside
+     * the loading screen.
+     */
+    if (c.venue) {
+        const v = c.venue;
+        const positive = (obj, keys, label) => {
+            for (const k of keys) {
+                if (!(obj[k] > 0)) p.push(`${label} needs a positive ${k}`);
+            }
+        };
+        if (v.stands) {
+            const s = v.stands;
+            positive(s, ["spacing", "rise", "tiers", "innerX", "outerX"], "venue.stands");
+            if (!(s.zFrom < s.zTo)) p.push("venue.stands span is inverted");
+            if (!(s.innerX < s.outerX)) p.push("venue.stands x range is inverted");
+        }
+        if (v.flags) {
+            positive(v.flags, ["spacing", "halfWidth"], "venue.flags");
+            if (!(v.flags.zFrom < v.flags.zTo)) p.push("venue.flags span is inverted");
+        }
+        if (v.gantry) {
+            positive(v.gantry, ["halfWidth", "bays"], "venue.gantry");
+            if (!Number.isFinite(v.gantry.z)) p.push("venue.gantry needs a z");
+        }
+        if (v.judges &&
+            ![v.judges.x, v.judges.z].every(Number.isFinite)) {
+            p.push("venue.judges needs x and z");
+        }
+        for (const [i, w] of (v.windsocks ?? []).entries()) {
+            if (![w.x, w.z].every(Number.isFinite)) {
+                p.push(`venue.windsocks[${i}] needs x and z`);
+            }
+        }
+        for (const [i, l] of (v.lights ?? []).entries()) {
+            if (![l.x, l.z].every(Number.isFinite)) {
+                p.push(`venue.lights[${i}] needs x and z`);
+            }
+        }
+        if (v.lift) {
+            positive(v.lift, ["pylons", "height", "chairs"], "venue.lift");
+            if (!Number.isFinite(v.lift.x)) p.push("venue.lift needs an x");
+            if (!(v.lift.zFrom < v.lift.zTo)) p.push("venue.lift span is inverted");
+        }
+    }
+
     if (!Array.isArray(c.events) || !c.events.length) {
         p.push("course offers no events");
     }

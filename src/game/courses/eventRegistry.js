@@ -15,6 +15,7 @@
 
 import { COURSES, getCourse } from "./index.js";
 import { validateEvent } from "./validate.js";
+import { assertTourCoversCourses } from "../progression.js";
 
 /**
  * The one event, unchanged in every number the save file and the tools know.
@@ -445,6 +446,11 @@ for (const course of Object.values(COURSES)) {
         }
     }
 }
+// A course the tour cannot unlock is a course that is listed on the title
+// screen, marked LOCKED, and reachable by nothing. Checked here rather than in
+// progression.js because this module is where the registry is already known to
+// be complete.
+assertTourCoversCourses(COURSES);
 
 /** @param {string} id @returns {object} throws on an unknown id. */
 export function getEvent(id) {

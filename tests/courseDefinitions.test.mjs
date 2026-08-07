@@ -14,9 +14,69 @@ import { validateCourse, validateEvent } from "../src/game/courses/validate.js";
 import { EVENTS, getEvent, courseForEvent } from "../src/game/courses/eventRegistry.js";
 import { SUMMIT_LINE } from "../src/game/courses/summitLine.js";
 import { encodeCoursePrimitives } from "../src/game/courses/encode.js";
+import { tourState, assertTourCoversCourses } from "../src/game/progression.js";
+import { BIG_AIR_BASIN } from "../src/game/courses/bigAirBasin.js";
 import {
     JUMPS, PIPES, BASE_CAMP_Z, COURSE_FINISH_Z, LANE_HALF, ZONES,
 } from "../src/game/ingredientPlacement.js";
+
+// --------------------------------------------------------------------- tour
+
+/**
+ * The title menu lists `Object.values(COURSES)` and asks the tour whether each
+ * is unlocked. A course with no tour entry renders LOCKED, with an empty
+ * reason, and no play can ever open it — which is how Big Air Basin first
+ * shipped: reachable only by typing `?course=` into the address bar.
+ */
+test("the Burger Tour has an entry for every registered course", () => {
+    const tour = tourState({});
+    for (const id of Object.keys(COURSES)) {
+        assert.ok(tour[id], `no tour entry for "${id}"`);
+        assert.ok(
+            tour[id].unlocked || tour[id].reason,
+            `"${id}" is locked with no stated way to unlock it`
+        );
+    }
+    assert.doesNotThrow(() => assertTourCoversCourses(COURSES));
+});
+
+test("the tour coverage check rejects a registry it does not cover", () => {
+    assert.throws(
+        () => assertTourCoversCourses({ ...COURSES, "kaki-alps": {} }),
+        /missing from the Burger Tour/
+    );
+});
+
+// -------------------------------------------------------------------- venue
+
+/**
+ * `venue.js` steps `for (z = zFrom; z <= zTo; z += spacing)`. A spacing of
+ * zero, or a mistyped key that reads `undefined` and steps by NaN, hangs the
+ * tab inside the loading screen rather than failing at load like every other
+ * course subsystem.
+ */
+test("validateCourse rejects a venue that would hang the builder", () => {
+    const bad = (venue) => validateCourse({ ...BIG_AIR_BASIN, venue });
+    const stands = BIG_AIR_BASIN.venue.stands;
+    assert.ok(
+        bad({ stands: { ...stands, spacing: 0 } })
+            .some(m => /venue.stands needs a positive spacing/.test(m))
+    );
+    assert.ok(
+        bad({ stands: { ...stands, spacing: undefined } })
+            .some(m => /venue.stands needs a positive spacing/.test(m))
+    );
+    assert.ok(
+        bad({ stands: { ...stands, zFrom: 600, zTo: 300 } })
+            .some(m => /venue.stands span is inverted/.test(m))
+    );
+    assert.ok(
+        bad({ lift: { ...BIG_AIR_BASIN.venue.lift, pylons: 0 } })
+            .some(m => /venue.lift needs a positive pylons/.test(m))
+    );
+    // The shipped block is, of course, fine.
+    assert.deepEqual(validateCourse(BIG_AIR_BASIN), []);
+});
 
 // ------------------------------------------------------------------ registry
 

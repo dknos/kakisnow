@@ -1,0 +1,100 @@
+{
+  "tool": "tools/snow-burgers/playthrough-windows.cjs",
+  "url": "http://127.0.0.1:5173/",
+  "viewport": {
+    "width": 2560,
+    "height": 1440
+  },
+  "seeds": 1,
+  "vehicle": "classic-snowboard",
+  "runs": [
+    {
+      "seed": 1,
+      "vehicle": "classic-snowboard",
+      "ok": true,
+      "finalState": "results",
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "x": 17.11,
+          "y": -3.9,
+          "z": 120.86,
+          "zone": "cheese"
+        },
+        {
+          "ingredient": "patty",
+          "x": -20.13,
+          "y": -0.49,
+          "z": 231.19,
+          "zone": "patty"
+        },
+        {
+          "ingredient": "tomato",
+          "x": -5.19,
+          "y": 2.5,
+          "z": 339.31,
+          "zone": "tomato"
+        },
+        {
+          "ingredient": "lettuce",
+          "x": 11.63,
+          "y": -4.2,
+          "z": 453.78,
+          "zone": "lettuce"
+        }
+      ],
+      "collected": [
+        "cheese",
+        "patty",
+        "tomato",
+        "lettuce"
+      ],
+      "lastZ": 551.8,
+      "fuelAtFinish": 1,
+      "blocked": null,
+      "result": {
+        "completed": true,
+        "time": 31.49,
+        "medal": "gold",
+        "style": 37,
+        "integrity": 100,
+        "stars": 4,
+        "grade": "Summit Stack",
+        "splits": {
+          "cheese": 8.906800000011879,
+          "patty": 14.937900000006055,
+          "tomato": 20.542200000018198,
+          "lettuce": 26.48509999999465
+        },
+        "detail": {
+          "airTime": 0,
+          "airShare": 0,
+          "carve": 0.14,
+          "pace": 1,
+          "pipeTime": 6.14,
+          "routeRisk": 0.4,
+          "landings": 0,
+          "hardLandings": 0,
+          "worstLanding": 0,
+          "distance": 548
+        },
+        "rocket": 0,
+        "notMeasured": [
+          "rocket efficiency"
+        ]
+      }
+    }
+  ],
+  "screenshots": [
+    "00-title",
+    "001-pickup-1-cheese",
+    "001-pickup-2-patty",
+    "001-pickup-3-tomato",
+    "001-pickup-4-lettuce",
+    "001-assembly",
+    "001-results"
+  ],
+  "consoleErrors": [],
+  "webgpuValidation": [],
+  "ok": true
+}

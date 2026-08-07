@@ -71,6 +71,11 @@ export const LANE_HALF = SUMMIT_LINE.terrain.laneHalf;
 const LANDING_MARGIN = 16;
 /** How far before a lip the approach stays clear, so the run-in is readable. */
 const APPROACH_MARGIN = 10;
+/**
+ * The steepest ground crash recovery may stand a rider up on, as a gradient.
+ * About 25°, which is inside what every other course's run-out already is.
+ */
+const RESPAWN_MAX_SLOPE = 0.47;
 
 // --------------------------------------------------------------------- zones
 
@@ -151,9 +156,31 @@ export function protectedSpans(terrain = SUMMIT_LINE.terrain) {
             to: s.lipZ,
             reason: `in-run to the table at z=${s.lipZ}`,
         });
+        // Only the steep part of the hill, not all 120 m of it.
+        //
+        // `SafeSpots` refuses to drop a breadcrumb inside a protected span, so
+        // the length of this one is the size of the rewind a crash costs. What
+        // the rule is for is not standing a rider up somewhere they will
+        // immediately fall over again — and past the knoll this hill is
+        // shallower than several courses' run-outs.
+        //
+        // The cubic falloff has slope 3·hillDrop·(1−v)²/hillLen, so the point
+        // it drops under RESPAWN_MAX_SLOPE solves in closed form: 45 m down a
+        // 120 m hill on Big Air Basin, protected span 300→361 with the margin.
+        //
+        // The measured consequence, and it is the intended one. Touchdown is
+        // z=348, so blowing the landing rewinds to the last crumb before the
+        // in-run span at 180 — the top of the in-run, with another run at the
+        // jump. Crashing further down the hill costs about one breadcrumb
+        // interval, ~13 m. Failing the jump should cost you the jump; failing
+        // the run-out should not.
+        const k = Math.min(
+            1, (RESPAWN_MAX_SLOPE * s.hillLen) / (3 * s.hillDrop)
+        );
+        const steepLen = s.hillLen * (1 - Math.sqrt(k));
         spans.push({
             from: s.lipZ,
-            to: s.lipZ + s.hillLen + LANDING_MARGIN,
+            to: s.lipZ + steepLen + LANDING_MARGIN,
             reason: `landing hill below the table at z=${s.lipZ}`,
         });
     }
