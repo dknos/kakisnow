@@ -39,7 +39,7 @@ import { BurgerBook } from "./burgerBook.js";
 import { BurgerBaseCamp } from "./baseCamp.js";
 import { MountainDressing } from "./environment.js";
 import { INGREDIENT_IDS, INGREDIENTS, BURGER_MODEL } from "./ingredients.js";
-import { ZONES, BASE_CAMP_Z } from "./ingredientPlacement.js";
+import { activeCourse } from "./courses/index.js";
 import { SnowBurgersUi, formatTime } from "../ui/snowBurgersUi.js";
 import { FUEL_PER_INGREDIENT } from "../vehicles/rocketThrust.js";
 import { audio } from "../audio/audio.js";
@@ -72,6 +72,9 @@ export class GameDirector {
         this.terrain = deps.terrain;
         this.controller = deps.controller;
         this.rig = deps.rig;
+        /** The course being played and the event scoring it. */
+        this.course = deps.course ?? activeCourse();
+        this.eventDef = deps.event ?? SUMMIT_STACK;
         /** The thrusting vehicle, if one is fitted. May be absent. */
         this.rocketChair = deps.rocketChair ?? null;
 
@@ -89,6 +92,8 @@ export class GameDirector {
             field: this.field,
             book: this.book,
             terrain: deps.terrain,
+            course: this.course,
+            event: this.eventDef,
         });
 
         /** Conifers, rocks and ice off the racing line. */
@@ -321,7 +326,7 @@ export class GameDirector {
             this.run.event,
             this.run.placements.map((p) => ({
                 ...p,
-                zoneName: ZONES[p.ingredient]?.name ?? "",
+                zoneName: this.course.zones[p.ingredient]?.name ?? "",
             }))
         );
         return seed;
@@ -621,12 +626,29 @@ export class GameDirector {
             if (this.rocketChair && this.mode === Mode.BURGER_RUN) {
                 this.rocketChair.thrust.reset();
             }
+            // Every countdown names the vehicle for this attempt — it is part
+            // of the ghost's identity, and reading it any later would let an
+            // overlay switch mid-run relabel a record.
+            this.run.vehicleId = S.vehicle;
+            // One beep per whole second, latched — and re-latched per gate, or
+            // the second run's countdown plays only the beeps the first one
+            // didn't.
+            this._lastCount = -1;
             // Arm the ghost here rather than when an order is taken, because
             // this is the one place both paths pass through. Taking a new
             // order rolls a fresh seed, and a stored ghost belongs to the seed
             // that produced it — so the run that actually races a ghost is the
             // retry, and a retry never goes through the order screen.
-            this.ghost.arm(this.book.event(this.run.event.id).bestGhost, this.run.seed);
+            // The full identity has to match, not just the seed: a ghost set
+            // on the rocket chair is not a line a classic board can race.
+            this.ghost.arm(this.book.event(this.run.event.id).bestGhost, {
+                seed: this.run.seed,
+                courseId: this.course.id,
+                courseVersion: this.course.version,
+                eventId: this.run.event.id,
+                eventVersion: this.run.event.version,
+                vehicleId: this.run.vehicleId,
+            });
         }
         if (next === RunState.RUN) {
             this.ui.setHud(true);
@@ -676,7 +698,8 @@ export class GameDirector {
                     main: "Order incomplete — " +
                         missing.map((id) => INGREDIENTS[id].label).join(", "),
                     sub: nearest
-                        ? `${ZONES[nearest.id].name} is ${Math.abs(back)} m back up the hill`
+                        ? `${this.course.zones[nearest.id].name} is ` +
+                          `${Math.abs(back)} m back up the hill`
                         : "return up the course",
                 });
             }
@@ -692,7 +715,7 @@ export class GameDirector {
                     this._alertShown = key;
                     this.ui.setAlert({
                         main: INGREDIENTS[nearest.id].label + " is behind you",
-                        sub: `${ZONES[nearest.id].name} · ` +
+                        sub: `${this.course.zones[nearest.id].name} · ` +
                             `${Math.round(c.position.z - nearest.anchor.z)} m back`,
                     });
                 }

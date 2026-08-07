@@ -2,15 +2,20 @@
  * The best run, replayed alongside the current one.
  *
  * `BurgerBook` has been recording a ghost since the first completion — the
- * rider's position every quarter second, stored with the seed that produced the
- * route. This is the half that reads it back.
+ * rider's position at a fixed cadence, stored with the cadence itself and the
+ * identity of the run that produced it. This is the half that reads it back.
  *
- * ------------------------------------------------------------------ the seed
+ * -------------------------------------------------------------- the identity
  *
- * A ghost is only shown when its seed matches the run being ridden. The route
- * is a function of the seed, so a ghost from a different one took a different
- * line to different pickups, and racing it would be racing a different course.
- * That check is why the seed is stored beside the samples rather than inferred.
+ * A ghost is only shown when its whole identity matches the run being ridden:
+ * seed, course and its revision, event and its revision, vehicle. The route is
+ * a function of the seed, the terrain is a function of the course revision,
+ * the pickups of the event layout, the pace of the vehicle — a ghost that
+ * differs on any of them rode a different run, and racing it would be racing
+ * a different course. The rule itself (`ghostMatches`) lives in burgerBook.js,
+ * because this module pulls Babylon mesh builders and cannot load under bare
+ * Node, and a compatibility rule that cannot be unit-tested is a rule that
+ * silently rots.
  *
  * ------------------------------------------------------------- the difference
  *
@@ -28,8 +33,13 @@ import { Color3 } from "@babylonjs/core/Maths/math.color.js";
 import { CreateCylinder } from "@babylonjs/core/Meshes/Builders/cylinderBuilder.js";
 
 import { ShadedAsset } from "../render/shadedAsset.js";
+import { ghostMatches } from "./burgerBook.js";
 
-/** Matches `GHOST_INTERVAL` in burgerRun.js. Samples are meaningless without it. */
+/**
+ * Fallback only. A v2 ghost carries its own `interval` and playback always
+ * uses the stored one — a ghost recorded at a different cadence than today's
+ * recorder must still replay at the cadence it was recorded at.
+ */
 const SAMPLE_INTERVAL = 0.25;
 
 export class GhostPlayback {
@@ -59,6 +69,8 @@ export class GhostPlayback {
         /** @type {number[]|null} flat x,y,z triples */
         this.samples = null;
         this.seed = null;
+        /** Seconds between samples, taken from the armed ghost. */
+        this.interval = SAMPLE_INTERVAL;
         this.active = false;
         /** Seconds the ghost is ahead (negative) or behind (positive). */
         this.delta = 0;
@@ -72,26 +84,31 @@ export class GhostPlayback {
     }
 
     /**
-     * Arm a ghost for this run, if the book has one for this exact seed.
+     * Arm a ghost for this run, if the book has one for this exact run.
      *
      * @param {object|null} stored the event's `bestGhost`
-     * @param {number} seed the seed actually being ridden
+     * @param {object} expect the identity of the run actually being ridden:
+     *     {seed, courseId, courseVersion, eventId, eventVersion, vehicleId}
      */
-    arm(stored, seed) {
+    arm(stored, expect) {
         this.samples = null;
         this.seed = null;
+        this.interval = SAMPLE_INTERVAL;
         this.delta = 0;
         this.hasDelta = false;
-        if (!stored || stored.seed !== seed || !Array.isArray(stored.samples)) {
+        if (!ghostMatches(stored, expect)) {
             this.asset.setActive(false);
             return false;
         }
+        // Fewer than two seconds of samples is not a race, it is a flicker at
+        // the start gate.
         if (stored.samples.length < 6) {
             this.asset.setActive(false);
             return false;
         }
         this.samples = stored.samples;
-        this.seed = seed;
+        this.seed = stored.seed;
+        this.interval = stored.interval;
         this.asset.setActive(true);
         return true;
     }
@@ -114,7 +131,7 @@ export class GhostPlayback {
         // Where the ghost is now. Past the end it stops rather than vanishing:
         // a ghost that disappears the moment it finishes takes away the one
         // piece of information a player behind it still wants.
-        const f = Math.min(time / SAMPLE_INTERVAL, n - 1);
+        const f = Math.min(time / this.interval, n - 1);
         const i = Math.floor(f);
         const j = Math.min(i + 1, n - 1);
         const t = f - i;
@@ -137,7 +154,7 @@ export class GhostPlayback {
                 const thisZ = this.samples[k * 3 + 2];
                 const span = thisZ - prevZ;
                 const frac = span > 1e-6 ? (playerZ - prevZ) / span : 0;
-                const ghostTime = (k - 1 + frac) * SAMPLE_INTERVAL;
+                const ghostTime = (k - 1 + frac) * this.interval;
                 this.delta = time - ghostTime;
                 this.hasDelta = true;
                 return;

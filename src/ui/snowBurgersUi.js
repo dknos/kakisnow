@@ -854,9 +854,10 @@ function medalFraction(result) {
     if (!result.completed) return 0;
     // Gold fills it; anything slower than bronze still shows something, because
     // a bar reading zero on a finished run reads as a failure rather than as a
-    // slow time.
-    const gold = 34;
-    const bronze = 58;
+    // slow time. The ladder rides on the result itself, so this bar always
+    // describes the event that was actually run.
+    const gold = result.medals?.gold ?? 34;
+    const bronze = result.medals?.bronze ?? 58;
     if (result.time <= gold) return 1;
     if (result.time >= bronze) return 0.12;
     return 0.12 + 0.88 * (1 - (result.time - gold) / (bronze - gold));

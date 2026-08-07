@@ -34,7 +34,13 @@
 
 import { Scalar } from "@babylonjs/core/Maths/math.scalar.js";
 
-import { selectRoute, BASE_CAMP_Z, ZONES } from "./ingredientPlacement.js";
+import { selectRoute } from "./ingredientPlacement.js";
+import { SUMMIT_LINE } from "./courses/summitLine.js";
+import { SUMMIT_STACK } from "./courses/eventRegistry.js";
+
+// Re-exported where it has always lived: the tools ABI reaches it through
+// `game.api.event`, and gameDirector imports it from here.
+export { SUMMIT_STACK };
 
 export const RunState = {
     IDLE: "idle",
@@ -43,36 +49,6 @@ export const RunState = {
     RUN: "run",
     ASSEMBLY: "assembly",
     RESULTS: "results",
-};
-
-/**
- * The one event, and its order.
- *
- * The buns come from the grill, which is why they are not on the list — and
- * `burger-complete.glb` is the reward rather than a pickup, so it appears
- * nowhere in `required`.
- */
-export const SUMMIT_STACK = {
-    id: "summit-stack",
-    name: "The Summit Stack",
-    tagline: "Four on the mountain. Buns at the grill.",
-    required: ["cheese", "patty", "tomato", "lettuce"],
-    /** Where the rider starts, and where the gate is. */
-    startZ: 0,
-    finishZ: BASE_CAMP_Z,
-    /**
-     * Medal thresholds, seconds. Measured, not guessed.
-     *
-     * `tools/snow-burgers/playthrough-windows.cjs` drives a near-optimal line —
-     * it steers straight at each ingredient in turn and never scrubs speed —
-     * and finishes in 31 seconds. That is the floor, so gold sits just above it
-     * and is a time a player has to ride cleanly for rather than arrive at.
-     * The first thresholds written here were more than twice this, which the
-     * robot golded on its first attempt.
-     */
-    gold: 34,
-    silver: 44,
-    bronze: 58,
 };
 
 const COUNTDOWN_SECONDS = 3.2;
@@ -88,13 +64,19 @@ export class BurgerRun {
      * @param {import("./burgerBook.js").BurgerBook} deps.book
      * @param {{heightAt(x:number,z:number):number, normalAt(x:number,z:number,out:any):any}} deps.terrain
      */
-    constructor({ controller, field, book, terrain }) {
+    constructor({ controller, field, book, terrain, course, event }) {
         this.controller = controller;
         this.field = field;
         this.book = book;
         this.terrain = terrain;
 
-        this.event = SUMMIT_STACK;
+        /** The course being ridden and the rules being scored against. Both
+         *  come from the registries; the defaults keep old constructions —
+         *  the unit tests, mostly — on the original game. */
+        this.course = course ?? SUMMIT_LINE;
+        this.event = event ?? SUMMIT_STACK;
+        /** Written by the director at each gate; part of the ghost identity. */
+        this.vehicleId = "classic-snowboard";
         this.state = RunState.IDLE;
         this.seed = 1;
 
@@ -146,7 +128,9 @@ export class BurgerRun {
      */
     begin(seed = null) {
         this.seed = seed ?? ((Date.now() ^ (performance.now() * 1000)) >>> 0);
-        const route = selectRoute(this.event.required, this.terrain, this.seed);
+        const route = selectRoute(
+            this.event.required, this.terrain, this.seed, this.course
+        );
 
         if (!route.ok) {
             // Should not happen: the validator sweeps 100 seeds against this
@@ -315,12 +299,23 @@ export class BurgerRun {
     completeAssembly() {
         if (this.state !== RunState.ASSEMBLY) return;
         this.result = this._score(true);
+        // The ghost carries its full identity — course, event, versions,
+        // vehicle, sampling interval — so playback validates data instead of
+        // trusting two constants to stay equal by hand.
         const ghost = {
-            version: 1,
+            version: 2,
             seed: this.seed,
+            interval: GHOST_INTERVAL,
+            courseId: this.course.id,
+            courseVersion: this.course.version,
+            eventId: this.event.id,
+            eventVersion: this.event.version,
+            vehicleId: this.vehicleId,
             samples: this._ghost,
         };
-        this.result.records = this.book.record(this.event.id, this.result, ghost);
+        this.result.records = this.book.record(
+            this.event.id, this.result, ghost, this._recordMeta()
+        );
         this.book.markAssemblySeen();
         this.justFinished = true;
         this._setState(RunState.RESULTS);
@@ -330,9 +325,20 @@ export class BurgerRun {
     abandon() {
         if (this.state !== RunState.RUN && this.state !== RunState.COUNTDOWN) return;
         this.result = this._score(false);
-        this.result.records = this.book.record(this.event.id, this.result, null);
+        this.result.records = this.book.record(
+            this.event.id, this.result, null, this._recordMeta()
+        );
         this.justFinished = true;
         this._setState(RunState.RESULTS);
+    }
+
+    _recordMeta() {
+        return {
+            courseId: this.course.id,
+            courseVersion: this.course.version,
+            eventVersion: this.event.version,
+            vehicleId: this.vehicleId,
+        };
     }
 
     // ---------------------------------------------------------------- scoring
@@ -386,6 +392,10 @@ export class BurgerRun {
             seed: this.seed,
             completed,
             time,
+            // The event's own ladder rides along so the results screen draws
+            // its time bar against the thresholds this run was scored with,
+            // instead of a hardcoded copy that drifts.
+            medals: { gold: ev.gold, silver: ev.silver, bronze: ev.bronze },
             splits: { ...this.splits },
             collected: this.event.required.filter((id) => this.splits[id] !== undefined),
             missing: this.event.required.filter((id) => this.splits[id] === undefined),
@@ -419,12 +429,18 @@ export class BurgerRun {
     _routeRisk() {
         if (!this.placements.length) return 0;
         let sum = 0;
-        for (const p of this.placements) sum += ZONES[p.ingredient]?.risk ?? 0;
+        for (const p of this.placements) {
+            sum += this.course.zones[p.ingredient]?.risk ?? 0;
+        }
         return sum / this.placements.length;
     }
 
+    /** Inside a pipe's true span — the scored window, not the feathered bowl. */
     _inPipe(z) {
-        return (z >= 292 && z <= 370) || (z >= 410 && z <= 450);
+        for (const p of this.course.terrain.pipes) {
+            if (z >= p.from && z <= p.to) return true;
+        }
+        return false;
     }
 
     // --------------------------------------------------------------- internals

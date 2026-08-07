@@ -18,11 +18,15 @@
  */
 
 import { ProceduralTexture } from "@babylonjs/core/Materials/Textures/Procedurals/proceduralTexture";
+import { RawTexture } from "@babylonjs/core/Materials/Textures/rawTexture";
 import { Constants } from "@babylonjs/core/Engines/constants";
 import { ShaderLanguage } from "@babylonjs/core/Materials/shaderLanguage";
 import { Vector2, Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { S } from "../core/settings.js";
 import { bakeOnce } from "../core/gpuUtil.js";
+import {
+    PRIM_COLS, MAX_PRIMS, encodeCoursePrimitives,
+} from "../game/courses/encode.js";
 
 export const WORLD_SIZE = 2048; // metres across the whole field
 export const HEIGHT_RES = 4096; // 0.5 m per texel
@@ -30,6 +34,12 @@ export const AUX_RES = 2048;
 
 /** Half-extent the player is kept inside, leaving margin for the far rings. */
 export const PLAY_RADIUS = 620;
+
+// Course primitives travel to the bake as a tiny data texture — the same
+// RawTexture-plus-textureLoad pattern the deformation brushes use, and for
+// the same reason: no uniform-array packing, one upload, one bake shader for
+// every course. The encoding itself lives in `courses/encode.js`, where bare
+// Node can test it.
 
 export class Heightfield {
     /** @param {import("@babylonjs/core/scene").Scene} scene */
@@ -84,16 +94,51 @@ export class Heightfield {
         this.auxTex.wrapU = Constants.TEXTURE_CLAMP_ADDRESSMODE;
         this.auxTex.wrapV = Constants.TEXTURE_CLAMP_ADDRESSMODE;
         this.auxTex.refreshRate = 0;
+
+        /** The course whose primitives are currently baked in. */
+        this.course = null;
+        this._primData = new Float32Array(PRIM_COLS * MAX_PRIMS * 4);
+        this.courseTex = RawTexture.CreateRGBATexture(
+            this._primData,
+            PRIM_COLS,
+            MAX_PRIMS,
+            scene,
+            false, // no mipmaps
+            false, // don't invert Y
+            Constants.TEXTURE_NEAREST_SAMPLINGMODE,
+            Constants.TEXTURETYPE_FLOAT
+        );
+        this.courseTex.wrapU = Constants.TEXTURE_CLAMP_ADDRESSMODE;
+        this.courseTex.wrapV = Constants.TEXTURE_CLAMP_ADDRESSMODE;
     }
 
-    /** Run both bakes and mirror the height to the CPU. */
-    async bake() {
+    /**
+     * Run both bakes and mirror the height to the CPU.
+     *
+     * @param {object} [course] the course to bake; omitted re-bakes the
+     *   current one (the overlay's wind/amplitude sliders re-enter here).
+     */
+    async bake(course) {
+        if (course) this.course = course;
+        const c = this.course;
+        if (!c) throw new Error("heightfield.bake needs a course definition");
         const windAngle = (S.windDirection * Math.PI) / 180;
+
+        const primCount = encodeCoursePrimitives(c.terrain, this._primData);
+        this.courseTex.update(this._primData);
 
         this.heightTex.setVector2("worldOrigin", this.origin);
         this.heightTex.setFloat("worldSize", this.size);
         this.heightTex.setFloat("windAngle", windAngle);
         this.heightTex.setFloat("heightAmp", S.macroHeightScale);
+        this.heightTex.setTexture("courseTex", this.courseTex);
+        this.heightTex.setFloat("primCount", primCount);
+        this.heightTex.setFloat("laneHalf", c.terrain.laneHalf);
+        this.heightTex.setFloat("laneFeather", c.terrain.laneFeather);
+        this.heightTex.setFloat("gateZInFrom", c.terrain.gate.zInFrom);
+        this.heightTex.setFloat("gateZInTo", c.terrain.gate.zInTo);
+        this.heightTex.setFloat("gateZOutFrom", c.terrain.gate.zOutFrom);
+        this.heightTex.setFloat("gateZOutTo", c.terrain.gate.zOutTo);
         await bakeOnce(this.heightTex, "heightBake");
 
         // The aux bake differentiates the height bake, so it has to run after.
@@ -226,6 +271,7 @@ export class Heightfield {
     dispose() {
         this.heightTex.dispose();
         this.auxTex.dispose();
+        this.courseTex.dispose();
         this.heightCPU = null;
     }
 }

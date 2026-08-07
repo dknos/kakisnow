@@ -259,8 +259,23 @@ export class DeformationField {
     async warmUp() {
         await whenReady(this._targets[0], "deform target 0");
         await whenReady(this._targets[1], "deform target 1");
+        this.clear();
+        this._warmed = true;
+    }
 
+    /**
+     * Erase every mark, through the same code path that runs every frame.
+     *
+     * Both ping-pong targets are rendered once with the previous centre placed
+     * far outside the window, so every texel reads as "just scrolled in" and
+     * the shader writes zero. A course switch calls this: the ice channel
+     * decays on a 900-second constant, and without a clear the old course's
+     * trenches and spell ice would greet the rider wherever the two worlds
+     * overlap in XZ.
+     */
+    clear() {
         this._brushCount = 0;
+        this._relaxOwed = 0;
         this._uploadBrushes();
 
         for (let i = 0; i < 2; i++) {
@@ -282,7 +297,6 @@ export class DeformationField {
             this.texture = pt;
             this._write = 1 - this._write;
         }
-        this._warmed = true;
     }
 
     dispose() {

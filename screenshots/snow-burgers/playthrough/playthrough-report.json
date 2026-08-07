@@ -49,7 +49,7 @@
         "tomato",
         "lettuce"
       ],
-      "lastZ": 551.8,
+      "lastZ": 551.9,
       "fuelAtFinish": 1,
       "blocked": null,
       "result": {
@@ -61,17 +61,17 @@
         "stars": 4,
         "grade": "Summit Stack",
         "splits": {
-          "cheese": 8.904099999994004,
-          "patty": 14.93400000000003,
-          "tomato": 20.540500000000268,
-          "lettuce": 26.487099999994555
+          "cheese": 8.905099999994,
+          "patty": 14.93280000001197,
+          "tomato": 20.54300000000026,
+          "lettuce": 26.482500000000424
         },
         "detail": {
           "airTime": 0,
           "airShare": 0,
           "carve": 0.139,
           "pace": 1,
-          "pipeTime": 6.13,
+          "pipeTime": 6.14,
           "routeRisk": 0.4,
           "landings": 0,
           "hardLandings": 0,
@@ -133,26 +133,26 @@
         "completed": true,
         "time": 30.98,
         "medal": "gold",
-        "style": 44,
+        "style": 42,
         "integrity": 100,
         "stars": 4,
         "grade": "Summit Stack",
         "splits": {
-          "cheese": 9.514900000005937,
-          "patty": 14.971800000011964,
-          "tomato": 19.16190000000613,
-          "lettuce": 25.221600000024225
+          "cheese": 9.512400000005945,
+          "patty": 14.972300000011979,
+          "tomato": 19.168500000000183,
+          "lettuce": 25.22569999998849
         },
         "detail": {
-          "airTime": 0.6,
-          "airShare": 0.019,
+          "airTime": 0.1,
+          "airShare": 0.003,
           "carve": 0.031,
           "pace": 1,
           "pipeTime": 6.06,
           "routeRisk": 0.4,
           "landings": 1,
           "hardLandings": 0,
-          "worstLanding": 0.35,
+          "worstLanding": 0.57,
           "distance": 548
         },
         "rocket": 0,

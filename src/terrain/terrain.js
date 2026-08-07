@@ -190,14 +190,15 @@ export class Terrain {
         return mat;
     }
 
-    async build() {
+    /** @param {object} course the course definition to bake into the field */
+    async build(course) {
         this.detailTex.setFloat("resolution", DETAIL_RES);
         // Tilts a grain dome's flank to roughly 30 degrees. Higher reads as
         // gravel, lower stops registering at all.
         this.detailTex.setFloat("grainScale", 0.013);
         await bakeOnce(this.detailTex, "detailBake");
 
-        await this.heightfield.bake();
+        await this.heightfield.bake(course);
 
         // The cascade fitter needs the world's vertical extent to size each
         // light volume's depth range. A margin covers carved berms and anything

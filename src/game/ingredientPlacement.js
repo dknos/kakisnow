@@ -38,29 +38,27 @@
  */
 
 import { Vector3 } from "@babylonjs/core/Maths/math.vector.js";
+import { SUMMIT_LINE } from "./courses/summitLine.js";
 
 // ------------------------------------------------------------------ course facts
-// Mirrors `summitLine()` in heightBake.fragment.wgsl. Kept as data so the
-// protected spans below are derived rather than asserted.
+// One source of truth: the course definition. These exports are views of the
+// Summit Line for everything that predates multi-course — the unit tests, the
+// placement validator, the dressing and the camp all keep reading them here,
+// and the same numbers now feed the bake itself, so they cannot drift from
+// the shader again. Course-aware callers pass a definition to the functions
+// below instead.
 
-/** @type {{lip:number, runIn:number, drop:number}[]} */
-export const JUMPS = [
-    { lip: 50, runIn: 22, drop: 20 },
-    { lip: 184, runIn: 26, drop: 24 },
-    { lip: 496, runIn: 26, drop: 24 },
-];
+/** @type {{lip:number, runIn:number, drop:number, height:number}[]} */
+export const JUMPS = SUMMIT_LINE.terrain.jumps;
 
 /** @type {{from:number, to:number, wallFrom:number, wallTo:number}[]} */
-export const PIPES = [
-    { from: 292, to: 370, wallFrom: 5, wallTo: 21 },
-    { from: 410, to: 450, wallFrom: 5, wallTo: 21 },
-];
+export const PIPES = SUMMIT_LINE.terrain.pipes;
 
-export const COURSE_FINISH_Z = 520;
+export const COURSE_FINISH_Z = SUMMIT_LINE.finishZ;
 /** The finish gate at Burger Base Camp, clear of the last kicker's landing. */
-export const BASE_CAMP_Z = 548;
+export const BASE_CAMP_Z = SUMMIT_LINE.baseCampZ;
 /** Full-strength lane half-width. */
-export const LANE_HALF = 34;
+export const LANE_HALF = SUMMIT_LINE.terrain.laneHalf;
 
 /**
  * How far past a lip a landing stays protected.
@@ -87,67 +85,14 @@ const APPROACH_MARGIN = 10;
  * @property {string} note        what the zone is for, in one line
  */
 
-/** @type {Record<string, Zone>} */
-export const ZONES = {
-    cheese: {
-        id: "cheese",
-        name: "Cheese Chute",
-        // Between the first hit's landing and the ridgeline hit's approach.
-        z: [92, 140],
-        x: [-26, 26],
-        maxSlope: 0.62,
-        risk: 0.25,
-        note: "Upper mountain. First real line choice, taken at speed.",
-    },
-    patty: {
-        id: "patty",
-        name: "Patty Bowl",
-        // The open span between the ridgeline landing and the first pipe gate.
-        z: [224, 262],
-        x: [-30, 30],
-        maxSlope: 0.58,
-        risk: 0.35,
-        note: "Wide powder bowl. Several approaches, all of them fast.",
-    },
-    tomato: {
-        id: "tomato",
-        name: "Tomato Pipe",
-        // Inside halfpipe A, held near the centre so the approach is a
-        // transfer rather than a wall-scrape.
-        z: [300, 366],
-        x: [-13, 13],
-        maxSlope: 0.70,
-        risk: 0.55,
-        note: "In the north pipe. Rewards a transfer, punishes a lazy line.",
-    },
-    lettuce: {
-        id: "lettuce",
-        name: "Lettuce Ledge",
-        z: [412, 458],
-        x: [-18, 18],
-        maxSlope: 0.66,
-        risk: 0.45,
-        note: "Lower technical line through the south pipe.",
-    },
-    onion: {
-        id: "onion",
-        name: "Onion Outrun",
-        // Deliberately off the lane. The onion is the variant-order ingredient,
-        // and what makes it a decision rather than a chore is that collecting
-        // it costs a detour out of the fast line and back.
-        z: [230, 268],
-        x: [-50, 50],
-        maxSlope: 0.60,
-        risk: 0.70,
-        note: "Outside the lane. A detour, paid for in time.",
-    },
-};
-
 /**
- * The onion's zone is an annulus, not a rectangle: the middle belongs to the
- * patty. Anything inside this half-width is rejected for it.
+ * The Summit Line's zones, as data on its course definition. Zone behaviour
+ * that used to be keyed on ingredient ids is now flags on the zone itself:
+ * `pipeZone` grants the softer wall rule, `excludeInnerX` carves an annulus
+ * (the onion's detour — the middle of its span belongs to the patty).
+ * @type {Record<string, Zone>}
  */
-const ONION_INNER_HALF = 26;
+export const ZONES = SUMMIT_LINE.zones;
 
 // ------------------------------------------------------------------ anchor rules
 
@@ -189,9 +134,9 @@ export function rng(seed) {
 // ------------------------------------------------------------------ exclusions
 
 /** Spans of z that no pickup may occupy, with the reason. */
-export function protectedSpans() {
+export function protectedSpans(jumps = JUMPS) {
     const spans = [];
-    for (const j of JUMPS) {
+    for (const j of jumps) {
         spans.push({
             from: j.lip - j.runIn - APPROACH_MARGIN,
             to: j.lip,
@@ -206,16 +151,30 @@ export function protectedSpans() {
     return spans;
 }
 
-const SPANS = protectedSpans();
+/**
+ * Protected spans, cached per jumps array. Keyed by reference: course
+ * definitions are module singletons, so identity is exactly right, and a
+ * synthetic test course simply pays the derivation once.
+ */
+const _spansCache = new Map();
 
-function inProtectedSpan(z) {
-    for (const s of SPANS) if (z >= s.from && z <= s.to) return s;
+function spansFor(jumps) {
+    let spans = _spansCache.get(jumps);
+    if (!spans) {
+        spans = protectedSpans(jumps);
+        _spansCache.set(jumps, spans);
+    }
+    return spans;
+}
+
+function inProtectedSpan(z, jumps) {
+    for (const s of spansFor(jumps)) if (z >= s.from && z <= s.to) return s;
     return null;
 }
 
 /** True where the halfpipe wall is steep enough that a pickup would sit on it. */
-function onPipeWall(x, z) {
-    for (const p of PIPES) {
+function onPipeWall(x, z, pipes) {
+    for (const p of pipes) {
         if (z < p.from || z > p.to) continue;
         const ax = Math.abs(x);
         if (ax > p.wallFrom && ax < p.wallTo + 6) return true;
@@ -240,9 +199,10 @@ const _n = new Vector3();
  * @param {Zone} zone
  * @param {{heightAt(x:number,z:number):number, normalAt(x:number,z:number,out:Vector3):Vector3}} field
  * @param {number} seed
+ * @param {object} [course] the course whose jumps/pipes shape the exclusions
  * @returns {{anchors: object[], rejected: object[]}}
  */
-export function candidatesFor(zone, field, seed = 1) {
+export function candidatesFor(zone, field, seed = 1, course = SUMMIT_LINE) {
     const next = rng(seed ^ hashString(zone.id));
     const anchors = [];
     const rejected = [];
@@ -257,7 +217,7 @@ export function candidatesFor(zone, field, seed = 1) {
             const z = zone.z[0] + ((r + next()) / rows) * zSpan;
             const x = zone.x[0] + ((c + next()) / cols) * xSpan;
 
-            const reason = rejectReason(zone, x, z, field);
+            const reason = rejectReason(zone, x, z, field, course);
             if (reason) {
                 rejected.push({ x, z, reason });
                 continue;
@@ -279,7 +239,7 @@ export function candidatesFor(zone, field, seed = 1) {
                 risk: zone.risk,
                 // How far out the beacon should be visible. Deeper in a pipe
                 // means less warning, so the beacon carries further.
-                visibility: onPipeWall(x, z) ? 150 : 110,
+                visibility: onPipeWall(x, z, course.terrain.pipes) ? 150 : 110,
                 protectedRadius: MIN_SEPARATION * 0.5,
             });
         }
@@ -289,20 +249,22 @@ export function candidatesFor(zone, field, seed = 1) {
 }
 
 /** @returns {string|null} why this position is unusable, or null if it is fine. */
-function rejectReason(zone, x, z, field) {
-    if (zone.id === "onion" && Math.abs(x) < ONION_INNER_HALF) {
-        return "inside the lane, which belongs to the patty";
+function rejectReason(zone, x, z, field, course) {
+    const { jumps, pipes } = course.terrain;
+
+    if (zone.excludeInnerX && Math.abs(x) < zone.excludeInnerX) {
+        return "inside the lane, which belongs to the fast line";
     }
 
-    const span = inProtectedSpan(z);
+    const span = inProtectedSpan(z, jumps);
     if (span) return span.reason;
 
-    if (zone.id !== "tomato" && zone.id !== "lettuce" && onPipeWall(x, z)) {
+    if (!zone.pipeZone && onPipeWall(x, z, pipes)) {
         return "on a halfpipe wall";
     }
-    // The two pipe ingredients live in the pipe, but still not up its wall.
-    if ((zone.id === "tomato" || zone.id === "lettuce") && onPipeWall(x, z)) {
-        for (const p of PIPES) {
+    // A pipe zone's ingredients live in the pipe, but still not up its wall.
+    if (zone.pipeZone && onPipeWall(x, z, pipes)) {
+        for (const p of pipes) {
             if (z >= p.from && z <= p.to && Math.abs(x) > p.wallFrom + 3) {
                 return "too far up the pipe wall to approach at speed";
             }
@@ -386,13 +348,15 @@ function hashString(s) {
  * @param {string[]} ids required ingredient ids, downhill order
  * @param {object} field terrain height source
  * @param {number} seed
+ * @param {object} [course] the course whose zones and finish shape the route
  * @returns {{ok: boolean, placements: object[], reason?: string, attempts: number}}
  */
-export function selectRoute(ids, field, seed) {
+export function selectRoute(ids, field, seed, course = SUMMIT_LINE) {
+    const zones = course.zones;
     const pools = ids.map((id) => {
-        const zone = ZONES[id];
+        const zone = zones[id];
         if (!zone) throw new Error("no zone for ingredient " + id);
-        return candidatesFor(zone, field, seed).anchors;
+        return candidatesFor(zone, field, seed, course).anchors;
     });
 
     for (let i = 0; i < ids.length; i++) {
@@ -401,7 +365,7 @@ export function selectRoute(ids, field, seed) {
                 ok: false,
                 placements: [],
                 attempts: 0,
-                reason: `no valid anchor in ${ZONES[ids[i]].name}`,
+                reason: `no valid anchor in ${zones[ids[i]].name}`,
             };
         }
     }
@@ -411,7 +375,7 @@ export function selectRoute(ids, field, seed) {
 
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         const chosen = pools.map((pool) => pool[(next() * pool.length) | 0]);
-        const problem = routeProblem(chosen);
+        const problem = routeProblem(chosen, course);
         if (!problem) {
             return {
                 ok: true,
@@ -428,7 +392,7 @@ export function selectRoute(ids, field, seed) {
 }
 
 /** @returns {string|null} why this set cannot be ridden in one run. */
-function routeProblem(chosen) {
+function routeProblem(chosen, course) {
     for (let i = 1; i < chosen.length; i++) {
         const a = chosen[i - 1];
         const b = chosen[i];
@@ -447,7 +411,7 @@ function routeProblem(chosen) {
         }
     }
     const last = chosen[chosen.length - 1];
-    if (last.z >= BASE_CAMP_Z) {
+    if (last.z >= course.baseCampZ) {
         return "the final pickup is at or past the finish gate";
     }
     return null;

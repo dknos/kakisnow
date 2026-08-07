@@ -1,7 +1,7 @@
 {
   "tool": "tools/snow-burgers/validate-placement-windows.cjs",
   "url": "http://127.0.0.1:5173",
-  "when": "2026-08-06T00:14:28.897Z",
+  "when": "2026-08-07T03:51:47.578Z",
   "seedCount": 100,
   "ingredients": [
     "cheese",
@@ -104,7 +104,7 @@
       },
       "rejectedTotal": 4790,
       "rejectionsByReason": {
-        "inside the lane, which belongs to the patty": 3624,
+        "inside the lane, which belongs to the fast line": 3624,
         "local relief over the pad limit": 1133,
         "slope over the zone limit": 33
       }

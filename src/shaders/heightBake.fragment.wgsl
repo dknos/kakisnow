@@ -17,6 +17,39 @@ uniform worldSize: f32;
 uniform windAngle: f32;
 uniform heightAmp: f32;
 
+// ------------------------------------------------------------------ the course
+//
+// The course is data, not code. `courseTex` carries one primitive per row —
+// the same RawTexture-plus-textureLoad pattern the deformation brushes use,
+// for the same reason: no uniform-array packing, one upload, one shader for
+// every course. The Summit Line numbers this replaced live in
+// `src/game/courses/summitLine.js`, and the bake-profile fingerprint proves
+// the generalisation reproduces them exactly.
+//
+// Row layout (RGBA texels, x = texel index, y = primitive index):
+//   kind 1, JUMP:  t0 = (1, lip, runIn, drop)          t1 = (height, 0, 0, 0)
+//   kind 2, PIPE:  t0 = (2, fadeInFrom, from, to)      t1 = (fadeOutTo, wallFrom, wallTo, amp)
+//                  t2 = (pack, packFalloff, gateXFrom, gateXTo)
+//
+// Jumps are additive, gated by the lane and the course's z gate. Pipes are
+// not: inside its gate a pipe REPLACES the terrain with a centreline-pinned
+// target, because a pipe floor crossed by whatever dunes happen to be there
+// is not a pipe. The two blend modes are the reason a naive sum-of-primitives
+// design was rejected.
+
+var courseTex: texture_2d<f32>;
+var courseTexSampler: sampler;
+
+uniform primCount: f32;
+uniform laneHalf: f32;
+uniform laneFeather: f32;
+// Where the course fades in and back out along z. Four scalars rather than a
+// vec4 so the JS side stays setFloat like every other bake uniform.
+uniform gateZInFrom: f32;
+uniform gateZInTo: f32;
+uniform gateZOutFrom: f32;
+uniform gateZOutTo: f32;
+
 fn courseJump(z: f32, lip: f32, runIn: f32, drop: f32, height: f32) -> f32 {
     // Quadratic approach: zero slope where the ramp begins, a positive slope all
     // the way through the lip. A smoothstep here would flatten at the crest and
@@ -27,43 +60,50 @@ fn courseJump(z: f32, lip: f32, runIn: f32, drop: f32, height: f32) -> f32 {
     return rise * fall * height;
 }
 
-// Summit Line is a light-touch layer on the original rolling snowfield. It
-// adds readable lips and pipe walls without replacing the terrain with a
-// separate constant downhill plane.
-fn summitLine(
+// The authored course as a light-touch layer on the natural snowfield: added
+// lips and pipe walls, never a separate constant downhill plane. Returns
+// (shaped height, pipe gate) — the gate also suppresses rock outcrops, since
+// a boulder in a pipe floor is a wall at head height.
+fn courseShape(
     p: vec2f,
     naturalHeight: f32,
     centreHeight: f32
 ) -> vec2f {
-    let zGate = smoothstep(-72.0, -28.0, p.y)
-              * (1.0 - smoothstep(520.0, 585.0, p.y));
-    let lane = 1.0 - smoothstep(34.0, 68.0, abs(p.x));
+    let zGate = smoothstep(uniforms.gateZInFrom, uniforms.gateZInTo, p.y)
+              * (1.0 - smoothstep(uniforms.gateZOutFrom, uniforms.gateZOutTo, p.y));
+    let lane = 1.0 - smoothstep(uniforms.laneHalf, uniforms.laneFeather, abs(p.x));
+
     var added = 0.0;
+    var pipeShape = 0.0;
+    var pipePack = 0.0;
+    var pipeGate = 0.0;
 
-    // Long backsides retain a clear release but land as snow rolls, not cliffs.
-    added += lane * courseJump(p.y, 50.0, 22.0, 20.0, 1.55);
-    added += lane * courseJump(p.y, 184.0, 26.0, 24.0, 1.80);
-    added += lane * courseJump(p.y, 496.0, 26.0, 24.0, 1.75);
+    let n = i32(uniforms.primCount);
+    for (var i = 0; i < n; i++) {
+        let t0 = textureLoad(courseTex, vec2i(0, i), 0);
+        let kind = i32(t0.x);
 
-    // Two halfpipes. The longitudinal gates feather them into the piste while
-    // the quadratic cross-section keeps the centre fast and lifts both walls.
-    let pipeA = smoothstep(270.0, 292.0, p.y)
-              * (1.0 - smoothstep(370.0, 394.0, p.y));
-    let pipeB = smoothstep(388.0, 410.0, p.y)
-              * (1.0 - smoothstep(450.0, 470.0, p.y));
-    let wallT = smoothstep(5.0, 21.0, abs(p.x));
-    let walls = wallT * wallT;
-    let pipeShape = pipeA * walls * 4.4 + pipeB * walls * 4.0;
-
-    // Slight centre packing makes the intended line legible without erasing the
-    // snow material's fine ridges or turning the course into a smooth plastic tube.
-    let centrePack =
-        exp(-p.x * p.x * 0.008) * (pipeA + pipeB) * 0.24;
+        if (kind == 1) {
+            let t1 = textureLoad(courseTex, vec2i(1, i), 0);
+            added += lane * courseJump(p.y, t0.y, t0.z, t0.w, t1.x);
+        } else if (kind == 2) {
+            let t1 = textureLoad(courseTex, vec2i(1, i), 0);
+            let t2 = textureLoad(courseTex, vec2i(2, i), 0);
+            // Longitudinal gate: feather in, hold, feather out.
+            let g = smoothstep(t0.y, t0.z, p.y)
+                  * (1.0 - smoothstep(t0.w, t1.x, p.y));
+            // Quadratic cross-section keeps the centre fast, lifts both walls.
+            let wallT = smoothstep(t1.y, t1.z, abs(p.x));
+            pipeShape += g * wallT * wallT * t1.w;
+            // Slight centre packing keeps the intended line legible without
+            // erasing the fine ridges or making a smooth plastic tube.
+            pipePack += exp(-p.x * p.x * t2.y) * g * t2.x;
+            pipeGate = max(pipeGate, g * (1.0 - smoothstep(t2.z, t2.w, abs(p.x))));
+        }
+    }
 
     var shaped = naturalHeight + added * zGate;
-    let pipeGate = max(pipeA, pipeB)
-        * (1.0 - smoothstep(27.0, 40.0, abs(p.x)));
-    let pipeTarget = centreHeight + pipeShape - centrePack;
+    let pipeTarget = centreHeight + pipeShape - pipePack;
     shaped = mix(shaped, pipeTarget, pipeGate);
     return vec2f(shaped, pipeGate);
 }
@@ -76,7 +116,7 @@ fn main(input: FragmentInputs) -> FragmentOutputs {
     let centreHeight = terrainMacro(
         vec2f(0.0, p.y), uniforms.windAngle, uniforms.heightAmp
     );
-    let course = summitLine(p, h, centreHeight);
+    let course = courseShape(p, h, centreHeight);
     h = course.x;
 
     // Rock displaces snow upward; snow then re-accumulates on the flatter faces,

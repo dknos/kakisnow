@@ -31,6 +31,8 @@ import { SpellSystem } from "./spells/spellSystem.js";
 import { Overlay } from "./ui/overlay.js";
 import { CourseHud } from "./ui/courseHud.js";
 import { GameDirector, Mode } from "./game/gameDirector.js";
+import { COURSES, DEFAULT_COURSE_ID, setActiveCourse } from "./game/courses/index.js";
+import { EVENTS, getEvent } from "./game/courses/eventRegistry.js";
 import { RocketChair } from "./vehicles/rocketChair.js";
 import { audio as gameAudio } from "./audio/audio.js";
 import { Sky } from "./render/sky.js";
@@ -122,11 +124,29 @@ async function boot() {
     // scheduling.
     const depthPass = new DepthPass(scene);
 
+    // --------------------------------------------------------------- course
+    // Which course this boot bakes, and which event scores it. Query params
+    // rather than only menus for the same reason `?mode=` exists: the
+    // committed tools drive this build headlessly and cannot press buttons.
+    // An unknown id falls back rather than failing the boot — a stale
+    // bookmark should not brick the game.
+    const bootParams = new URLSearchParams(location.search);
+    const courseParam = bootParams.get("course");
+    const course = setActiveCourse(
+        courseParam && COURSES[courseParam] ? courseParam : DEFAULT_COURSE_ID
+    );
+    const eventParam = bootParams.get("event");
+    const eventDef =
+        eventParam && EVENTS[eventParam] &&
+        EVENTS[eventParam].courseId === course.id
+            ? getEvent(eventParam)
+            : getEvent(course.events[0]);
+
     // -------------------------------------------------------------- terrain
     await loading.phase("baking heightfield", 0.34);
     const terrain = new Terrain(scene, sky, shadows);
     terrain.mesh.renderingGroupId = 1;
-    await terrain.build();
+    await terrain.build(course);
     onChange("showTerrain", (v) => (terrain.mesh.isVisible = v));
     depthPass.registerCaster(terrain.mesh, terrain.makePrepassMaterial());
 
@@ -248,6 +268,7 @@ async function boot() {
     const game = new GameDirector({
         scene, sky, shadows, depthPass, terrain,
         controller: character, rig, spray, rocketChair,
+        course, event: eventDef,
     });
     await game.load();
 
@@ -264,7 +285,7 @@ async function boot() {
     const post = new PostChain(scene, rig.camera, depthPass, sky);
 
     const overlay = new Overlay({ rig, character });
-    const courseHud = new CourseHud(character);
+    const courseHud = new CourseHud(character, course);
     initInput(canvas, { onToggleOverlay: () => overlay.toggle() });
     initTouch(canvas);
     onChange("touchControls", () => setTouchVisible(shouldShowTouch()));
@@ -452,7 +473,7 @@ async function boot() {
     gameAudio.setVolume(S.masterVolume);
     gameAudio.setEnabled(S.audio !== false);
 
-    const requestedMode = new URLSearchParams(location.search).get("mode");
+    const requestedMode = bootParams.get("mode");
     game.selectMode(
         requestedMode === "free-ride" ? Mode.FREE_RIDE
             : requestedMode === "burger-run" ? Mode.BURGER_RUN
