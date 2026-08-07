@@ -526,9 +526,13 @@ export class GameDirector {
                 this.ghost.clear();
                 this.ui.hideAll();
                 this._setCourseHudVisible(true);
+                audio.setMusicState("run", { immediate: true });
+                audio.updateMusic(0, 0, 0, 0);
                 break;
             case Mode.ROCKET_TEST:
                 this._startRocketTest();
+                audio.setMusicState("run", { immediate: true });
+                audio.updateMusic(0, 0, 0, 0);
                 break;
             case Mode.TITLE:
             default:
@@ -539,6 +543,8 @@ export class GameDirector {
                 this.ghost.clear();
                 this.ui.showTitle();
                 this._setCourseHudVisible(false);
+                audio.setMusicState("menu", { immediate: true });
+                audio.updateMusic(0, 0, 0, 0);
                 break;
         }
         this.syncHintVisibility();
@@ -771,12 +777,14 @@ export class GameDirector {
             // combos, board audio — stays out; Free Ride Lab is the original
             // snow study and keeps sounding like it.
             this._updateRecovery(false);
+            this._updateRideMusic(c.speed01, 0, 0, 0);
             return;
         }
         if (this.mode === Mode.ROCKET_TEST) {
             this._updateFeel(dt);
             if (this.rocketChair) this.ui.setFuel(this.rocketChair.thrust.level, true);
             this._updateEngineAudio();
+            this._updateRideMusic(c.speed01, 0, 0, 0);
             return;
         }
         if (this.mode !== Mode.BURGER_RUN) return;
@@ -798,6 +806,7 @@ export class GameDirector {
         this.run.update(dt);
         this.field.update(dt, this.run.time, state === RunState.RUN);
         this._updateEngineAudio();
+        let avalancheMusic = 0;
 
         switch (state) {
             case RunState.ORDER:
@@ -819,9 +828,8 @@ export class GameDirector {
                 );
                 if (ava) {
                     this.ui.setAvalanche(ava.distance);
-                    audio.avalancheUpdate(
-                        Math.max(0, 1 - ava.distance / 70)
-                    );
+                    avalancheMusic = Math.max(0, 1 - ava.distance / 70);
+                    audio.avalancheUpdate(avalancheMusic);
                     if (ava.caught && !this.controller.crashed) {
                         // Caught: exactly one crash, and the wall grants the
                         // relief window the reset gives it.
@@ -853,6 +861,20 @@ export class GameDirector {
                 break;
             default:
                 break;
+        }
+
+        if (state === RunState.RUN && this.run.state === RunState.RUN) {
+            // Read tracker scalars directly so this bridge does not call the
+            // allocating `open` getter in the frame loop.
+            const trickMusic = this.tracker._comboCount > 0
+                ? Math.min(1, this.tracker._comboScore / 600) : 0;
+            const bigAirMusic = isBigAirCourse(this.course)
+                ? (this.bigAirFlight.inFlight ? 1
+                    : this.bigAirFlight.hold > 0 ? 0.55 : 0)
+                : 0;
+            this._updateRideMusic(
+                c.speed01, trickMusic, avalancheMusic, bigAirMusic
+            );
         }
     }
 
@@ -1220,6 +1242,21 @@ export class GameDirector {
         );
     }
 
+    /**
+     * Feed the held procedural score without constructing a telemetry object.
+     * State priority makes a signature moment win over generic speed, while
+     * all four scalar lanes are still passed to the audio engine for shaping.
+     */
+    _updateRideMusic(speed01, trick01, avalanche01, bigAir01) {
+        let state = "run";
+        if (bigAir01 > 0.05) state = "big-air";
+        else if (avalanche01 > 0.08) state = "avalanche";
+        else if (trick01 > 0.05) state = "trick";
+        else if (speed01 > 0.72) state = "speed";
+        audio.setMusicState(state);
+        audio.updateMusic(speed01, trick01, avalanche01, bigAir01);
+    }
+
     /** Upload this frame's lighting for anything the game layer drew. */
     sync(cameraPos) {
         if (this.mode !== Mode.BURGER_RUN) {
@@ -1367,11 +1404,20 @@ export class GameDirector {
     }
 
     _onRunState(next, prev) {
+        if (next === RunState.ORDER) {
+            audio.setMusicState("order", { immediate: true });
+            audio.updateMusic(0, 0, 0, 0);
+        }
         // The countdown is the first frame the player is looking at the
         // mountain rather than at a card, so every full-screen panel and its
         // scrim goes here, before the 3 appears rather than when the clock
         // starts.
         if (next === RunState.COUNTDOWN) {
+            // A retry/restart must not carry a high-speed, trick, avalanche,
+            // or Big Air phrase into the new gate. The first order's drop gets
+            // the normal crossfade; every later reset is immediate.
+            audio.setMusicState("countdown", { immediate: prev !== RunState.ORDER });
+            audio.updateMusic(0, 0, 0, 0);
             this.ui.hideScreens();
             this.bigAirFlight.reset();
             this.run.flightTelemetry = null;
@@ -1421,11 +1467,14 @@ export class GameDirector {
             });
         }
         if (next === RunState.RUN) {
+            audio.setMusicState("run");
             this.ui.setHud(true);
             this.ui.setSubtitle(this.run.event.name);
             this.ui.setClock(0);
         }
         if (next === RunState.ASSEMBLY) {
+            audio.setMusicState("finish");
+            audio.updateMusic(0, 0, 0, 0);
             this.book.markTutorial("finish");
             this.ui.setTutor(null);
             // The wall does not follow the rider into the cinematic.
@@ -1439,6 +1488,8 @@ export class GameDirector {
             this.ui.setCombo(null);
         }
         if (next === RunState.RESULTS) {
+            audio.setMusicState("results");
+            audio.updateMusic(0, 0, 0, 0);
             if (this.run.result?.completed) audio.finish();
             this._refreshTitleMenu();
             // Hand the camera back the way it was found, or the next run starts
@@ -1453,6 +1504,10 @@ export class GameDirector {
             this.ui.showResults(this.run.result, this.book.event(this.run.event.id));
         }
         if (next === RunState.ORDER || next === RunState.IDLE) {
+            if (next === RunState.IDLE) {
+                audio.setMusicState("menu", { immediate: true });
+                audio.updateMusic(0, 0, 0, 0);
+            }
             this.ui.setHud(false);
             this.ui.setCountdown(null);
         }
@@ -1546,6 +1601,8 @@ export class GameDirector {
             get event() {
                 return director.run.event;
             },
+            /** Read-only score diagnostics for browser playthrough evidence. */
+            music: () => audio.getMusicDiagnostics(),
             selectMode: (m) => this.selectMode(m),
             start: (seed) => {
                 this.mode = Mode.BURGER_RUN;
