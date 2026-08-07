@@ -73,6 +73,45 @@ const NATURAL_TAKEOFF_MIN_SPEED = 7.5;
 const NATURAL_TAKEOFF_MIN_RISE = 1.15;
 const NATURAL_TAKEOFF_CLEARANCE = 0.008;
 
+// ------------------------------------------------------------------- tricks
+//
+// Trick rotation is VISUAL, never ballistic: the trajectory a jump takes is
+// identical whether the rider spins or not, which keeps the committed smoke
+// tools' flight assertions true and means a trick can never be used to fly.
+// What a trick risks is the landing — the residual rotation at touchdown
+// decides the grade, and the grade decides speed, integrity and the combo.
+/** Full spin rate at held input, rad/s. Two revolutions per airborne second. */
+const TRICK_SPIN_RATE = 12.6;
+/** Flip rate, rad/s. A single flip wants about two thirds of a second. */
+const TRICK_FLIP_RATE = 10.0;
+/** How fast held rotation ramps in/out — a flick, not a light switch. */
+const TRICK_RAMP = 10;
+/** Residuals (rad) and impacts that grade a landing. Impact alone can only
+ *  make a landing sketchy, never a crash — this course drops riders off
+ *  kickers at speed all run long, and the scoring has always held that every
+ *  landing here is a bit sketchy. A crash needs a blown rotation (below) or
+ *  a frontal obstacle (the collision response). */
+const GRADE_CRASH_FLIP = 0.87;   // ~50° of unfinished flip
+const GRADE_CRASH_SPIN = 1.05;   // ~60° of unfinished spin
+const GRADE_SKETCHY_FLIP = 0.44;
+const GRADE_SKETCHY_SPIN = 0.61;
+const GRADE_SKETCHY_IMPACT = 1.05;
+const GRADE_PERFECT_RESIDUAL = 0.14;
+const GRADE_PERFECT_IMPACT = 0.75;
+/** Landing consequences, applied to horizontal speed. */
+const PERFECT_SPEED_REWARD = 1.04;
+const SKETCHY_SPEED_SCRUB = 0.88;
+/** The tumble: how long a crash owns the rider, and how hard it brakes. */
+const CRASH_TUMBLE_TIME = 1.0;
+const CRASH_SPEED_KEEP = 0.35;
+const CRASH_FRICTION = 2.6;
+/** The rider's collision body. */
+const BODY_RADIUS = 0.42;
+const BODY_CENTRE_Y = 0.7;
+/** Hitting something head-on above this speed is a crash, not a scrape. */
+const CRASH_FRONTAL_DOT = 0.62;
+const CRASH_MIN_SPEED = 8;
+
 /** Gait: metres of travel per full stride cycle, scaled by speed. */
 const STRIDE_BASE = 1.55;
 
@@ -162,6 +201,44 @@ export class CharacterController {
         this.boost = 0;
         /** Metres per second of thrust actually delivered this frame, for telemetry. */
         this.boostDelivered = 0;
+
+        // ------------------------------------------------------------ tricks
+        /** Visual trick rotation, radians. The hero renders these on its own
+         *  trick node; the terrain fit never sees them. */
+        this.trickSpin = 0;
+        this.trickFlip = 0;
+        /** This frame's rotation deltas, for the score tracker. */
+        this.trickDSpin = 0;
+        this.trickDFlip = 0;
+        /** "left" | "right" | null — tweak currently held in the air. */
+        this.grabDir = null;
+        /** Whether meaningful trick input happened this air. */
+        this.didTrick = false;
+        /** One-frame with `landed`: "perfect" | "clean" | "sketchy" | "crash". */
+        this.landingGrade = null;
+        this._spinRate = 0;
+        this._flipRate = 0;
+
+        // ------------------------------------------------------------- crash
+        /** The tumble owns the rider: steering frozen, heavy friction. */
+        this.crashed = false;
+        this.crashTimer = 0;
+        /** Set when the tumble ends; the game layer respawns and clears it. */
+        this.needsRecovery = false;
+        /** One-frame: glanced off something solid this frame. */
+        this.scraped = false;
+        /** One-frame: brushed something soft (a shrub, a snowbank). */
+        this.brushedSoft = false;
+        /** Total crashes this run — the game layer resets it. */
+        this.crashCount = 0;
+
+        /**
+         * The obstacle world, injected by the game layer. Null means open
+         * snow — every test and Free Ride Lab before dressing colliders
+         * existed — and costs one branch.
+         * @type {null|{sweepSphere(x0,y0,z0,x1,y1,z1,r):object|null}}
+         */
+        this.world = null;
     }
 
     /**
@@ -175,6 +252,11 @@ export class CharacterController {
         this.surfActive = input.surf;
         this.landed = false;
         this.landingImpact = 0;
+        this.landingGrade = null;
+        this.scraped = false;
+        this.brushedSoft = false;
+        this.trickDSpin = 0;
+        this.trickDFlip = 0;
 
         if (input.jumpPressed) this._jumpBuffer = JUMP_BUFFER;
         else this._jumpBuffer = Math.max(0, this._jumpBuffer - h);
@@ -187,14 +269,33 @@ export class CharacterController {
         rig.getFlatForward(_fwd);
         rig.getFlatRight(_right);
 
-        if (this.surf > 0.5) this._surfStep(h, rig);
+        if (this.crashed) this._crashStep(h);
+        else if (this.surf > 0.5) this._surfStep(h, rig);
         else this._walkStep(h);
 
         // ------------------------------------------------ integrate + ground/air
         const oldGround = this.terrain.heightAt(this.position.x, this.position.z);
         const oldY = this.position.y;
+        const oldX = this.position.x;
+        const oldZ = this.position.z;
         this.position.x += this.velocity.x * h;
         this.position.z += this.velocity.z * h;
+
+        // ------------------------------------------------------- obstacles
+        // Swept, like the pickups: at nineteen metres a second a tree is
+        // narrower than a frame. The sweep runs at chest height so a rock the
+        // rider can roll over does not read as a wall.
+        if (this.world && !this.crashed && h > 0) {
+            const hit = this.world.sweepSphere(
+                oldX, oldY + BODY_CENTRE_Y, oldZ,
+                this.position.x, oldY + BODY_CENTRE_Y, this.position.z,
+                BODY_RADIUS
+            );
+            if (hit && hit.collider.kind !== "rail" &&
+                hit.collider.kind !== "trigger") {
+                this._resolveObstacle(hit, oldX, oldZ, h);
+            }
+        }
 
         this.groundY = this.terrain.heightAt(this.position.x, this.position.z);
         this.terrain.normalAt(this.position.x, this.position.z, this.groundNormal);
@@ -202,13 +303,14 @@ export class CharacterController {
 
         // A short buffer plus coyote time makes Space reliable at ramp lips and
         // over uneven snow. The impulse keeps useful upward speed from a takeoff.
-        if (this._jumpBuffer > 0 && this._coyote > 0) {
+        if (this._jumpBuffer > 0 && this._coyote > 0 && !this.crashed) {
             this.grounded = false;
             this.airborne = true;
             this.verticalVelocity = Math.max(JUMP_SPEED, this.verticalVelocity + JUMP_SPEED * 0.42);
             this._jumpBuffer = 0;
             this._coyote = 0;
             this.jumpCount++;
+            this._beginAir();
         }
 
         if (this.grounded) {
@@ -229,6 +331,7 @@ export class CharacterController {
                 this.position.y = flightY;
                 this.verticalVelocity -= GRAVITY * h;
                 this.jumpCount++;
+                this._beginAir();
             } else {
                 this.position.y = this.groundY;
                 this.verticalVelocity = Scalar.Clamp(groundRate, -5, 9);
@@ -240,6 +343,7 @@ export class CharacterController {
 
             if (this.position.y <= this.groundY && this.verticalVelocity <= groundRate + 0.5) {
                 const impactSpeed = Math.max(0, groundRate - this.verticalVelocity);
+                const airTimeWas = this.airTime;
                 this.position.y = this.groundY;
                 this.verticalVelocity = Scalar.Clamp(groundRate, -5, 9);
                 this.grounded = true;
@@ -248,7 +352,21 @@ export class CharacterController {
                 this.landingImpact = Scalar.Clamp(impactSpeed / 10, 0.2, 1.5);
                 this.airTime = 0;
                 rig.addTrauma(Math.min(0.38, this.landingImpact * 0.22));
+                if (!this.crashed) this._gradeLanding(airTimeWas);
             }
+        }
+
+        // ------------------------------------------------------------ tricks
+        this._updateTricks(h);
+
+        // The crash announces itself to the camera once, however it started —
+        // a blown landing above or a tree in `_resolveObstacle`, which has no
+        // rig to shake.
+        if (this.crashed && !this._crashShaken) {
+            this._crashShaken = true;
+            rig.addTrauma(0.55);
+        } else if (!this.crashed) {
+            this._crashShaken = false;
         }
 
         // --------------------------------------------------------- bookkeeping
@@ -312,9 +430,12 @@ export class CharacterController {
     }
 
     _surfStep(h, rig) {
-        // Steer from the mouse (camera yaw drift) plus explicit A/D.
+        // Steer from the mouse (camera yaw drift) plus explicit A/D — except
+        // that under the trick modifier in the air, A/D mean tweak, and a
+        // command that both steered and grabbed would fight itself.
+        const steerX = (input.trickMod && !this.grounded) ? 0 : input.moveX;
         const steer = Scalar.Clamp(
-            input.moveX * 0.85 + angleDelta(this.facing, rig.yaw) * 1.25,
+            steerX * 0.85 + angleDelta(this.facing, rig.yaw) * 1.25,
             -1,
             1
         );
@@ -341,7 +462,10 @@ export class CharacterController {
         // into reverse thrust. Pulling back remains the explicit brake/reverse
         // intent; terrain alone always leaves enough drive to crest a roll.
         let thrust = Math.max(3.2, SURF_THRUST + slopeAssist);
-        if (input.moveZ < 0) thrust -= 14; // pull back to scrub speed
+        // Under the trick modifier in the air, S means backflip, not brake.
+        if (input.moveZ < 0 && !(input.trickMod && !this.grounded)) {
+            thrust -= 14; // pull back to scrub speed
+        }
 
         // The engine, along the same heading as everything else.
         const boost = Math.max(0, Math.min(1, this.boost));
@@ -387,6 +511,203 @@ export class CharacterController {
             this.velocity.x *= k;
             this.velocity.z *= k;
         }
+    }
+
+    // ------------------------------------------------------------------ tricks
+
+    /** A fresh air: nothing rotated yet, nothing held. */
+    _beginAir() {
+        this.trickSpin = 0;
+        this.trickFlip = 0;
+        this._spinRate = 0;
+        this._flipRate = 0;
+        this.grabDir = null;
+        this.didTrick = false;
+    }
+
+    /**
+     * Integrate trick rotation from held input, and unwind it on the ground.
+     *
+     * While the modifier is held airborne, W/S mean flip and A/D mean tweak —
+     * the same axes that steer on the snow. The steering half of that
+     * double-booking is resolved in `_surfStep`, which ignores moveX under
+     * the modifier in the air; here the inputs only ever add rotation.
+     */
+    _updateTricks(h) {
+        if (this.crashed) {
+            // The tumble: keep rolling. Nobody steers a crash.
+            this.trickDFlip = 8.5 * h;
+            this.trickFlip += this.trickDFlip;
+            this.trickDSpin = 1.7 * h;
+            this.trickSpin += this.trickDSpin;
+            return;
+        }
+        if (!this.grounded) {
+            const spinWant = input.spin * TRICK_SPIN_RATE;
+            const flipWant = (input.trickMod ? input.moveZ : 0) * TRICK_FLIP_RATE;
+            this._spinRate = expDamp(this._spinRate, spinWant, TRICK_RAMP, h);
+            this._flipRate = expDamp(this._flipRate, flipWant, TRICK_RAMP, h);
+            this.trickDSpin = this._spinRate * h;
+            this.trickDFlip = this._flipRate * h;
+            this.trickSpin += this.trickDSpin;
+            this.trickFlip += this.trickDFlip;
+            this.grabDir = input.trickMod
+                ? (input.moveX < -0.4 ? "left" : input.moveX > 0.4 ? "right" : null)
+                : null;
+            if (Math.abs(this.trickSpin) + Math.abs(this.trickFlip) > 0.5 ||
+                this.grabDir) {
+                this.didTrick = true;
+            }
+            return;
+        }
+        // Grounded: whatever rotation remains blends away into the landing.
+        // Toward the nearest half-turn rather than toward zero — a 180 lands
+        // travelling switch, and unwinding it the long way would pirouette
+        // the rider on the snow.
+        this._spinRate = 0;
+        this._flipRate = 0;
+        this.grabDir = null;
+        const spinHome = Math.round(this.trickSpin / Math.PI) * Math.PI;
+        const flipHome = Math.round(this.trickFlip / (Math.PI * 2)) * Math.PI * 2;
+        this.trickSpin = expDamp(this.trickSpin, spinHome, 14, h);
+        this.trickFlip = expDamp(this.trickFlip, flipHome, 14, h);
+        if (Math.abs(this.trickSpin - spinHome) < 0.01) this.trickSpin = spinHome;
+        if (Math.abs(this.trickFlip - flipHome) < 0.01) this.trickFlip = flipHome;
+        // Once settled, fold whole turns away so the numbers cannot grow all run.
+        if (this.trickSpin === spinHome) this.trickSpin = 0;
+        if (this.trickFlip === flipHome) this.trickFlip = 0;
+    }
+
+    /**
+     * Judge the touchdown. The residual rotation — how far from a clean
+     * multiple the spin and flip were at contact — and the impact decide it;
+     * the consequences touch speed here and everything else downstream.
+     */
+    _gradeLanding(airTime) {
+        const spinRes = residual(this.trickSpin, Math.PI);
+        const flipRes = residual(this.trickFlip, Math.PI * 2);
+        const impact = this.landingImpact;
+
+        let grade;
+        if (flipRes > GRADE_CRASH_FLIP || spinRes > GRADE_CRASH_SPIN) {
+            grade = "crash";
+        } else if (flipRes > GRADE_SKETCHY_FLIP || spinRes > GRADE_SKETCHY_SPIN ||
+                   impact > GRADE_SKETCHY_IMPACT) {
+            grade = "sketchy";
+        } else if (spinRes < GRADE_PERFECT_RESIDUAL &&
+                   flipRes < GRADE_PERFECT_RESIDUAL &&
+                   impact < GRADE_PERFECT_IMPACT &&
+                   (this.didTrick || airTime > 0.45)) {
+            grade = "perfect";
+        } else {
+            grade = "clean";
+        }
+        this.landingGrade = grade;
+
+        if (grade === "perfect") {
+            this.velocity.x *= PERFECT_SPEED_REWARD;
+            this.velocity.z *= PERFECT_SPEED_REWARD;
+        } else if (grade === "sketchy") {
+            this.velocity.x *= SKETCHY_SPEED_SCRUB;
+            this.velocity.z *= SKETCHY_SPEED_SCRUB;
+        } else if (grade === "crash") {
+            this._startCrash();
+        }
+    }
+
+    // ------------------------------------------------------------------- crash
+
+    _startCrash() {
+        if (this.crashed) return;
+        this.crashed = true;
+        this.crashTimer = CRASH_TUMBLE_TIME;
+        this.crashCount++;
+        this.velocity.x *= CRASH_SPEED_KEEP;
+        this.velocity.z *= CRASH_SPEED_KEEP;
+    }
+
+    /**
+     * The tumble. No steering, heavy friction, and when it is spent the game
+     * layer is asked to stand the rider back up at the last safe spot —
+     * asked, because where "safe" is belongs to the course, not to physics.
+     */
+    _crashStep(h) {
+        const k = Math.exp(-CRASH_FRICTION * h);
+        this.velocity.x *= k;
+        this.velocity.z *= k;
+        this.crashTimer -= h;
+        if (this.crashTimer <= 0 && this.grounded) {
+            this.needsRecovery = true;
+        }
+    }
+
+    /**
+     * Stand back up. The game layer calls this with the recovery spot it
+     * chose; physics just plants the rider there, stationary and clean.
+     */
+    finishCrash(x, y, z, facing) {
+        this.crashed = false;
+        this.crashTimer = 0;
+        this.needsRecovery = false;
+        this.position.set(x, y, z);
+        this.velocity.setAll(0);
+        this.verticalVelocity = 0;
+        this.facing = facing;
+        this.grounded = true;
+        this.airborne = false;
+        this.airTime = 0;
+        this.trickSpin = 0;
+        this.trickFlip = 0;
+        this._spinRate = 0;
+        this._flipRate = 0;
+    }
+
+    // --------------------------------------------------------------- obstacles
+
+    /**
+     * Something solid interrupted the sweep.
+     *
+     * Three answers by material and angle: soft things cost a little speed
+     * and a puff; a glancing hit slides along the surface and scrapes; a
+     * frontal hit at speed is a crash. The position is pulled back to the
+     * contact so the next frame starts outside the collider.
+     */
+    _resolveObstacle(hit, oldX, oldZ, h) {
+        const data = hit.collider.data;
+        if (data && data.soft) {
+            this.velocity.x *= 0.94;
+            this.velocity.z *= 0.94;
+            this.brushedSoft = true;
+            return;
+        }
+
+        const speed = Math.hypot(this.velocity.x, this.velocity.z);
+        const frontal = speed > 0.001
+            ? -(this.velocity.x * hit.nx + this.velocity.z * hit.nz) / speed
+            : 0;
+
+        if (frontal > CRASH_FRONTAL_DOT && speed > CRASH_MIN_SPEED) {
+            // Stop at the contact, then tumble.
+            this.position.x = oldX + (this.position.x - oldX) * hit.t;
+            this.position.z = oldZ + (this.position.z - oldZ) * hit.t;
+            this._startCrash();
+            return;
+        }
+
+        // Glancing: keep the tangential component, lose the rest, and step
+        // out along the normal so the sweep cannot re-catch the same face.
+        const vn = this.velocity.x * hit.nx + this.velocity.z * hit.nz;
+        if (vn < 0) {
+            this.velocity.x -= hit.nx * vn;
+            this.velocity.z -= hit.nz * vn;
+        }
+        this.velocity.x *= 0.92;
+        this.velocity.z *= 0.92;
+        this.position.x = oldX + (this.position.x - oldX) * hit.t + hit.nx * 0.06;
+        this.position.z = oldZ + (this.position.z - oldZ) * hit.t + hit.nz * 0.06;
+        this.position.x += this.velocity.x * (1 - hit.t) * h;
+        this.position.z += this.velocity.z * (1 - hit.t) * h;
+        this.scraped = true;
     }
 
     /**
@@ -438,6 +759,12 @@ export class CharacterController {
 }
 
 // ------------------------------------------------------------------ helpers
+
+/** Distance from `angle` to its nearest multiple of `step`, in radians. */
+function residual(angle, step) {
+    const r = Math.abs(angle % step);
+    return Math.min(r, step - r);
+}
 
 /** Shortest signed delta from a to b, wrapped to [-PI, PI]. */
 export function angleDelta(a, b) {

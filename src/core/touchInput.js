@@ -34,6 +34,8 @@ export const touch = {
     /** Held buttons. */
     ride: false,
     boost: 0,
+    /** The trick modifier, held. Stick direction picks the trick axis. */
+    trick: false,
     /** Set for one frame; cleared by the input layer's own frame end. */
     jump: false,
     /** Accumulated look delta since the last frame, radians. */
@@ -71,6 +73,7 @@ const CSS = `
     display: grid; grid-template-columns: repeat(2, auto); gap: 14px;
     pointer-events: auto;
 }
+#sb-touch .keys .key:first-child { width: 66px; height: 66px; align-self: end; }
 #sb-touch .key {
     width: 82px; height: 82px; border-radius: 50%;
     border: 1px solid rgba(219,230,242,0.26);
@@ -141,6 +144,7 @@ export function initTouch(canvas) {
     root.innerHTML = `
 <div class="pad" id="sb-pad"><div class="nub" id="sb-nub"></div></div>
 <div class="keys">
+  <button class="key" data-hold="trick">Trick</button>
   <button class="key" data-hold="boost">Boost</button>
   <button class="key" data-tap="jump">Jump</button>
   <button class="key wide" data-hold="ride">Ride</button>
@@ -162,12 +166,14 @@ export function initTouch(canvas) {
             key.setPointerCapture?.(e.pointerId);
             if (key.dataset.hold === "ride") touch.ride = true;
             if (key.dataset.hold === "boost") touch.boost = 1;
+            if (key.dataset.hold === "trick") touch.trick = true;
             if (key.dataset.tap === "jump") touch.jump = true;
         });
         const release = (e) => {
             key.classList.remove("held");
             if (key.dataset.hold === "ride") touch.ride = false;
             if (key.dataset.hold === "boost") touch.boost = 0;
+            if (key.dataset.hold === "trick") touch.trick = false;
             if (e) e.preventDefault();
         };
         key.addEventListener("pointerup", release);
@@ -255,6 +261,7 @@ export function setTouchVisible(on) {
     root.classList.toggle("on", !!on);
     if (!on) {
         touch.x = 0; touch.y = 0; touch.ride = false; touch.boost = 0;
+        touch.trick = false;
     }
 }
 

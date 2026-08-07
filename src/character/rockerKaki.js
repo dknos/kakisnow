@@ -168,15 +168,30 @@ export class RockerKaki {
         this.controller = controller;
 
         this.motionRoot = new TransformNode("rockerkakiMotion", scene);
+        /**
+         * Trick attitude lives on its own node between motion and board.
+         *
+         * The chain the tools and the terrain fit know — snowboardRoot's euler
+         * pitch/roll, visualRoot's pose — is untouched: a spin or a flip is a
+         * rotation of the whole rider-and-board assembly, exactly what a new
+         * parent expresses and exactly what writing into `_solveBoard`'s eased
+         * terms could not do without corrupting the ground fit on landing.
+         * Euler on purpose; a quaternion here would poison nothing, but the
+         * chain stays one convention throughout.
+         */
+        this.trickRoot = new TransformNode("trickRoot", scene);
         this.boardRoot = new TransformNode("snowboardRoot", scene);
         this.boardAsset = new TransformNode("snowboardAsset", scene);
         this.visualRoot = new TransformNode("rockerkakiVisual", scene);
         this.assetRoot = new TransformNode("rockerkakiAsset", scene);
-        this.boardRoot.parent = this.motionRoot;
+        this.trickRoot.parent = this.motionRoot;
+        this.boardRoot.parent = this.trickRoot;
         this.boardAsset.parent = this.boardRoot;
         // The rider is a passenger on the board, not a sibling of it.
         this.visualRoot.parent = this.boardRoot;
         this.assetRoot.parent = this.visualRoot;
+        /** Eased tweak lean, from the held grab. */
+        this._grabLean = 0;
 
         /** @type {import("@babylonjs/core/Meshes/mesh").Mesh[]} */
         this.meshes = [];
@@ -724,11 +739,35 @@ export class RockerKaki {
         this.motionRoot.position.copyFrom(ch.position);
         this.motionRoot.rotation.y = ch.facing;
 
+        // The trick attitude, straight off the controller. Spin about the
+        // rider's up, flip about her side axis — Babylon's YXZ euler order
+        // applies yaw first, so the flip axis turns with the spin, which is
+        // how a body actually rotates. The tweak tips board and rider
+        // together: a grab IS the board pulled over, not a lean on top of it.
+        const grabWant = ch.grabDir === "left" ? -0.30
+            : ch.grabDir === "right" ? 0.30 : 0;
+        this._grabLean = expDamp(this._grabLean, grabWant, 9, dt);
+        this.trickRoot.rotation.y = ch.trickSpin;
+        this.trickRoot.rotation.x = ch.trickFlip;
+        this.trickRoot.rotation.z = this._grabLean;
+        // Rotate about the rider's middle, not her feet: a flip pivots the
+        // pair around their shared centre of mass, a metre or so up.
+        this.trickRoot.position.y = 0;
+        if (ch.trickFlip !== 0 || ch.trickSpin !== 0 || this._grabLean !== 0) {
+            const pivot = 1.05;
+            this.trickRoot.position.y =
+                pivot - pivot * Math.cos(ch.trickFlip);
+            this.trickRoot.position.z = pivot * Math.sin(ch.trickFlip);
+        } else {
+            this.trickRoot.position.z = 0;
+        }
+
         // Before the rider: she rides whatever attitude this leaves the board
         // in, and solving her first would pose her against last frame's board.
         this._solveBoard(dt);
 
         const air = ch.grounded ? 0 : 1;
+        const crash = ch.crashed ? 1 : 0;
         const rideCycle = Math.sin(
             this._animTime * (2.8 + Math.min(ch.speed, 18) * 0.16)
         );
@@ -745,7 +784,10 @@ export class RockerKaki {
         this.visualRoot.rotation.x =
             -this._boardPitch * RIDER_UPRIGHT_PITCH
             + ch.surf * 0.13 + ch.speed * 0.003 - air * 0.18
-            + landing * 0.11;
+            + landing * 0.11
+            // The tumble slump: folded forward, low. The rotation itself is
+            // the trick node's; this is only what her body does inside it.
+            + crash * 0.52;
         this.visualRoot.rotation.y =
             0.13 + air * Math.sin(ch.airTime * 2.2) * 0.055;
         // Halved against the standing version of this line: the edge angle now
@@ -765,15 +807,18 @@ export class RockerKaki {
             + ch.surf * 0.045
             + rideCycle * rideMotion * 0.018
             + air * 0.045
-            - landing * 0.09;
+            - landing * 0.09
+            - crash * 0.14;
 
-        this.rigPose = air > 0
-            ? "air"
-            : landing > 0
-                ? "land"
-                : Math.abs(ch.lean) > 0.16
-                    ? "carve"
-                    : "ride";
+        this.rigPose = crash > 0
+            ? "crash"
+            : air > 0
+                ? "air"
+                : landing > 0
+                    ? "land"
+                    : Math.abs(ch.lean) > 0.16
+                        ? "carve"
+                        : "ride";
         // RockerKaki's face, hair, guitar and body are many disconnected
         // surfaces whose automatic-looking blended weights stretch visibly.
         // Preserve every authored island exactly. The skeleton remains embedded

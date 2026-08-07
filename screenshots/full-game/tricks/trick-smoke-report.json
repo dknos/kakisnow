@@ -1,0 +1,12 @@
+{
+  "tool": "tools/full-game/trick-smoke-windows.cjs",
+  "url": "http://127.0.0.1:5173",
+  "viewport": {
+    "width": 2560,
+    "height": 1440
+  },
+  "failures": [],
+  "consoleErrors": [],
+  "webgpuValidation": [],
+  "ok": true
+}

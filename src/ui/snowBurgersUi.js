@@ -226,6 +226,66 @@ const CSS = `
 .sb-hud-fuel.low .sb-fuel-track i { background: #e2553a; }
 .sb-hud-fuel.low .sb-fuel-label { color: #e2553a; }
 
+/* ---------------------------------------------------------------- tricks */
+/* Bottom-left, clear of the course: the trick toast, the open combo, and
+   the landing grade. Brief and readable — the mountain stays the screen. */
+#sb-trick {
+    position: absolute; left: max(30px, env(safe-area-inset-left)); bottom: 118px;
+    opacity: 0; transform: translateY(6px);
+    transition: opacity 220ms ease, transform 320ms cubic-bezier(0.16,1,0.3,1);
+    pointer-events: none;
+}
+#sb-trick.on { opacity: 1; transform: none; }
+#sb-trick .sb-trick-name {
+    font: 300 clamp(17px, 1.9vw, 24px)/1.2 inherit;
+    letter-spacing: 0.22em; text-transform: uppercase;
+    color: rgba(244, 249, 255, 0.94);
+    text-shadow: 0 2px 18px rgba(3,8,15,0.9);
+}
+#sb-trick .sb-trick-score {
+    margin-top: 3px;
+    font: 400 12px/1 ui-monospace, "Cascadia Mono", monospace;
+    letter-spacing: 0.14em; font-variant-numeric: tabular-nums;
+    color: var(--warm);
+    text-shadow: 0 2px 14px rgba(3,8,15,0.9);
+}
+#sb-grade {
+    position: absolute; left: max(30px, env(safe-area-inset-left)); bottom: 168px;
+    font: 500 10px/1 ui-monospace, "Cascadia Mono", monospace;
+    letter-spacing: 0.34em; text-transform: uppercase;
+    opacity: 0; transition: opacity 180ms ease;
+    text-shadow: 0 2px 14px rgba(3,8,15,0.9);
+    pointer-events: none;
+}
+#sb-grade.on { opacity: 1; }
+#sb-grade.perfect { color: var(--warm); }
+#sb-grade.clean { color: rgba(219,230,242,0.85); }
+#sb-grade.sketchy { color: rgba(219,230,242,0.45); }
+#sb-grade.crash { color: #e2553a; }
+#sb-combo {
+    position: absolute; left: max(30px, env(safe-area-inset-left)); bottom: 92px;
+    font: 400 11px/1 ui-monospace, "Cascadia Mono", monospace;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
+    color: rgba(219,230,242,0.6);
+    opacity: 0; transition: opacity 240ms ease;
+    text-shadow: 0 2px 14px rgba(3,8,15,0.9);
+    pointer-events: none;
+}
+#sb-combo.on { opacity: 1; }
+#sb-combo b { color: var(--warm); font-weight: 500; }
+/* A small transient notice (recovery penalty, checkpoint) above the alert. */
+#sb-notice {
+    position: absolute; left: 50%; bottom: 128px; transform: translateX(-50%);
+    font: 400 11px/1 ui-monospace, monospace;
+    letter-spacing: 0.24em; text-transform: uppercase;
+    color: rgba(219,230,242,0.7);
+    opacity: 0; transition: opacity 200ms ease;
+    text-shadow: 0 2px 14px rgba(3,8,15,0.9);
+    pointer-events: none;
+}
+#sb-notice.on { opacity: 1; }
+
 .sb-hud-alert {
     position: absolute; left: 50%; bottom: 84px; transform: translateX(-50%);
     text-align: center; max-width: 80vw;
@@ -398,6 +458,12 @@ export class SnowBurgersUi {
             chips: this.root.querySelector("#sb-order-chips"),
             results: this.root.querySelector("#sb-results"),
             resultBody: this.root.querySelector("#sb-result-body"),
+            trick: this.root.querySelector("#sb-trick"),
+            trickName: this.root.querySelector("#sb-trick-name"),
+            trickScore: this.root.querySelector("#sb-trick-score"),
+            grade: this.root.querySelector("#sb-grade"),
+            combo: this.root.querySelector("#sb-combo"),
+            notice: this.root.querySelector("#sb-notice"),
             pause: this.root.querySelector("#sb-pause"),
             pauseTitle: this.root.querySelector("#sb-pause-title"),
             pauseDetail: this.root.querySelector("#sb-pause-detail"),
@@ -464,6 +530,13 @@ export class SnowBurgersUi {
     <div class="sb-alert-main" id="sb-alert-main"></div>
     <div class="sb-alert-sub" id="sb-alert-sub"></div>
   </div>
+  <div id="sb-grade"></div>
+  <div id="sb-trick">
+    <div class="sb-trick-name" id="sb-trick-name"></div>
+    <div class="sb-trick-score" id="sb-trick-score"></div>
+  </div>
+  <div id="sb-combo"></div>
+  <div id="sb-notice"></div>
 </div>
 
 <div class="sb-screen" id="sb-results">
@@ -586,7 +659,13 @@ export class SnowBurgersUi {
 
     setHud(on) {
         this.el.hud.classList.toggle("on", !!on);
-        if (!on) this.setAlert(null);
+        if (!on) {
+            this.setAlert(null);
+            this.el.trick.classList.remove("on");
+            this.el.grade.classList.remove("on");
+            this.el.combo.classList.remove("on");
+            this.el.notice.classList.remove("on");
+        }
     }
 
     /** @param {number|null} seconds remaining, or null to hide */
@@ -638,6 +717,62 @@ export class SnowBurgersUi {
 
     setSubtitle(text) {
         this.el.split.textContent = text;
+    }
+
+    // -------------------------------------------------------------- tricks
+
+    /**
+     * Name a landed trick. Fades itself; a new trick replaces the old one.
+     * @param {{name:string, score:number, grade:string}} result
+     */
+    showTrick(result) {
+        this.el.trickName.textContent = result.name;
+        this.el.trickScore.textContent =
+            result.score > 0 ? `+${result.score}` : "lost";
+        this.el.trick.classList.add("on");
+        clearTimeout(this._trickTimer);
+        this._trickTimer = setTimeout(
+            () => this.el.trick.classList.remove("on"), 1700
+        );
+    }
+
+    /** @param {string|null} grade one of the landing grades, or null to hide */
+    flashGrade(grade) {
+        const el = this.el.grade;
+        if (!grade) {
+            el.classList.remove("on");
+            return;
+        }
+        el.textContent = grade;
+        el.className = "on " + grade;
+        el.id = "sb-grade";
+        clearTimeout(this._gradeTimer);
+        this._gradeTimer = setTimeout(() => el.classList.remove("on"), 1100);
+    }
+
+    /** @param {null|{score:number, count:number, multiplier:number}} open */
+    setCombo(open) {
+        if (!open || open.count < 1) {
+            this.el.combo.classList.remove("on");
+            this._lastCombo = "";
+            return;
+        }
+        const text = `combo <b>×${open.multiplier.toFixed(2)}</b> · ${open.score}`;
+        if (text !== this._lastCombo) {
+            this._lastCombo = text;
+            this.el.combo.innerHTML = text;
+        }
+        this.el.combo.classList.add("on");
+    }
+
+    /** A short transient notice — the recovery penalty, a checkpoint. */
+    showNotice(text) {
+        this.el.notice.textContent = text;
+        this.el.notice.classList.add("on");
+        clearTimeout(this._noticeTimer);
+        this._noticeTimer = setTimeout(
+            () => this.el.notice.classList.remove("on"), 1500
+        );
     }
 
     /** @param {null|{main:string, sub?:string}} alert */
@@ -764,6 +899,9 @@ export class SnowBurgersUi {
                 formatTime(result.time)),
             row("Medal", result.medal ? pct(medalFraction(result)) : "0%", medal),
             row("Style", pct(result.style / 100), String(result.style)),
+            // The bar saturates at a committed trick run; the number is open.
+            row("Tricks", pct((result.trickScore ?? 0) / 1400),
+                String(result.trickScore ?? 0)),
             row("Stack integrity", pct(result.integrity / 100), String(result.integrity)),
             row("Rocket efficiency",
                 pct((result.rocket ?? 0) / 100),
@@ -772,6 +910,13 @@ export class SnowBurgersUi {
                     : String(result.rocket),
                 result.notMeasured.includes("rocket efficiency")),
         ].join("");
+
+        const trickLine = result.bestTrick
+            ? ` · best ${result.bestTrick.name} +${result.bestTrick.score}`
+            : "";
+        const crashLine = result.crashes
+            ? ` · ${result.crashes} crash${result.crashes === 1 ? "" : "es"}`
+            : "";
 
         const bestLine = best?.bestTime != null
             ? `Best ${formatTime(best.bestTime)} · ${best.completions} burger${best.completions === 1 ? "" : "s"} served`
@@ -786,8 +931,10 @@ export class SnowBurgersUi {
 <div class="sb-grade">${result.grade}</div>
 <div class="sb-stars">${stars}</div>
 <div class="sb-rows">${rows}</div>
-<div class="sb-note">${bestLine}${brokeLine}<br/>
-Seed ${result.seed} · not measured this run: ${result.notMeasured.join(", ")}</div>
+<div class="sb-note">${bestLine}${brokeLine}${trickLine}${crashLine}<br/>
+Seed ${result.seed}${result.notMeasured.length
+    ? " · not measured this run: " + result.notMeasured.join(", ")
+    : ""}</div>
 <div class="sb-actions">
   <button class="sb-item" data-action="retry">Retry</button>
   <button class="sb-item" data-action="next">Next order</button>
@@ -823,6 +970,18 @@ const PLAYER_SETTINGS = [
     { k: "audio", label: "Audio", type: "toggle" },
     {
         k: "masterVolume", label: "Volume", type: "range",
+        min: 0, max: 1, step: 0.01, fmt: (v) => Math.round(v * 100) + "%",
+    },
+    {
+        k: "sfxVolume", label: "Effects", type: "range",
+        min: 0, max: 1, step: 0.01, fmt: (v) => Math.round(v * 100) + "%",
+    },
+    {
+        k: "ambienceVolume", label: "Ambience", type: "range",
+        min: 0, max: 1, step: 0.01, fmt: (v) => Math.round(v * 100) + "%",
+    },
+    {
+        k: "musicVolume", label: "Music", type: "range",
         min: 0, max: 1, step: 0.01, fmt: (v) => Math.round(v * 100) + "%",
     },
     {

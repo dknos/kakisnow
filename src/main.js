@@ -411,7 +411,10 @@ async function boot() {
         const tChar = performance.now();
 
         _vel.copyFrom(character.velocity);
-        rig.update(dt, character.position, _vel, character.lean, character.speed01);
+        rig.update(
+            dt, character.position, _vel,
+            character.lean, character.speed01, character.boost
+        );
 
         // Jitters the projection and republishes everything the screen-space
         // passes derive from the camera. Must be after the rig has moved and
@@ -470,7 +473,15 @@ async function boot() {
     // game interface over it, which is what those tools were written against.
     onChange("audio", (v) => gameAudio.setEnabled(v));
     onChange("masterVolume", (v) => gameAudio.setVolume(v));
+    onChange("musicVolume", (v) => gameAudio.setBusVolume("music", v));
+    onChange("sfxVolume", (v) => gameAudio.setBusVolume("sfx", v));
+    onChange("ambienceVolume", (v) => gameAudio.setBusVolume("ambience", v));
+    onChange("uiVolume", (v) => gameAudio.setBusVolume("ui", v));
     gameAudio.setVolume(S.masterVolume);
+    gameAudio.setBusVolume("music", S.musicVolume);
+    gameAudio.setBusVolume("sfx", S.sfxVolume);
+    gameAudio.setBusVolume("ambience", S.ambienceVolume);
+    gameAudio.setBusVolume("ui", S.uiVolume);
     gameAudio.setEnabled(S.audio !== false);
 
     const requestedMode = bootParams.get("mode");

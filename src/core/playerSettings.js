@@ -26,6 +26,10 @@ export const SETTINGS_VERSION = 1;
 const PLAYER_KEYS = {
     audio: (v) => typeof v === "boolean",
     masterVolume: (v) => Number.isFinite(v) && v >= 0 && v <= 1,
+    musicVolume: (v) => Number.isFinite(v) && v >= 0 && v <= 1,
+    sfxVolume: (v) => Number.isFinite(v) && v >= 0 && v <= 1,
+    ambienceVolume: (v) => Number.isFinite(v) && v >= 0 && v <= 1,
+    uiVolume: (v) => Number.isFinite(v) && v >= 0 && v <= 1,
     mouseSensitivity: (v) => Number.isFinite(v) && v >= 0.2 && v <= 3,
     invertY: (v) => typeof v === "boolean",
     shakeScale: (v) => Number.isFinite(v) && v >= 0 && v <= 1.5,

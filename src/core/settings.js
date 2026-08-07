@@ -135,6 +135,11 @@ export const S = {
     audio: true,
     /** Master volume, 0..1, on top of the audio system's own conservative level. */
     masterVolume: 1.0,
+    /** Category bus volumes, 0..1 each. */
+    musicVolume: 1.0,
+    sfxVolume: 1.0,
+    ambienceVolume: 1.0,
+    uiVolume: 1.0,
     /** Multiplier on mouse look. 1 is the tuning everything shipped with. */
     mouseSensitivity: 1.0,
     /** Invert mouse look Y. */
@@ -273,6 +278,10 @@ export const SCHEMA = [
             { k: "boardScale", l: "Board size", t: "f", min: 0.7, max: 1.8, step: 0.01 },
             { k: "audio", l: "Audio", t: "b" },
             { k: "masterVolume", l: "Volume", t: "f", min: 0, max: 1, step: 0.01 },
+            { k: "musicVolume", l: "Music vol", t: "f", min: 0, max: 1, step: 0.01 },
+            { k: "sfxVolume", l: "SFX vol", t: "f", min: 0, max: 1, step: 0.01 },
+            { k: "ambienceVolume", l: "Ambience vol", t: "f", min: 0, max: 1, step: 0.01 },
+            { k: "uiVolume", l: "UI vol", t: "f", min: 0, max: 1, step: 0.01 },
             { k: "mouseSensitivity", l: "Mouse sens.", t: "f", min: 0.2, max: 3, step: 0.05 },
             { k: "invertY", l: "Invert Y", t: "b" },
             { k: "shakeScale", l: "Cam shake", t: "f", min: 0, max: 1.5, step: 0.05 },

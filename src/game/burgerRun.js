@@ -111,6 +111,14 @@ export class BurgerRun {
 
         /** Supplied by a vehicle that burns fuel. Zero means "not measured". */
         this.rocketTelemetry = null;
+        /**
+         * Supplied by the game layer's trick tracker, the same way the rocket
+         * reports: the run scores what it is handed and never owns a system.
+         * @type {null|{total:number, best:{name:string,score:number}|null, count:number}}
+         */
+        this.trickTelemetry = null;
+        /** Controller crash count at the gate, so a run counts only its own. */
+        this._crashBase = 0;
 
         this.onStateChange = null;
     }
@@ -225,6 +233,7 @@ export class BurgerRun {
         if (this.countdown <= 0) {
             this.countdown = 0;
             this._lastZ = this.controller.position.z;
+            this._crashBase = this.controller.crashCount;
             this._setState(RunState.RUN);
         }
     }
@@ -355,22 +364,32 @@ export class BurgerRun {
 
         // Style, 0..100. Every term is something the controller actually
         // produced during the run, normalised against a run length so a slow
-        // run cannot accumulate a high score by taking longer.
+        // run cannot accumulate a high score by taking longer. Tricks joined
+        // the roster when the trick system did: 55 points a second is a
+        // committed line, and the term saturates there.
         const span = Math.max(time, 1);
         const air = Scalar.Clamp((this._airTime / span) / 0.16, 0, 1);
         const carve = Scalar.Clamp((this._carveIntegral / span) / 0.22, 0, 1);
         const pace = Scalar.Clamp((this._speedIntegral / span) / 0.78, 0, 1);
         const pipe = Scalar.Clamp((this._pipeTime / span) / 0.2, 0, 1);
         const risk = this._routeRisk();
+        const trickTotal = this.trickTelemetry?.total ?? 0;
+        const tricks = Scalar.Clamp((trickTotal / span) / 55, 0, 1);
         const style = Math.round(
-            100 * (air * 0.26 + carve * 0.26 + pace * 0.24 + pipe * 0.12 + risk * 0.12)
+            100 * (air * 0.20 + carve * 0.20 + pace * 0.20 +
+                   pipe * 0.10 + risk * 0.10 + tricks * 0.20)
         );
 
-        // Stack Integrity, 0..100. Starts whole and is reduced by violence.
+        // Stack Integrity, 0..100. Starts whole and is reduced by violence —
+        // and a crash is the most violent thing a stack can experience.
+        const crashes = Math.max(
+            0, this.controller.crashCount - this._crashBase
+        );
         const perLanding = this._landings ? this._hardLandings / this._landings : 0;
         const integrity = Math.round(
             100 * Scalar.Clamp(
-                1 - perLanding * 0.55 - Math.max(0, this._worstLanding - 1.2) * 0.3,
+                1 - perLanding * 0.55 - Math.max(0, this._worstLanding - 1.2) * 0.3
+                  - crashes * 0.18,
                 0, 1
             )
         );
@@ -405,6 +424,10 @@ export class BurgerRun {
             rocket,
             stars,
             grade: GRADES[stars - 1],
+            trickScore: trickTotal,
+            trickCount: this.trickTelemetry?.count ?? 0,
+            bestTrick: this.trickTelemetry?.best ?? null,
+            crashes,
             detail: {
                 airTime: +this._airTime.toFixed(2),
                 airShare: +(this._airTime / span).toFixed(3),
@@ -418,10 +441,9 @@ export class BurgerRun {
                 distance: +this._distance.toFixed(1),
             },
             // Named so the results screen can say what it did not measure
-            // rather than print a zero and let it read as a bad score.
-            notMeasured: this.rocketTelemetry
-                ? ["tricks"]
-                : ["tricks", "rocket efficiency"],
+            // rather than print a zero and let it read as a bad score. The
+            // trick system exists now, so tricks are a number, not an excuse.
+            notMeasured: this.rocketTelemetry ? [] : ["rocket efficiency"],
         };
     }
 

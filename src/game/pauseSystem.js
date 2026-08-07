@@ -92,6 +92,9 @@ export function suppressGameplayInput() {
     input.jumpPressed = false;
     input.spellPressed = 0;
     input.spellHeld2 = false;
+    input.spin = 0;
+    input.trickMod = false;
+    input.recoverPressed = false;
     input.lookX = 0;
     input.lookY = 0;
     input.zoomDelta = 0;

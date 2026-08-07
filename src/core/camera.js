@@ -107,8 +107,9 @@ export class CameraRig {
      * @param {Vector3} targetVel character world velocity
      * @param {number} lean signed lean amount, -1..1, for banking
      * @param {number} speed01 normalised speed for FOV widening
+     * @param {number} [boost01] rocket throttle, for the extra FOV kick
      */
-    update(dt, targetPos, targetVel, lean, speed01) {
+    update(dt, targetPos, targetVel, lean, speed01, boost01 = 0) {
         // ------------------------------------------------------------- look
         this.yaw += input.lookX;
         this.pitch = Scalar.Clamp(this.pitch + input.lookY, PITCH_MIN, PITCH_MAX);
@@ -141,7 +142,12 @@ export class CameraRig {
         }
 
         // -------------------------------------------------------------- fov
-        const fovWant = this.baseFov * (1 + speed01 * 0.19);
+        // Speed widens it; the rocket widens it a touch more — the engine
+        // should be felt in the frame, not only heard. Reduced motion keeps
+        // a gentler widen and no kick at all.
+        const widen = S.reducedMotion ? 0.10 : 0.19;
+        const kick = S.reducedMotion ? 0 : boost01 * 0.06;
+        const fovWant = this.baseFov * (1 + speed01 * widen + kick);
         this.fov = expDamp(this.fov, fovWant, 3.2, dt);
 
         // ------------------------------------------------------------- bank

@@ -44,6 +44,9 @@ import { SnowBurgersUi, formatTime } from "../ui/snowBurgersUi.js";
 import { FUEL_PER_INGREDIENT } from "../vehicles/rocketThrust.js";
 import { audio } from "../audio/audio.js";
 import { GhostPlayback, formatDelta } from "./ghost.js";
+import { TrickTracker } from "./trickScore.js";
+import { SafeSpots } from "./recovery.js";
+import { CollisionWorld } from "./collisionWorld.js";
 
 import { Mode } from "./modes.js";
 export { Mode };
@@ -145,6 +148,22 @@ export class GameDirector {
         audio.init();
         this._lastCount = -1;
 
+        // ------------------------------------------------------- game feel
+        /** Trick accounting. Reset at every gate. */
+        this.tracker = new TrickTracker();
+        /** Where a rider stands back up. */
+        this.safeSpots = new SafeSpots(this.course);
+        /** Solid things. Filled from the dressing's records after load. */
+        this.collision = new CollisionWorld();
+        this._wasAirborne = false;
+        this._comboSettle = 0;
+        this._crashHandled = false;
+        this._nearMissPoints = 0;
+        /** The one obstacle currently being tracked for a near miss. */
+        this._nearId = 0;
+        this._nearDz = 0;
+        this._nearCool = 0;
+
         this.ui = new SnowBurgersUi({
             onSelectMode: (m) => { audio.ui("confirm"); this.selectMode(m); },
             onDropIn: () => { audio.ui("confirm"); this.run.dropIn(); },
@@ -177,7 +196,44 @@ export class GameDirector {
         if (!burgerOk) {
             console.warn("[snow-burgers] the reward burger failed to load");
         }
+        this._buildCollision();
         return { ingredients: loaded, burger: burgerOk };
+    }
+
+    /**
+     * Stand the collision world up from the dressing's records.
+     *
+     * The dressing merges its props into a handful of draw calls, so the
+     * per-prop positions survive only as the record array it now keeps. The
+     * colliders are primitives on purpose — a capsule the trunk's width
+     * collides better than the tree's own triangles would, and for a tenth
+     * of the cost.
+     */
+    _buildCollision() {
+        this.collision.clear();
+        for (const p of this.dressing.propRecords ?? []) {
+            if (p.soft) {
+                this.collision.addSphere({
+                    x: p.x, y: p.y + p.height * 0.4, z: p.z,
+                    r: p.radius, kind: p.family, data: { soft: true },
+                });
+            } else if (p.family === "rock") {
+                this.collision.addSphere({
+                    x: p.x, y: p.y + p.height * 0.35, z: p.z,
+                    r: p.radius, kind: "rock", data: null,
+                });
+            } else {
+                this.collision.addCapsule({
+                    ax: p.x, ay: p.y, az: p.z,
+                    bx: p.x, by: p.y + p.height, bz: p.z,
+                    r: p.radius,
+                    kind: p.family === "ice" ? "ice" : "tree",
+                    data: null,
+                });
+            }
+        }
+        this.controller.world = this.collision;
+        this.safeSpots.world = this.collision;
     }
 
     /**
@@ -231,9 +287,15 @@ export class GameDirector {
             this._vehicleBeforeTest = null;
         }
         // The engine's voice is only driven inside a run; leaving one mid-
-        // throttle used to freeze the rocket bus at its last gain. If the new
-        // mode runs the engine, next frame's update re-drives it.
+        // throttle used to freeze the rocket bus at its last gain. Same for
+        // the board bed and the grind loop. If the new mode drives them, the
+        // next frame's update re-opens them.
         audio.updateRocket(0, 0, true);
+        audio.updateBoard({
+            speed01: 0, carve: 0, grounded: true, airborne: false,
+            wind01: 0, surfaceHardness: 0,
+        });
+        audio.grindEnd();
         this.dressing.setActive(true);
         switch (mode) {
             case Mode.BURGER_RUN:
@@ -391,6 +453,13 @@ export class GameDirector {
         }
         if (this.mode !== Mode.BURGER_RUN) return;
 
+        // No spells on a scored course. Crystallize and the water body write
+        // into the same terrain state the run is ridden on, and a tool that
+        // reshapes the mountain mid-run is not a trick, it is course editing.
+        // The labs keep all five keys.
+        input.spellPressed = 0;
+        input.spellHeld2 = false;
+
         // A held rider is a zeroed input struct, not a skipped controller: the
         // controller still has to run so the terrain keeps grounding it, the
         // camera keeps following, and the frame the countdown ends is not the
@@ -424,19 +493,35 @@ export class GameDirector {
      * @param {number} dt
      */
     update(dt) {
+        if (this.mode === Mode.FREE_RIDE) {
+            // Only what safety demands: a crashed rider must stand back up in
+            // the lab too, or a tree is a softlock. Everything else — toasts,
+            // combos, board audio — stays out; Free Ride Lab is the original
+            // snow study and keeps sounding like it.
+            this._updateRecovery(false);
+            return;
+        }
         if (this.mode === Mode.ROCKET_TEST) {
+            this._updateFeel(dt);
             if (this.rocketChair) this.ui.setFuel(this.rocketChair.thrust.level, true);
             this._updateEngineAudio();
             return;
         }
         if (this.mode !== Mode.BURGER_RUN) return;
 
+        this._updateFeel(dt);
         const state = this.run.state;
         // The run reads telemetry rather than the vehicle, so a run on the
         // classic board scores against a `null` and the results screen says
-        // "not fitted" instead of printing a zero.
+        // "not fitted" instead of printing a zero. Tricks report the same
+        // way — banked total plus the near-miss bonus, best, count.
         this.run.rocketTelemetry =
             this.rocketChair?.active ? this.rocketChair.thrust.telemetry() : null;
+        this.run.trickTelemetry = {
+            total: this.tracker.total + this._nearMissPoints,
+            best: this.tracker.best,
+            count: this.tracker.trickCount,
+        };
         this.run.update(dt);
         this.field.update(dt, this.run.time, state === RunState.RUN);
         this._updateEngineAudio();
@@ -480,6 +565,139 @@ export class GameDirector {
             default:
                 break;
         }
+    }
+
+    /**
+     * The moment-to-moment feel: tricks, grades, combos, crashes, near
+     * misses, and the board's voice. Runs in the ridden modes — Burger Run
+     * and the Rocket Board Test — every frame, paused frames included
+     * (dt is zero then and every term is dt- or event-driven).
+     */
+    _updateFeel(dt) {
+        const c = this.controller;
+
+        // ------------------------------------------------------- air + land
+        if (c.airborne && !this._wasAirborne) {
+            this.tracker.beginAir({ onKicker: this._nearKicker(c.position.z) });
+            audio.jump(Math.min(1, Math.max(0, c.verticalVelocity) / 8));
+        }
+        if (c.airborne) {
+            // The tracker's pitch convention is negative-nose-down; the
+            // controller's flip is positive-nose-down (Babylon's +X). One
+            // negation, here, at the single point the two meet.
+            this.tracker.addRotation(c.trickDSpin, -c.trickDFlip, dt);
+            this.tracker.setGrab(c.grabDir);
+        }
+        if (c.landed) {
+            const grade = c.landingGrade ?? "clean";
+            const res = this.tracker.land(grade);
+            this.ui.flashGrade(grade);
+            audio.land(grade, Math.min(1, c.landingImpact / 1.5));
+            if (res && res.score > 0) {
+                this.ui.showTrick(res);
+                audio.trickBank(Math.min(1, res.score / 400));
+            } else if (res) {
+                this.ui.showTrick(res); // a crashed trick still gets named
+            }
+            // Only a SCORED landing restarts the settle clock. The course is
+            // corduroy over dunes — plain micro-airs land constantly, and a
+            // combo that re-armed on every one of them would never bank.
+            if (res) this._comboSettle = 1.2;
+        }
+        if (this._comboSettle > 0 && c.grounded && !c.crashed) {
+            this._comboSettle -= dt;
+            if (this._comboSettle <= 0 && this.tracker.open) this.tracker.bank();
+        }
+        this.ui.setCombo(this.tracker.open);
+        this._wasAirborne = c.airborne;
+
+        // ------------------------------------------------------------ crash
+        if (c.crashed && !this._crashHandled) {
+            this._crashHandled = true;
+            audio.crash();
+            this.tracker.loseCombo("crash");
+            this.ui.setCombo(null);
+        } else if (!c.crashed) {
+            this._crashHandled = false;
+        }
+
+        this._updateRecovery(true);
+        this.safeSpots.update(dt, c);
+
+        // ------------------------------------------------------ near misses
+        this._nearCool = Math.max(0, this._nearCool - dt);
+        if (c.speed > 10 && !c.crashed && this._nearCool <= 0) {
+            const near = this.collision.nearest(
+                c.position.x, c.position.y + 0.7, c.position.z, 2.6, null
+            );
+            if (near && !near.collider.data?.soft &&
+                near.collider.kind !== "rail") {
+                const dz = (near.collider.z ?? near.collider.az ?? 0) - c.position.z;
+                if (near.collider.id === this._nearId) {
+                    // Tracked from ahead to behind without a scrape: that is
+                    // a near miss, once, and worth a little style.
+                    if (this._nearDz > 0.4 && dz < -0.4 &&
+                        !c.scraped && !c.brushedSoft) {
+                        this._nearMissPoints += 15;
+                        audio.nearMiss();
+                        this._nearCool = 1.2;
+                        this._nearId = 0;
+                    } else {
+                        this._nearDz = dz;
+                    }
+                } else {
+                    this._nearId = near.collider.id;
+                    this._nearDz = dz;
+                }
+            } else {
+                this._nearId = 0;
+            }
+        }
+
+        // -------------------------------------------------------- the voice
+        audio.updateBoard({
+            speed01: c.speed01,
+            carve: c.carve,
+            grounded: c.grounded,
+            airborne: c.airborne,
+            wind01: Math.min(1, c.speed01 * (c.airborne ? 1.0 : 0.7)),
+            surfaceHardness: 0,
+        });
+    }
+
+    /**
+     * Stand a rider back up, at the price the mode charges.
+     *
+     * Two doors in: the tumble ran out (`needsRecovery`), or the player asked
+     * (R / east button) — the same safe spot answers both, but only the ask
+     * is billed the full penalty; the crash already cost its tumble.
+     */
+    _updateRecovery(scored) {
+        const c = this.controller;
+        const manual = input.recoverPressed && !c.needsRecovery && !c.crashed &&
+            (this.mode !== Mode.BURGER_RUN || this.run.state === RunState.RUN);
+        if (!c.needsRecovery && !manual) return;
+
+        const spot = this.safeSpots.recover();
+        const y = this.terrain.heightAt(spot.x, spot.z);
+        c.finishCrash(spot.x, y, spot.z, spot.facing);
+        this.rig.yaw = spot.facing;
+
+        if (manual) this.tracker.loseCombo("recover");
+        if (scored && this.mode === Mode.BURGER_RUN &&
+            this.run.state === RunState.RUN) {
+            const penalty = manual ? 2.0 : 1.0;
+            this.run.time += penalty;
+            this.ui.showNotice(`+${penalty.toFixed(1)}s · recovered`);
+        }
+    }
+
+    /** Is this z on one of the course's kickers, lip to landing? */
+    _nearKicker(z) {
+        for (const j of this.course.terrain.jumps) {
+            if (z > j.lip - 6 && z < j.lip + j.drop + 10) return true;
+        }
+        return false;
     }
 
     /**
@@ -630,6 +848,12 @@ export class GameDirector {
             // of the ghost's identity, and reading it any later would let an
             // overlay switch mid-run relabel a record.
             this.run.vehicleId = S.vehicle;
+            // A fresh gate is a fresh score and fresh breadcrumbs.
+            this.tracker.reset();
+            this._nearMissPoints = 0;
+            this._comboSettle = 0;
+            this.safeSpots.clear();
+            this.ui.setCombo(null);
             // One beep per whole second, latched — and re-latched per gate, or
             // the second run's countdown plays only the beeps the first one
             // didn't.
@@ -657,6 +881,10 @@ export class GameDirector {
         }
         if (next === RunState.ASSEMBLY) {
             this._assembly = 0;
+            // Whatever is still open banks at the line — crossing the finish
+            // IS the successful settle.
+            this.tracker.bank();
+            this.ui.setCombo(null);
         }
         if (next === RunState.RESULTS) {
             if (this.run.result?.completed) audio.finish();

@@ -49,29 +49,29 @@
         "tomato",
         "lettuce"
       ],
-      "lastZ": 551.9,
+      "lastZ": 551.8,
       "fuelAtFinish": 1,
       "blocked": null,
       "result": {
         "completed": true,
         "time": 31.49,
         "medal": "gold",
-        "style": 44,
+        "style": 37,
         "integrity": 100,
         "stars": 4,
         "grade": "Summit Stack",
         "splits": {
-          "cheese": 8.905099999994,
-          "patty": 14.93280000001197,
-          "tomato": 20.54300000000026,
-          "lettuce": 26.482500000000424
+          "cheese": 8.908099999994013,
+          "patty": 14.939400000005925,
+          "tomato": 20.546099999994183,
+          "lettuce": 26.49119999998845
         },
         "detail": {
           "airTime": 0,
           "airShare": 0,
           "carve": 0.139,
           "pace": 1,
-          "pipeTime": 6.14,
+          "pipeTime": 6.13,
           "routeRisk": 0.4,
           "landings": 0,
           "hardLandings": 0,
@@ -80,7 +80,6 @@
         },
         "rocket": 0,
         "notMeasured": [
-          "tricks",
           "rocket efficiency"
         ]
       }
@@ -133,31 +132,30 @@
         "completed": true,
         "time": 30.98,
         "medal": "gold",
-        "style": 42,
+        "style": 34,
         "integrity": 100,
         "stars": 4,
         "grade": "Summit Stack",
         "splits": {
-          "cheese": 9.512400000005945,
-          "patty": 14.972300000011979,
-          "tomato": 19.168500000000183,
-          "lettuce": 25.22569999998849
+          "cheese": 9.514499999999959,
+          "patty": 14.974800000011953,
+          "tomato": 19.170500000000143,
+          "lettuce": 25.227500000000315
         },
         "detail": {
-          "airTime": 0.1,
-          "airShare": 0.003,
+          "airTime": 0,
+          "airShare": 0,
           "carve": 0.031,
           "pace": 1,
           "pipeTime": 6.06,
           "routeRisk": 0.4,
-          "landings": 1,
+          "landings": 0,
           "hardLandings": 0,
-          "worstLanding": 0.57,
+          "worstLanding": 0,
           "distance": 548
         },
         "rocket": 0,
         "notMeasured": [
-          "tricks",
           "rocket efficiency"
         ]
       }

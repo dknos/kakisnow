@@ -154,6 +154,20 @@ export class MountainDressing {
         this.propCount = 0;
         this.triangles = 0;
         this.drawCalls = 0;
+        /**
+         * One record per placed prop: `{ x, y, z, family, ry, height, radius,
+         * soft }`, world metres, `ry` in Babylon RotationY radians.
+         *
+         * These exist for `src/game/collisionWorld.js` to consume. Placement
+         * is deterministic but the per-prop transform is destroyed the moment
+         * `appendTransformed` merges the vertices, and re-running the
+         * placement math elsewhere WILL drift (IMPLEMENTATION_MAP.md, Phase 3
+         * dressing colliders) — so the transform is snapshotted here, at the
+         * one point it exists. Rebuilt from scratch by every `build()`;
+         * purely additive bookkeeping with zero effect on the merged
+         * geometry, so the fingerprint tools see the same draw output.
+         */
+        this.propRecords = [];
     }
 
     /**
@@ -246,6 +260,7 @@ export class MountainDressing {
      */
     build(seed = 20260805) {
         if (this.built) return;
+        this.propRecords.length = 0;
         const templates = this._templates();
         const spans = protectedSpans();
         const _n = new Vector3();
@@ -269,6 +284,24 @@ export class MountainDressing {
                 const y = this.terrain.heightAt(x, z);
                 const band = Math.floor((z - Z_FROM) / BAND);
                 const parts = templates[family.id](next, slope);
+
+                // Collision capture — the merge below bakes this prop's
+                // transform into anonymous vertices, so its position and
+                // approximate proportions are recorded now, while they still
+                // exist as numbers. Trees and ice read as capsules, rocks and
+                // shrubs as spheres; shrubs are flagged soft because riding
+                // through one should cost speed, not stop the rider.
+                const meta = parts.meta;
+                if (meta) {
+                    this.propRecords.push({
+                        x, y, z,
+                        family: family.id,
+                        ry: meta.ry,
+                        height: meta.height,
+                        radius: meta.radius,
+                        soft: family.id === "shrub",
+                    });
+                }
 
                 for (const part of parts) {
                     const key = family.id + ":" + band + ":" + part.colourKey;
@@ -414,8 +447,14 @@ export class MountainDressing {
      * absorb instead of a silent forest of fallen trees.
      */
     _fir(next, height, tilt) {
-        if (!this.firs.length) return this._coneFallback(next, height, tilt);
-        return this._authored(this.firs, next, height, tilt);
+        const parts = this.firs.length
+            ? this._authored(this.firs, next, height, tilt)
+            : this._coneFallback(next, height, tilt);
+        // Collision proportions: the trunk, not the canopy — a rider clips
+        // branches all day, it is the trunk that stops them. ~0.28 m radius
+        // on a nominal 7 m fir, scaled with the prop's height.
+        parts.meta.radius = 0.28 * (height / 7);
+        return parts;
     }
 
     /**
@@ -439,6 +478,11 @@ export class MountainDressing {
             m.multiplyToRef(Matrix.RotationY(ry), m);
             out.push({ colourKey: part.key, colour: part.colour, data: part.data, matrix: m });
         }
+        // Collision capture: the composed transform's knobs, carried on the
+        // parts array (iteration ignores extra properties). Callers that know
+        // their family overwrite `radius`; `height` is exact — the scaling
+        // above targets it.
+        out.meta = { ry, height, radius: height * 0.5 };
         return out;
     }
 
@@ -453,12 +497,16 @@ export class MountainDressing {
             m.multiplyToRef(Matrix.Translation(0, oy, 0), m);
             return m;
         };
-        return [
+        const parts = [
             { colourKey: "needle", colour: NEEDLE, data: this._cone,
               matrix: M(w, height * 0.62, w, height * 0.24) },
             { colourKey: "snow", colour: SNOW, data: this._cone,
               matrix: M(w * 0.84, height * 0.5, w * 0.84, height * 0.44) },
         ];
+        // Collision capture; radius is overwritten by `_fir`, same as the
+        // authored path, so both forests collide identically.
+        parts.meta = { ry, height, radius: w };
+        return parts;
     }
 
     /**
@@ -501,7 +549,7 @@ export class MountainDressing {
                 }
                 const s = 0.7 + next() * 0.9;
                 const ry = next() * Math.PI * 2;
-                return [
+                const parts = [
                     { colourKey: "needle", colour: NEEDLE, data: rock,
                       matrix: M(s * 1.5, s * 0.7, s * 1.5, ry, 0, s * 0.22, 0) },
                     // Mostly buried: a shrub at this altitude is a bump with a
@@ -509,6 +557,11 @@ export class MountainDressing {
                     { colourKey: "snow", colour: SNOW, data: rock,
                       matrix: M(s * 1.7, s * 0.55, s * 1.7, ry, 0, s * 0.1, 0) },
                 ];
+                // Collision capture, from the widest scale above (s·1.7 on a
+                // half-unit polyhedron). Soft-flagged downstream: a shrub
+                // slows the rider, never walls them.
+                parts.meta = { ry, height: s * 0.8, radius: s * 0.85 };
+                return parts;
             },
             rock: (next) => {
                 if (this.rocks?.length) {
@@ -516,22 +569,31 @@ export class MountainDressing {
                 }
                 const s = 1.1 + next() * 2.6;
                 const ry = next() * Math.PI * 2;
-                return [
+                const parts = [
                     { colourKey: "rock", colour: ROCK, data: rock,
                       matrix: M(s, s * (0.5 + next() * 0.5), s * (0.8 + next() * 0.5),
                                 ry, 0, s * 0.22, 0) },
                     { colourKey: "snow", colour: SNOW, data: rock,
                       matrix: M(s * 0.92, s * 0.3, s * 0.92, ry, 0, s * 0.45, 0) },
                 ];
+                // Collision capture: `s` scales a half-unit polyhedron, so the
+                // boulder's footprint is roughly a 0.6·s sphere.
+                parts.meta = { ry, height: s, radius: s * 0.6 };
+                return parts;
             },
             ice: (next) => {
                 const s = 1.3 + next() * 2.2;
                 const ry = next() * Math.PI * 2;
-                return [
+                const parts = [
                     { colourKey: "ice", colour: ICE, data: shard,
                       matrix: M(s * 0.6, s * 1.9, s * 0.6, ry, 0, s * 0.7, 0,
                                 (next() - 0.5) * 0.4) },
                 ];
+                // Collision capture: a shard is a near-vertical spike — tall
+                // (the y scale of s·1.9 above) and thin (0.6·s on a half-unit
+                // polyhedron), which is exactly a capsule.
+                parts.meta = { ry, height: s * 1.9, radius: s * 0.3 };
+                return parts;
             },
         };
     }

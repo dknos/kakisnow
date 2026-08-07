@@ -39,6 +39,14 @@ export const input = {
     /** @type {boolean} spell 2 (Ribbon) is a held cast */
     spellHeld2: false,
 
+    // ------------------------------------------------------------- tricks
+    /** Signed spin intent, -1 left .. 1 right. Q/E or the bumpers. */
+    spin: 0,
+    /** The trick modifier — F or the west face button — held. */
+    trickMod: false,
+    /** Set for one frame on R / east button: recover to the last safe spot. */
+    recoverPressed: false,
+
     locked: false,
 };
 
@@ -125,6 +133,7 @@ export function initInput(canvas, hooks) {
             e.preventDefault();
             input.jumpPressed = true;
         }
+        if (e.code === "KeyR") input.recoverPressed = true;
 
         const n = SPELL_KEYS[e.code];
         if (n) {
@@ -181,6 +190,30 @@ export function pollInput() {
     input.moving = Math.hypot(x, z) > 0.001;
     input.sprint = !!(keys.ShiftLeft || keys.ShiftRight);
     input.boost = Math.max(pollBoost(), touch.boost);
+
+    // Tricks. Q/E spin; F is the modifier that turns W/S into flips and A/D
+    // into tweaks (the controller reads moveX/moveZ under trickMod). Gamepad:
+    // bumpers spin, west button is the modifier, east recovers.
+    let spin = 0;
+    if (keys.KeyQ) spin -= 1;
+    if (keys.KeyE) spin += 1;
+    let trickMod = !!keys.KeyF || touch.trick;
+    const pads = navigator.getGamepads ? navigator.getGamepads() : null;
+    if (pads) {
+        for (let i = 0; i < pads.length; i++) {
+            const pad = pads[i];
+            if (!pad || !pad.connected) continue;
+            const b = pad.buttons;
+            if (b[4]?.pressed) spin -= 1; // LB
+            if (b[5]?.pressed) spin += 1; // RB
+            if (b[2]?.pressed) trickMod = true; // west
+            const east = !!b[1]?.pressed;
+            if (east && !_padEast[i]) input.recoverPressed = true;
+            _padEast[i] = east;
+        }
+    }
+    input.spin = Math.max(-1, Math.min(1, spin));
+    input.trickMod = trickMod;
     // Held, not toggled: the ride button behaves like the right mouse button
     // it stands in for. Cleared on release rather than reconciled every frame
     // — see `ownSurfHeld`.
@@ -223,6 +256,9 @@ function pollBoost() {
     return boost;
 }
 
+/** Per-pad east-button state, for the recover edge. */
+const _padEast = [];
+
 /** Clear per-frame accumulators. Called at the very end of the frame. */
 export function endFrame() {
     endTouchFrame();
@@ -231,6 +267,7 @@ export function endFrame() {
     input.zoomDelta = 0;
     input.spellPressed = 0;
     input.jumpPressed = false;
+    input.recoverPressed = false;
 }
 
 export function isDown(code) {
