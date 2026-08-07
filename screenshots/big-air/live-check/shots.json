@@ -1,0 +1,90 @@
+[
+  {
+    "id": "01-drop-in",
+    "z": -262,
+    "x": 0,
+    "yaw": 0,
+    "pitch": 0.16,
+    "dist": 11,
+    "note": "the pipe, looking down its length",
+    "ground": 2.73,
+    "file": "01-drop-in.png"
+  },
+  {
+    "id": "02-mid-pipe",
+    "z": -60,
+    "x": -13,
+    "yaw": 0.12,
+    "pitch": 0.13,
+    "dist": 10.5,
+    "note": "deep in the pipe, up the wall",
+    "ground": -4.79,
+    "file": "02-mid-pipe.png"
+  },
+  {
+    "id": "03-pipe-exit",
+    "z": 128,
+    "x": 0,
+    "yaw": 0,
+    "pitch": 0.1,
+    "dist": 12,
+    "note": "the walls falling away",
+    "ground": -1.75,
+    "file": "03-pipe-exit.png"
+  },
+  {
+    "id": "04-inrun",
+    "z": 232,
+    "x": 0,
+    "yaw": 0,
+    "pitch": 0.06,
+    "dist": 12,
+    "note": "the iced in-run, hill visible past the lip",
+    "ground": -7.76,
+    "file": "04-inrun.png"
+  },
+  {
+    "id": "05-lip",
+    "z": 296,
+    "x": 0,
+    "yaw": 0,
+    "pitch": 0.02,
+    "dist": 9,
+    "note": "standing on the table",
+    "ground": -14.17,
+    "file": "05-lip.png"
+  },
+  {
+    "id": "06-hill-from-below",
+    "z": 400,
+    "x": 0,
+    "yaw": 3.141592653589793,
+    "pitch": 0.1,
+    "dist": 26,
+    "note": "looking back up the landing hill at the takeoff",
+    "ground": -59.76,
+    "file": "06-hill-from-below.png"
+  },
+  {
+    "id": "07-outrun",
+    "z": 470,
+    "x": 0,
+    "yaw": 0,
+    "pitch": 0.1,
+    "dist": 13,
+    "note": "the basin floor and the camp",
+    "ground": -61.13,
+    "file": "07-outrun.png"
+  },
+  {
+    "id": "08-basin-wide",
+    "z": 360,
+    "x": 96,
+    "yaw": -1.15,
+    "pitch": 0.22,
+    "dist": 42,
+    "note": "the whole basin from its shoulder",
+    "ground": -21.6,
+    "file": "08-basin-wide.png"
+  }
+]
