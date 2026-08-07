@@ -196,9 +196,13 @@ export class CharacterController {
         this.airborne = false;
         this.verticalVelocity = 0;
         this.airTime = 0;
+        /** Air duration captured at the touchdown, for one-frame consumers. */
+        this.landingAirTime = 0;
         this.jumpCount = 0;
         this.landed = false;
         this.landingImpact = 0;
+        /** One-frame: the touchdown met the rocket's clean landing contract. */
+        this.landingClean = false;
         this._jumpBuffer = 0;
         this._coyote = COYOTE_TIME;
 
@@ -274,6 +278,73 @@ export class CharacterController {
         /** Re-attach lockout after a detach — popping off a rail at its own
          *  apex otherwise lands the board straight back on the beam. */
         this._railCool = 0;
+
+        /**
+         * Optional authored launch capture. Most jumps are deliberately
+         * discovered from the baked slope; Big Air's signature table is the
+         * one exception, because an ordinary mild carve must not turn its
+         * headline jump into a flat finish. The game layer installs this only
+         * for that course, so the ordinary natural-takeoff path is unchanged.
+         */
+        this.takeoffAssist = null;
+    }
+
+    /**
+     * Install an authored launch window for one course feature.
+     *
+     * @param {object|null} config
+     * @param {object} [config.jump] existing ski-jump definition
+     * @param {number} [config.laneHalf] course lane half-width
+     */
+    setTakeoffAssist(config) {
+        if (!config) {
+            this.takeoffAssist = null;
+            return;
+        }
+        const jump = config.jump ?? config;
+        const capture = jump.launchCapture ?? {};
+        const laneHalf = Number.isFinite(config.laneHalf)
+            ? config.laneHalf
+            : Number.POSITIVE_INFINITY;
+        if (!Number.isFinite(jump.lipZ)) {
+            this.takeoffAssist = null;
+            return;
+        }
+        this.takeoffAssist = {
+            from: Number.isFinite(capture.from)
+                ? capture.from
+                : jump.lipZ - Math.max(2, (jump.tableLen ?? 8) * 0.25),
+            to: Number.isFinite(capture.to)
+                ? capture.to
+                : jump.lipZ + Math.max(2, (jump.tableLen ?? 8) * 0.125),
+            xHalf: Math.min(
+                laneHalf,
+                Number.isFinite(capture.xHalf) ? capture.xHalf : laneHalf,
+            ),
+            minSpeed: Number.isFinite(capture.minSpeed) ? capture.minSpeed : 7.5,
+            launchRise: Number.isFinite(capture.launchRise) ? capture.launchRise : 8.5,
+        };
+    }
+
+    /** @returns {number|null} the authored launch rise for this frame */
+    _authoredTakeoffRise() {
+        const a = this.takeoffAssist;
+        if (!a || this.position.z < a.from || this.position.z > a.to ||
+            Math.abs(this.position.x) > a.xHalf ||
+            Math.hypot(this.velocity.x, this.velocity.z) < a.minSpeed ||
+            this.velocity.z <= 0.5) return null;
+        return a.launchRise;
+    }
+
+    /**
+     * Consume the touchdown airtime before the next controller frame clears
+     * the one-frame landing signals. Vehicle systems use this rather than
+     * reading `airTime`, which is intentionally reset on contact.
+     */
+    consumeLandingAirTime() {
+        const airTime = this.landingAirTime;
+        this.landingAirTime = 0;
+        return airTime;
     }
 
     /**
@@ -287,6 +358,8 @@ export class CharacterController {
         this.surfActive = input.surf;
         this.landed = false;
         this.landingImpact = 0;
+        this.landingAirTime = 0;
+        this.landingClean = false;
         this.landingGrade = null;
         this.scraped = false;
         this.brushedSoft = false;
@@ -362,18 +435,29 @@ export class CharacterController {
             // falls away after a fast rising lip, the same ballistic solve used by
             // a Space jump takes over: authored jumps launch, they do not glue the
             // rider to their downhill face.
-            const flightY = oldY + this.verticalVelocity * h - GRAVITY * h * h * 0.5;
+            const authoredRise = this._authoredTakeoffRise();
+            const launchVelocity = authoredRise === null
+                ? this.verticalVelocity
+                : Math.max(this.verticalVelocity, authoredRise);
+            const flightY = oldY + launchVelocity * h - GRAVITY * h * h * 0.5;
             const naturalTakeoff =
                 this.surf > 0.45 &&
                 this.speed >= NATURAL_TAKEOFF_MIN_SPEED &&
                 this.verticalVelocity >= NATURAL_TAKEOFF_MIN_RISE &&
                 this.groundY < flightY - NATURAL_TAKEOFF_CLEARANCE;
+            const authoredTakeoff = authoredRise !== null;
 
-            if (naturalTakeoff) {
+            if (naturalTakeoff || authoredTakeoff) {
                 this.grounded = false;
                 this.airborne = true;
-                this.position.y = flightY;
-                this.verticalVelocity -= GRAVITY * h;
+                // The authored window is narrow and only fires on the existing
+                // table. If the baked sample is still a hair above the launch
+                // parabola, plant on that sample for this frame and let the
+                // same ballistic solve own every frame after it.
+                this.position.y = authoredTakeoff
+                    ? Math.max(flightY, this.groundY + NATURAL_TAKEOFF_CLEARANCE)
+                    : flightY;
+                this.verticalVelocity = launchVelocity - GRAVITY * h;
                 this.jumpCount++;
                 this._beginAir();
             } else {
@@ -394,6 +478,8 @@ export class CharacterController {
                 this.airborne = false;
                 this.landed = true;
                 this.landingImpact = Scalar.Clamp(impactSpeed / 10, 0.2, 1.5);
+                this.landingAirTime = airTimeWas;
+                this.landingClean = this.landingImpact < 1.05 && airTimeWas > 0.35;
                 this.airTime = 0;
                 rig.addTrauma(Math.min(0.38, this.landingImpact * 0.22));
                 if (!this.crashed) this._gradeLanding(airTimeWas);
@@ -727,6 +813,8 @@ export class CharacterController {
         this.grounded = true;
         this.airborne = false;
         this.airTime = 0;
+        this.landingAirTime = 0;
+        this.landingClean = false;
         this.trickSpin = 0;
         this.trickFlip = 0;
         this._spinRate = 0;

@@ -161,6 +161,16 @@ async function boot() {
     await loading.phase("placing character", 0.62);
 
     const character = new CharacterController(terrain);
+    // Big Air's headline table is the one authored launch in the game whose
+    // identity must survive a mild carve. The assist is data-driven from that
+    // existing ski-jump span and is absent on every other course, preserving
+    // the ordinary natural-takeoff feel everywhere else.
+    if (course.id === "big-air-basin") {
+        character.setTakeoffAssist({
+            jump: course.terrain.skiJumps?.[0] ?? null,
+            laneHalf: course.terrain.laneHalf,
+        });
+    }
     character.position.set(0, 0, 0);
     character.position.y = terrain.heightAt(0, 0);
 

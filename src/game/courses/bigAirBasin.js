@@ -119,6 +119,18 @@ export const BIG_AIR_BASIN = {
                  */
                 tableLen: 24, lipRise: 7.2,
                 /**
+                 * The only authored launch capture in the game. It lives on
+                 * the existing table rather than in generic controller
+                 * constants: a centred or mildly carved approach keeps its
+                 * steering and speed, while the signature jump cannot quietly
+                 * become a ground skim. The window stays inside the existing
+                 * lane and requires ordinary downhill speed.
+                 */
+                launchCapture: {
+                    from: 298, to: 304, xHalf: 24,
+                    minSpeed: 7.5, launchRise: 8.5,
+                },
+                /**
                  * 48 m down over 120 m, steepest (50°) at the knoll. The
                  * length is the margin: the flight lands around 50 m out on
                  * the board and further on a boosted rocket chair, and the

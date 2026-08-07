@@ -34,6 +34,35 @@ export const FUEL_PER_INGREDIENT = 0.2;
 /** Fraction restored by a clean landing off a real jump. */
 export const FUEL_PER_CLEAN_LANDING = 0.04;
 
+/**
+ * The controller's public landing signals plus the touchdown airtime latch
+ * are the complete contract for a clean rocket refill. Kept pure so the
+ * timing rule can stay deterministic in unit tests without constructing the
+ * Babylon vehicle asset.
+ */
+export function isCleanLandingForRefill(controller, landingAirTime) {
+    return Boolean(
+        controller?.landed &&
+        controller.landingClean === true &&
+        controller.landingImpact < 1.05 &&
+        landingAirTime > 0.35
+    );
+}
+
+/**
+ * Consume the controller's one-frame touchdown latch and pay it once. This
+ * keeps the vehicle's frame-order contract executable without constructing
+ * its Babylon render asset.
+ */
+export function refillForCleanLanding(thrust, controller) {
+    const landingAirTime = controller?.consumeLandingAirTime
+        ? controller.consumeLandingAirTime()
+        : 0;
+    if (!isCleanLandingForRefill(controller, landingAirTime)) return false;
+    thrust.refill(FUEL_PER_CLEAN_LANDING);
+    return true;
+}
+
 const RAMP_UP = 7.5;
 const RAMP_DOWN = 9.5;
 /** Below this the engine is off rather than very quietly on. */
