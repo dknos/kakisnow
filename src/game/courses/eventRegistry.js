@@ -62,7 +62,7 @@ export const SUMMIT_STACK = {
  * fuel event wearing a stopwatch.
  *
  * Medals measured 2026-08-06: the autopilot's near-optimal line on seed 7
- * runs 30.5 s. Gold just above the floor, the ladder wider above it.
+ * runs 31.1 s. Gold just above the floor, the ladder wider above it.
  */
 export const SUMMIT_GOLD = {
     id: "summit-gold",
