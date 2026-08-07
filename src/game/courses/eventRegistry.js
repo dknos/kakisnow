@@ -120,11 +120,76 @@ export const ROCKET_REHEAT = {
     unlock: null,
 };
 
+/**
+ * The Timber Melt — Pinecone Pass's classic delivery.
+ *
+ * Medals measured 2026-08-06: the autopilot rides the forest split in
+ * 36.0-36.4 s. Gold sits a little wider above this floor than Summit's +3 —
+ * the robot ignores trees, and a human line through the slalom does not.
+ */
+export const TIMBER_MELT = {
+    id: "timber-melt",
+    version: 1,
+    courseId: "pinecone-pass",
+    name: "The Timber Melt",
+    tagline: "Four through the firs. Creek or ridge — pick a line.",
+    mode: "delivery",
+    required: ["cheese", "patty", "tomato", "lettuce"],
+    seedPolicy: "random",
+    fixedSeed: null,
+    allowedVehicles: ["classic-snowboard", "rocket-chair"],
+    forcedVehicle: null,
+    startZ: -80,
+    finishZ: 596,
+    gold: 40,
+    silver: 52,
+    bronze: 68,
+    get medals() {
+        return { gold: this.gold, silver: this.silver, bronze: this.bronze };
+    },
+    unlock: null,
+};
+
+/**
+ * Branch Manager — the same delivery, but the mountain grades your style.
+ *
+ * The medal needs the style score too: near misses through the trees,
+ * tricks off the shelf, time in the air. The target is modest on purpose —
+ * the brief is explicit that the safe route must stay worth riding, so a
+ * clean creek line with a few tricks clears it without collision abuse.
+ */
+export const BRANCH_MANAGER = {
+    id: "branch-manager",
+    version: 1,
+    courseId: "pinecone-pass",
+    name: "Branch Manager",
+    tagline: "Deliver with style. The trees are watching.",
+    mode: "style-delivery",
+    required: ["cheese", "patty", "tomato", "lettuce"],
+    seedPolicy: "random",
+    fixedSeed: null,
+    allowedVehicles: ["classic-snowboard"],
+    forcedVehicle: "classic-snowboard",
+    startZ: -80,
+    finishZ: 596,
+    /** A medal here also needs style at or above this. */
+    styleTarget: 45,
+    gold: 48,
+    silver: 60,
+    bronze: 76,
+    get medals() {
+        return { gold: this.gold, silver: this.silver, bronze: this.bronze };
+    },
+    unlock: null,
+};
+
 /** @type {Record<string, object>} every event, keyed by id. */
 export const EVENTS = {
     [SUMMIT_STACK.id]: SUMMIT_STACK,
     [SUMMIT_GOLD.id]: SUMMIT_GOLD,
     [ROCKET_REHEAT.id]: ROCKET_REHEAT,
+    [TIMBER_MELT.id]: TIMBER_MELT,
+    [BRANCH_MANAGER.id]: BRANCH_MANAGER,
 };
 
 for (const event of Object.values(EVENTS)) {

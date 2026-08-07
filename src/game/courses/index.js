@@ -12,11 +12,13 @@
  */
 
 import { SUMMIT_LINE } from "./summitLine.js";
+import { PINECONE_PASS } from "./pineconePass.js";
 import { validateCourse } from "./validate.js";
 
 /** @type {Record<string, object>} every playable course, keyed by id. */
 export const COURSES = {
     [SUMMIT_LINE.id]: SUMMIT_LINE,
+    [PINECONE_PASS.id]: PINECONE_PASS,
 };
 
 export const DEFAULT_COURSE_ID = SUMMIT_LINE.id;

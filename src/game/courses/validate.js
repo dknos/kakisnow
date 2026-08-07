@@ -78,6 +78,26 @@ export function validateCourse(c) {
         if (q.gateXFrom >= q.gateXTo) p.push(`pipe ${i} lateral gate is inverted`);
     }
 
+    for (const [i, g] of (t.ridges ?? []).entries()) {
+        if (![g.zFrom, g.zTo, g.featherZ, g.xCentre, g.halfWidth, g.featherX,
+              g.height].every(Number.isFinite)) {
+            p.push(`ridge ${i} is missing a field`);
+            continue;
+        }
+        if (g.zFrom >= g.zTo) p.push(`ridge ${i} span is inverted`);
+        if (!(g.halfWidth > 0) || !(g.featherX > 0) || !(g.featherZ > 0)) {
+            p.push(`ridge ${i} needs positive widths and feathers`);
+        }
+        if (g.height === 0) p.push(`ridge ${i} has zero height`);
+    }
+
+    for (const [i, r] of (c.rails ?? []).entries()) {
+        if (![r.ax, r.az, r.bx, r.bz, r.height].every(Number.isFinite) ||
+            !(r.height > 0)) {
+            p.push(`rail ${i} is malformed`);
+        }
+    }
+
     if (!c.zones || typeof c.zones !== "object" || !Object.keys(c.zones).length) {
         p.push("course has no ingredient zones");
     } else {

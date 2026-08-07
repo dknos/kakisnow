@@ -11,6 +11,9 @@
  *   kind 1, JUMP:  t0 = (1, lip, runIn, drop)         t1 = (height, 0, 0, 0)
  *   kind 2, PIPE:  t0 = (2, fadeInFrom, from, to)     t1 = (fadeOutTo, wallFrom, wallTo, amp)
  *                  t2 = (pack, packFalloff, gateXFrom, gateXTo)
+ *   kind 3, RIDGE: t0 = (3, zFrom, zTo, featherZ)     t1 = (xCentre, halfWidth, featherX, height)
+ *     Signed height: positive is a mound, negative is a creek bed. Not
+ *     lane-gated — ridges are course architecture and may sit at the edge.
  */
 
 export const PRIM_COLS = 4;
@@ -40,6 +43,11 @@ export function encodeCoursePrimitives(terrain, data) {
         put(0, 2, q.from - q.featherIn, q.from, q.to);
         put(1, q.to + q.featherOut, q.wallFrom, q.wallTo, q.amp);
         put(2, q.pack, q.packFalloff, q.gateXFrom, q.gateXTo);
+        row++;
+    }
+    for (const g of terrain.ridges ?? []) {
+        put(0, 3, g.zFrom, g.zTo, g.featherZ);
+        put(1, g.xCentre, g.halfWidth, g.featherX, g.height);
         row++;
     }
 

@@ -32,7 +32,7 @@ import { CreateBox } from "@babylonjs/core/Meshes/Builders/boxBuilder.js";
 import { CreateCylinder } from "@babylonjs/core/Meshes/Builders/cylinderBuilder.js";
 
 import { ShadedAsset } from "../render/shadedAsset.js";
-import { BASE_CAMP_Z } from "./ingredientPlacement.js";
+
 
 /** The brand's one warm value, matching the interface. */
 const WARM = new Color3(0.95, 0.63, 0.24);
@@ -67,7 +67,9 @@ export class BurgerBaseCamp {
      * @param {import("../render/depthPass.js").DepthPass} deps.depthPass
      * @param {import("../terrain/terrain.js").Terrain} deps.terrain
      */
-    constructor({ scene, sky, shadows, depthPass, terrain }) {
+    constructor({ scene, sky, shadows, depthPass, terrain, course }) {
+        /** Where this course's camp stands. Everything below is offsets. */
+        this.campZ = course.baseCampZ;
         this.scene = scene;
         this.terrain = terrain;
         this.asset = new ShadedAsset({
@@ -124,7 +126,7 @@ export class BurgerBaseCamp {
         // metres behind them, spends the whole assembly sequence inside. Three
         // committed frames from earlier attempts show the inside of this beam
         // and this banner.
-        const archZ = BASE_CAMP_Z - 14;
+        const archZ = this.campZ - 14;
         for (const side of [-1, 1]) {
             const x = side * ARCH_HALF;
             this._box(`archPost${side}`, x, g(x, archZ), archZ,
@@ -144,7 +146,7 @@ export class BurgerBaseCamp {
         // Off to the rider's right and slightly past the arch, so crossing the
         // line puts it in frame rather than behind them.
         const gx = 11.5;
-        const gz = BASE_CAMP_Z + 26;
+        const gz = this.campZ + 26;
         const gy = g(gx, gz);
         this.grillPosition.set(gx - 1.6, gy, gz + 1.2);
         this._box("grillBody", gx, gy, gz, 3.4, 1.15, 2.0, STEEL, 0.35, 0.5);
@@ -159,7 +161,7 @@ export class BurgerBaseCamp {
 
         // -------------------------------------------------------- order board
         const bx = -13.5;
-        const bz = BASE_CAMP_Z + 24;
+        const bz = this.campZ + 24;
         const by = g(bx, bz);
         for (const s of [-1, 1]) {
             this._box(`boardPost${s}`, bx + s * 1.5, by, bz, 0.24, 3.0, 0.24, TIMBER, 0.6);
@@ -169,7 +171,7 @@ export class BurgerBaseCamp {
 
         // ------------------------------------------------------- finish line
         // A stripe across the snow at the gate, so the line is a line.
-        this._boxAt("finishStripe", 0, g(0, BASE_CAMP_Z) + 0.03, BASE_CAMP_Z,
+        this._boxAt("finishStripe", 0, g(0, this.campZ) + 0.03, this.campZ,
             ARCH_HALF * 2, 0.06, 0.7, WARM, 0.45);
 
         this.asset.available = this.asset.meshes.length > 0;
@@ -190,11 +192,11 @@ export class BurgerBaseCamp {
         const base = (import.meta.env?.BASE_URL ?? "/")
             + "assets/models/snow-burgers/";
         const placements = [
-            { asset: this.hut, url, x: -30, z: BASE_CAMP_Z + 40, scale: 1.5, ry: 0.5 },
-            { asset: this.hutB, url, x: 27, z: BASE_CAMP_Z + 52, scale: 1.15, ry: -1.9 },
+            { asset: this.hut, url, x: -30, z: this.campZ + 40, scale: 1.5, ry: 0.5 },
+            { asset: this.hutB, url, x: 27, z: this.campZ + 52, scale: 1.15, ry: -1.9 },
             {
                 asset: this.village, url: base + "camp-village.glb",
-                x: -78, z: BASE_CAMP_Z + 96, scale: 1.0, ry: 0.35,
+                x: -78, z: this.campZ + 96, scale: 1.0, ry: 0.35,
             },
         ];
         for (const p of placements) {

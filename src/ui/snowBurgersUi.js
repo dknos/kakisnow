@@ -490,18 +490,7 @@ export class SnowBurgersUi {
     <div class="sb-wordmark">SNOW<b>&#8209;</b>BURGERS</div>
     <div class="sb-rule"></div>
     <div class="sb-tagline">Shred. Stack. Serve.</div>
-    <nav class="sb-menu">
-      <button class="sb-item" data-event="summit-stack">The Summit Stack
-        <span class="sb-sub">Four on the mountain · the classic</span></button>
-      <button class="sb-item" data-event="summit-gold">Summit Gold
-        <span class="sb-sub">Fixed-line time trial · race your ghost</span></button>
-      <button class="sb-item" data-event="rocket-reheat">Rocket Reheat
-        <span class="sb-sub">Full order on the rocket chair</span></button>
-      <button class="sb-item" data-mode="rocket-test">Rocket Board Test
-        <span class="sb-sub">Infinite fuel, nothing recorded</span></button>
-      <button class="sb-item" data-mode="free-ride">Free Ride Lab
-        <span class="sb-sub">The original open mountain</span></button>
-    </nav>
+    <nav class="sb-menu" id="sb-title-menu"></nav>
   </div>
   <div class="sb-credit">Powered by KAKISNOW Snow Technology</div>
 </div>
@@ -584,6 +573,10 @@ export class SnowBurgersUi {
                 this.hooks.onSelectEvent?.(btn.dataset.event);
                 return;
             }
+            if (btn.dataset.course) {
+                this.hooks.onSelectCourse?.(btn.dataset.course);
+                return;
+            }
             if (btn.dataset.mode) this.hooks.onSelectMode?.(btn.dataset.mode);
             switch (btn.dataset.action) {
                 case "drop-in": this.hooks.onDropIn?.(); break;
@@ -604,6 +597,34 @@ export class SnowBurgersUi {
     }
 
     showTitle() { this._show("title"); this.setHud(false); }
+
+    /**
+     * Fill the title menu for the booted course: its events, the two labs,
+     * and the other mountains. The real course-select screen is coming; until
+     * then the title IS the course's menu, driven by the same registries.
+     *
+     * @param {object} course the active course definition
+     * @param {{id:string, name:string, tagline:string}[]} events resolved defs
+     * @param {{id:string, title:string}[]} otherCourses switchable courses
+     */
+    setTitleMenu(course, events, otherCourses) {
+        const menu = this.root.querySelector("#sb-title-menu");
+        const items = [];
+        for (const ev of events) {
+            items.push(`<button class="sb-item" data-event="${ev.id}">${ev.name}
+                <span class="sb-sub">${ev.tagline}</span></button>`);
+        }
+        items.push(`<button class="sb-item" data-mode="rocket-test">Rocket Board Test
+            <span class="sb-sub">Infinite fuel, nothing recorded</span></button>`);
+        items.push(`<button class="sb-item" data-mode="free-ride">Free Ride Lab
+            <span class="sb-sub">${course.title}, open and unscored</span></button>`);
+        for (const other of otherCourses) {
+            items.push(`<button class="sb-item" data-course="${other.id}">
+                ${other.title}
+                <span class="sb-sub">travel to ${other.subtitle ?? other.title}</span></button>`);
+        }
+        menu.innerHTML = items.join("");
+    }
 
     /**
      * Drop every full-screen panel, leaving the run HUD alone.

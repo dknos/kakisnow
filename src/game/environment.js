@@ -51,9 +51,7 @@ import { ImportMeshAsync } from "@babylonjs/core/Loading/sceneLoader.js";
 import "@babylonjs/core/Meshes/instancedMesh.js";
 
 import { ShadedAsset } from "../render/shadedAsset.js";
-import {
-    rng, protectedSpans, PIPES, ZONES, BASE_CAMP_Z, LANE_HALF,
-} from "./ingredientPlacement.js";
+import { rng, protectedSpans } from "./ingredientPlacement.js";
 
 const MODELS = (import.meta.env?.BASE_URL ?? "/") + "assets/models/snow-burgers/";
 /**
@@ -93,12 +91,12 @@ const ICE = new Color3(0.62, 0.79, 0.92);
  * game collides with a tree, and a tree the rider passes through is worse the
  * closer it is.
  */
+/** Defaults a course's `dressing` block may override. The values are the
+ *  Summit tuning, verbatim — a course that says nothing gets the alpine look
+ *  the numbers below were measured for. */
 const LANE_CLEAR = 40;
 /** Outer edge of the dressed band. Beyond this the clipmap has no detail left. */
 const OUTER = 190;
-/** Along-course span dressed, with margin past both ends of the run. */
-const Z_FROM = -80;
-const Z_TO = BASE_CAMP_Z + 90;
 /** Metres of course per merged band. One draw call per family per band. */
 const BAND = 160;
 /** Keep dressing off the pickup sites. */
@@ -141,8 +139,20 @@ export class MountainDressing {
      * @param {import("../render/shadows.js").ShadowSystem} deps.shadows
      * @param {import("../render/depthPass.js").DepthPass} deps.depthPass
      * @param {import("../terrain/terrain.js").Terrain} deps.terrain
+     * @param {object} deps.course the course being dressed — bounds,
+     *   exclusions and biome tuning all come off its definition
      */
-    constructor({ scene, sky, shadows, depthPass, terrain }) {
+    constructor({ scene, sky, shadows, depthPass, terrain, course }) {
+        this.course = course;
+        const d = course.dressing ?? {};
+        // The dressed window and the exclusion clearances, per course.
+        this._zFrom = course.startZ - 80;
+        this._zTo = course.baseCampZ + 90;
+        this._laneClear = d.laneClear ?? LANE_CLEAR;
+        this._zoneClear = d.zoneClear ?? ZONE_CLEAR;
+        /** Density multiplier: Poisson radii shrink by its square root, so 2
+         *  reads as roughly twice the props, not four times. */
+        this._density = d.density ?? 1;
         this.scene = scene;
         this.terrain = terrain;
         this.asset = new ShadedAsset({ scene, sky, shadows, depthPass, name: "dressing" });
@@ -258,11 +268,11 @@ export class MountainDressing {
      * Place and merge the dressing. Needs the terrain readback.
      * @param {number} seed
      */
-    build(seed = 20260805) {
+    build(seed = this.course.dressing?.seed ?? 20260805) {
         if (this.built) return;
         this.propRecords.length = 0;
         const templates = this._templates();
-        const spans = protectedSpans();
+        const spans = protectedSpans(this.course.terrain.jumps);
         const _n = new Vector3();
 
         // One accumulator per (family, band). Each becomes one mesh.
@@ -270,7 +280,13 @@ export class MountainDressing {
         const buckets = new Map();
 
         for (const family of FAMILIES) {
-            const points = this._poisson(family, seed);
+            // Density scales the disc radius, not the counts, so the Poisson
+            // structure — and the no-clumping guarantee — survives the biome.
+            const scaled = this._density === 1 ? family : {
+                ...family,
+                radius: family.radius / Math.sqrt(this._density),
+            };
+            const points = this._poisson(scaled, seed);
             for (const [x, z] of points) {
                 if (!this._allowed(x, z, spans)) continue;
 
@@ -282,7 +298,7 @@ export class MountainDressing {
                 if (next() > family.chance) continue;
 
                 const y = this.terrain.heightAt(x, z);
-                const band = Math.floor((z - Z_FROM) / BAND);
+                const band = Math.floor((z - this._zFrom) / BAND);
                 const parts = templates[family.id](next, slope);
 
                 // Collision capture — the merge below bakes this prop's
@@ -357,20 +373,22 @@ export class MountainDressing {
     /** @returns {string|null} null when the position is usable. */
     _allowed(x, z, spans) {
         const ax = Math.abs(x);
-        if (ax < LANE_CLEAR) return false;
+        if (ax < this._laneClear) return false;
         if (ax > OUTER) return false;
         // The jump approaches and landings run the full width of the feature,
         // so they are excluded outside the lane too — a rider who lands wide
         // must not land in a rock field.
         for (const s of spans) if (z >= s.from - 8 && z <= s.to + 8) return false;
-        for (const p of PIPES) if (z >= p.from - 12 && z <= p.to + 12 && ax < 60) return false;
-        for (const zone of Object.values(ZONES)) {
-            if (z >= zone.z[0] - ZONE_CLEAR && z <= zone.z[1] + ZONE_CLEAR
-                && ax >= Math.abs(zone.x[0]) - ZONE_CLEAR
-                && ax <= Math.abs(zone.x[1]) + ZONE_CLEAR) return false;
+        for (const p of this.course.terrain.pipes ?? []) {
+            if (z >= p.from - 12 && z <= p.to + 12 && ax < 60) return false;
+        }
+        for (const zone of Object.values(this.course.zones)) {
+            if (z >= zone.z[0] - this._zoneClear && z <= zone.z[1] + this._zoneClear
+                && ax >= Math.abs(zone.x[0]) - this._zoneClear
+                && ax <= Math.abs(zone.x[1]) + this._zoneClear) return false;
         }
         // The camp and its approach.
-        if (z > BASE_CAMP_Z - 40 && ax < 70) return false;
+        if (z > this.course.baseCampZ - 40 && ax < 70) return false;
         return true;
     }
 
@@ -386,7 +404,7 @@ export class MountainDressing {
         const r = family.radius;
         const cell = r / Math.SQRT2;
         const w = OUTER * 2;
-        const h = Z_TO - Z_FROM;
+        const h = this._zTo - this._zFrom;
         const cols = Math.ceil(w / cell);
         const rows = Math.ceil(h / cell);
         const grid = new Int32Array(cols * rows).fill(-1);
@@ -398,13 +416,13 @@ export class MountainDressing {
             pts.push([px, pz]);
             active.push(i);
             const cx = Math.floor((px + OUTER) / cell);
-            const cz = Math.floor((pz - Z_FROM) / cell);
+            const cz = Math.floor((pz - this._zFrom) / cell);
             grid[cz * cols + cx] = i;
         };
         const free = (px, pz) => {
-            if (px < -OUTER || px > OUTER || pz < Z_FROM || pz > Z_TO) return false;
+            if (px < -OUTER || px > OUTER || pz < this._zFrom || pz > this._zTo) return false;
             const cx = Math.floor((px + OUTER) / cell);
-            const cz = Math.floor((pz - Z_FROM) / cell);
+            const cz = Math.floor((pz - this._zFrom) / cell);
             for (let j = Math.max(0, cz - 2); j <= Math.min(rows - 1, cz + 2); j++) {
                 for (let i = Math.max(0, cx - 2); i <= Math.min(cols - 1, cx + 2); i++) {
                     const k = grid[j * cols + i];
@@ -417,7 +435,7 @@ export class MountainDressing {
             return true;
         };
 
-        put(next() * w - OUTER, next() * h + Z_FROM);
+        put(next() * w - OUTER, next() * h + this._zFrom);
         let guard = 0;
         while (active.length && guard++ < 400000) {
             const ai = (next() * active.length) | 0;

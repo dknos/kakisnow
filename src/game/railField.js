@@ -17,10 +17,14 @@ import { CreateCylinder } from "@babylonjs/core/Meshes/Builders/cylinderBuilder.
 import { ShadedAsset } from "../render/shadedAsset.js";
 
 const STEEL = new Color3(0.16, 0.17, 0.19);
+/** Debarked timber — a fallen log reads at distance where thin steel cannot. */
+const TIMBER = new Color3(0.38, 0.27, 0.17);
 const POST_SPACING = 7;
 /** Beam cross-section: wide enough to read at speed, thin enough to be a rail. */
 const BEAM_W = 0.10;
 const BEAM_H = 0.08;
+/** A log's radius. Grindable culture says the top surface is what counts. */
+const LOG_R = 0.16;
 
 export class RailField {
     /**
@@ -55,18 +59,37 @@ export class RailField {
             const dz = r.bz - r.az;
             const len = Math.hypot(dx, dy, dz);
 
-            // The beam: one box, yawed and pitched onto the segment.
-            const beam = CreateBox("railBeam", {
-                width: BEAM_W, height: BEAM_H, depth: len,
-            }, this.scene);
+            // The beam: steel is a thin box; a log is a cylinder laid along
+            // the same line. Style comes off the course definition — a park
+            // rail in a forest would be furniture from the wrong mountain.
+            const log = r.style === "log";
+            let beam;
+            if (log) {
+                beam = CreateCylinder("railLog", {
+                    diameter: LOG_R * 2, height: len, tessellation: 10,
+                }, this.scene);
+                // Cylinder axis is Y; +90° about X lays it along +Z, and the
+                // segment's own pitch subtracts from there.
+                beam.rotation.y = Math.atan2(dx, dz);
+                beam.rotation.x = Math.PI / 2 - Math.asin(dy / len);
+            } else {
+                beam = CreateBox("railBeam", {
+                    width: BEAM_W, height: BEAM_H, depth: len,
+                }, this.scene);
+                beam.rotation.y = Math.atan2(dx, dz);
+                beam.rotation.x = -Math.asin(dy / len);
+            }
             beam.position.set(
-                (r.ax + r.bx) / 2, (ya + yb) / 2 - BEAM_H / 2, (r.az + r.bz) / 2
+                (r.ax + r.bx) / 2,
+                (ya + yb) / 2 - (log ? LOG_R : BEAM_H) / 2,
+                (r.az + r.bz) / 2
             );
-            beam.rotation.y = Math.atan2(dx, dz);
-            beam.rotation.x = -Math.asin(dy / len);
-            this.asset.adopt(beam, { colour: STEEL, roughness: 0.25, metallic: 0.85 });
+            this.asset.adopt(beam, log
+                ? { colour: TIMBER, roughness: 0.8 }
+                : { colour: STEEL, roughness: 0.25, metallic: 0.85 });
 
             // Posts, grounded individually so the beam can bridge a dip.
+            // A log gets stumps — same job, wider, timber.
             const posts = Math.max(2, Math.round(len / POST_SPACING));
             for (let i = 0; i < posts; i++) {
                 const t = posts === 1 ? 0.5 : i / (posts - 1);
@@ -75,11 +98,13 @@ export class RailField {
                 const groundY = this.terrain.heightAt(px, pz);
                 const topY = ya + dy * t - BEAM_H;
                 const h = Math.max(0.2, topY - groundY + 0.35);
-                const post = CreateCylinder("railPost", {
-                    diameter: 0.09, height: h, tessellation: 8,
+                const post = CreateCylinder(log ? "railStump" : "railPost", {
+                    diameter: log ? 0.3 : 0.09, height: h, tessellation: 8,
                 }, this.scene);
                 post.position.set(px, topY - h / 2 + 0.02, pz);
-                this.asset.adopt(post, { colour: STEEL, roughness: 0.35, metallic: 0.8 });
+                this.asset.adopt(post, log
+                    ? { colour: TIMBER, roughness: 0.85 }
+                    : { colour: STEEL, roughness: 0.35, metallic: 0.8 });
             }
 
             const seg = { ax: r.ax, ay: ya, az: r.az, bx: r.bx, by: yb, bz: r.bz };

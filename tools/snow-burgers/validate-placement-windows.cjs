@@ -75,6 +75,8 @@ function arg(name, fallback) {
 
 const url = arg("--url", "http://127.0.0.1:5173");
 const seedCount = Number(arg("--seeds", "100"));
+/** Which course to sweep. The page must be booted with the same id. */
+const courseId = arg("--course", "summit-line");
 const output = path.resolve(
   arg("--out", "screenshots/snow-burgers/placement-validation.json"),
 );
@@ -210,9 +212,12 @@ let context = null;
    * hundred seeds cost one import.
    */
   const sweep = (seeds) => page.evaluate(async (batch) => {
-    const { seeds, ids, ratio, epsilon, tolerance } = batch;
+    const { seeds, ids, ratio, epsilon, tolerance, courseId } = batch;
     if (!window.__PLACEMENT__) {
-      window.__PLACEMENT__ = import("/src/game/ingredientPlacement.js").catch(err => {
+      window.__PLACEMENT__ = Promise.all([
+        import("/src/game/ingredientPlacement.js"),
+        import("/src/game/courses/index.js"),
+      ]).catch(err => {
         throw new Error(
           "could not import /src/game/ingredientPlacement.js: " + err.message +
           " — this tool needs the Vite dev server (npm run dev). A built and " +
@@ -220,7 +225,12 @@ let context = null;
         );
       });
     }
-    const { selectRoute, candidatesFor, ZONES, BASE_CAMP_Z } = await window.__PLACEMENT__;
+    const [placement, courses] = await window.__PLACEMENT__;
+    const { selectRoute, candidatesFor } = placement;
+    const course = courses.COURSES[courseId];
+    if (!course) throw new Error("unknown course " + courseId);
+    const ZONES = course.zones;
+    const BASE_CAMP_Z = course.baseCampZ;
     const terrain = window.KAKISNOW.terrain;
     const round = v => Number(v.toFixed(3));
 
@@ -237,7 +247,7 @@ let context = null;
 
     const results = [];
     for (const seed of seeds) {
-      const route = selectRoute(ids, terrain, seed);
+      const route = selectRoute(ids, terrain, seed, course);
 
       /**
        * Candidate pools for the report, one zone at a time.
@@ -251,7 +261,7 @@ let context = null;
        */
       const zones = {};
       for (const id of Object.keys(ZONES)) {
-        const { anchors, rejected } = candidatesFor(ZONES[id], terrain, seed);
+        const { anchors, rejected } = candidatesFor(ZONES[id], terrain, seed, course);
         const byReason = {};
         for (const r of rejected) {
           const key = reasonKey(r.reason);
@@ -349,6 +359,7 @@ let context = null;
     ratio: MAX_LATERAL_RATIO,
     epsilon: LATERAL_EPSILON,
     tolerance: HEIGHT_TOLERANCE,
+    courseId,
   });
 
   const seedResults = [];

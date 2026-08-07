@@ -30,6 +30,11 @@ uniform heightAmp: f32;
 //   kind 1, JUMP:  t0 = (1, lip, runIn, drop)          t1 = (height, 0, 0, 0)
 //   kind 2, PIPE:  t0 = (2, fadeInFrom, from, to)      t1 = (fadeOutTo, wallFrom, wallTo, amp)
 //                  t2 = (pack, packFalloff, gateXFrom, gateXTo)
+//   kind 3, RIDGE: t0 = (3, zFrom, zTo, featherZ)      t1 = (xCentre, halfWidth, featherX, height)
+//     An elongated mound (positive height) or trench (negative — a creek bed,
+//     a ditch) along z, offset in x. Additive like the jumps, but NOT lane-
+//     gated: a ridge is course architecture — a route divider, a bank — and
+//     may legally stand at the lane's edge where the lane gate would erase it.
 //
 // Jumps are additive, gated by the lane and the course's z gate. Pipes are
 // not: inside its gate a pipe REPLACES the terrain with a centreline-pinned
@@ -86,6 +91,15 @@ fn courseShape(
         if (kind == 1) {
             let t1 = textureLoad(courseTex, vec2i(1, i), 0);
             added += lane * courseJump(p.y, t0.y, t0.z, t0.w, t1.x);
+        } else if (kind == 3) {
+            let t1 = textureLoad(courseTex, vec2i(1, i), 0);
+            let g = smoothstep(t0.y - t0.w, t0.y, p.y)
+                  * (1.0 - smoothstep(t0.z, t0.z + t0.w, p.y));
+            // Squared-smoothstep flank: rounded crest, no sharp shoulder for
+            // the board's stiff span to catch on.
+            let d = abs(p.x - t1.x);
+            let flank = 1.0 - smoothstep(t1.y, t1.y + t1.z, d);
+            added += g * flank * flank * t1.w;
         } else if (kind == 2) {
             let t1 = textureLoad(courseTex, vec2i(1, i), 0);
             let t2 = textureLoad(courseTex, vec2i(2, i), 0);

@@ -39,7 +39,7 @@ import { BurgerBook } from "./burgerBook.js";
 import { BurgerBaseCamp } from "./baseCamp.js";
 import { MountainDressing } from "./environment.js";
 import { INGREDIENT_IDS, INGREDIENTS, BURGER_MODEL } from "./ingredients.js";
-import { activeCourse } from "./courses/index.js";
+import { activeCourse, COURSES } from "./courses/index.js";
 import { getEvent } from "./courses/eventRegistry.js";
 import { SnowBurgersUi, formatTime } from "../ui/snowBurgersUi.js";
 import { FUEL_PER_INGREDIENT } from "../vehicles/rocketThrust.js";
@@ -108,6 +108,7 @@ export class GameDirector {
             shadows: deps.shadows,
             depthPass: deps.depthPass,
             terrain: deps.terrain,
+            course: this.course,
         });
 
         /** The best run for this seed, replayed alongside. */
@@ -125,6 +126,7 @@ export class GameDirector {
             shadows: deps.shadows,
             depthPass: deps.depthPass,
             terrain: deps.terrain,
+            course: this.course,
         });
 
         /** The reward model, loaded once and reused for every completion. */
@@ -176,6 +178,7 @@ export class GameDirector {
         this.ui = new SnowBurgersUi({
             onSelectMode: (m) => { audio.ui("confirm"); this.selectMode(m); },
             onSelectEvent: (id) => { audio.ui("confirm"); this.startEvent(id); },
+            onSelectCourse: (id) => { audio.ui("confirm"); this.travelTo(id); },
             onDropIn: () => { audio.ui("confirm"); this.run.dropIn(); },
             onRetry: () => { audio.ui("confirm"); this.run.retry(); },
             onNextOrder: () => { audio.ui("confirm"); this.startBurgerRun(); },
@@ -191,6 +194,34 @@ export class GameDirector {
             this.rocketChair?.thrust.refill(FUEL_PER_INGREDIENT);
         };
         this.run.onStateChange = (next, prev) => this._onRunState(next, prev);
+
+        // The title is the booted course's menu: its events, the labs, and
+        // the other mountains.
+        this.ui.setTitleMenu(
+            this.course,
+            this.course.events.map((id) => getEvent(id)),
+            Object.values(COURSES).filter((c) => c.id !== this.course.id)
+        );
+    }
+
+    /**
+     * Travel to another course.
+     *
+     * A parameterized reboot through the exact pipeline that booted this one:
+     * the loading screen is the authored loader, every course-scoped resource
+     * is torn down by the page itself, and stale colliders, listeners and
+     * render targets are impossible by construction. The in-session re-bake
+     * exists (`heightfield.bake(course)`, `deform.clear()`) but is not
+     * player-facing until it can beat this on both safety and feel.
+     */
+    travelTo(courseId) {
+        if (!COURSES[courseId]) return;
+        this.book.setLastSelected(courseId, COURSES[courseId].events[0]);
+        const url = new URL(location.href);
+        url.searchParams.set("course", courseId);
+        url.searchParams.delete("event");
+        url.searchParams.delete("mode");
+        location.assign(url.toString());
     }
 
     /** Load every model the game layer places. Behind the loading screen. */
@@ -1059,6 +1090,7 @@ export class GameDirector {
 
     /** The console/tooling handle. */
     get api() {
+        const director = this;
         return {
             director: this,
             run: this.run,
@@ -1068,7 +1100,15 @@ export class GameDirector {
             ui: this.ui,
             Mode,
             RunState,
-            event: SUMMIT_STACK,
+            /**
+             * The event actually being run. A getter, not a snapshot: the
+             * autopilot aims at `event.finishZ`, and a frozen copy of the
+             * first event sent it circling short of every other course's
+             * gate — three collected orders that never crossed a line.
+             */
+            get event() {
+                return director.run.event;
+            },
             selectMode: (m) => this.selectMode(m),
             start: (seed) => {
                 this.mode = Mode.BURGER_RUN;

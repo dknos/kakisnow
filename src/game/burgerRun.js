@@ -356,7 +356,7 @@ export class BurgerRun {
         const ev = this.event;
         const time = this.time;
 
-        const medal = !completed ? null
+        let medal = !completed ? null
             : time <= ev.gold ? "gold"
             : time <= ev.silver ? "silver"
             : time <= ev.bronze ? "bronze"
@@ -379,6 +379,11 @@ export class BurgerRun {
             100 * (air * 0.20 + carve * 0.20 + pace * 0.20 +
                    pipe * 0.10 + risk * 0.10 + tricks * 0.20)
         );
+
+        // A style event's medal has two locks: the clock above and the style
+        // score here. The run still completes and records — only the metal
+        // asks for both.
+        if (medal && ev.styleTarget && style < ev.styleTarget) medal = null;
 
         // Stack Integrity, 0..100. Starts whole and is reduced by violence —
         // and a crash is the most violent thing a stack can experience.
