@@ -76,8 +76,10 @@ SCHEMA_VERSION. Medal thresholds duplicated in `snowBurgersUi.medalFraction`
 (34/58 literals). Settings have zero persistence; player settings get their own
 key (`snow-burgers.settings`), hydrated through `set()` so `onChange` fires.
 
-**Audio.** One master gain → limiter; one persistent rocket bus; one-shots
-connect straight to master. No pause path, no category buses. Exiting
+**Audio.** (Updated in Phase 3.) master → limiter with music/sfx/ambience/ui
+buses; telemetry-driven board bed (glide/carve/ice/wind) on ambience; grind
+loop, graded landings, jumps, crash, near-miss, trick-bank one-shots on sfx;
+pause ducks master. Historical note, fixed in Phase 1: Exiting
 ROCKET_TEST/BURGER_RUN stops calling `updateRocket` without zeroing the bus —
 the engine drone freezes at last throttle (live bug, fix with mode-exit
 `updateRocket(0)`). New continuous layers (board/wind/ice) get per-category bus
