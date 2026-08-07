@@ -60,6 +60,10 @@ export function emptyBook() {
         burgers: 0,
         runs: 0,
         seenAssembly: false,
+        // Derived completion is intentionally not saved. These flags only
+        // prevent replaying a celebration after the player has seen it.
+        seenTourComplete: false,
+        seenHundredPercent: false,
         /** @type {string[]} course ids the player may pick from */
         unlockedCourses: [V1_COURSE_ID],
         /** @type {Record<string, string[]>} found secrets, keyed by course id */
@@ -80,6 +84,8 @@ function emptyEvent() {
         bestStyle: 0,
         bestIntegrity: 0,
         bestRocket: 0,
+        /** @type {null|{name:string,score:number}} highest landed trick */
+        bestTrick: null,
         bestStars: 0,
         bestMedal: null,
         bestSeed: null,
@@ -193,6 +199,8 @@ function readV2(raw) {
     book.burgers = Number.isFinite(raw.burgers) ? raw.burgers : 0;
     book.runs = Number.isFinite(raw.runs) ? raw.runs : 0;
     book.seenAssembly = raw.seenAssembly === true;
+    book.seenTourComplete = raw.seenTourComplete === true;
+    book.seenHundredPercent = raw.seenHundredPercent === true;
     // The empty book already holds the home course, so even a save whose
     // unlock list rotted cannot lock the player out of everything.
     if (Array.isArray(raw.unlockedCourses)) {
@@ -236,6 +244,7 @@ function readV2(raw) {
             out.bestStyle = Number.isFinite(e.bestStyle) ? e.bestStyle : 0;
             out.bestIntegrity = Number.isFinite(e.bestIntegrity) ? e.bestIntegrity : 0;
             out.bestRocket = Number.isFinite(e.bestRocket) ? e.bestRocket : 0;
+            out.bestTrick = validBestTrick(e.bestTrick) ? e.bestTrick : null;
             out.bestStars = Number.isFinite(e.bestStars) ? e.bestStars : 0;
             out.bestMedal = typeof e.bestMedal === "string" ? e.bestMedal : null;
             out.bestSeed = Number.isFinite(e.bestSeed) ? e.bestSeed : null;
@@ -303,6 +312,12 @@ function readBestBigAirFlights(raw) {
         if (flight) clean[vehicle] = flight;
     }
     return clean;
+}
+
+function validBestTrick(raw) {
+    return raw && typeof raw === "object" &&
+        typeof raw.name === "string" && raw.name.length > 0 && raw.name.length <= 80 &&
+        Number.isFinite(raw.score) && raw.score >= 0 && raw.score <= 10_000_000;
 }
 
 function cloneFlight(flight) {
@@ -393,6 +408,48 @@ export class BurgerBook {
         }
     }
 
+    /** A portable copy for the player's own backup, never a live reference. */
+    exportSave() {
+        return JSON.stringify(this.book, null, 2);
+    }
+
+    /**
+     * Import only a complete, readable save. Invalid data leaves the current
+     * book untouched so a bad clipboard paste cannot erase a good tour.
+     * @returns {{ok:true}|{ok:false,error:string}}
+     */
+    importSave(serialized) {
+        let raw;
+        try {
+            raw = typeof serialized === "string" ? JSON.parse(serialized) : serialized;
+        } catch {
+            return { ok: false, error: "That save is not valid JSON." };
+        }
+        const next = migrate(raw);
+        if (!next) {
+            if (raw && Number.isFinite(raw.version) && raw.version > SCHEMA_VERSION) {
+                return { ok: false, error: `That save is from a newer build (v${raw.version}).` };
+            }
+            return { ok: false, error: "That save could not be read." };
+        }
+        const previous = this.book;
+        this.book = next;
+        if (!this.save()) {
+            this.book = previous;
+            return { ok: false, error: "The save was read, but storage is unavailable." };
+        }
+        return { ok: true };
+    }
+
+    /** Remove race ghosts without touching records, medals, tapes, or totals. */
+    clearGhosts() {
+        for (const event of Object.values(this.book.events)) {
+            if (!event || typeof event !== "object") continue;
+            event.bestGhost = null;
+        }
+        this.save();
+    }
+
     event(id) {
         if (!this.book.events[id]) this.book.events[id] = emptyEvent();
         return this.book.events[id];
@@ -462,7 +519,6 @@ export class BurgerBook {
                 broke.time = true;
                 e.bestTime = result.time;
                 e.bestSeed = result.seed;
-                e.bestMedal = result.medal;
                 const m = meta && typeof meta === "object" ? meta : {};
                 e.courseId = typeof m.courseId === "string" ? m.courseId : V1_COURSE_ID;
                 e.courseVersion = Number.isFinite(m.courseVersion)
@@ -473,6 +529,19 @@ export class BurgerBook {
                     ? m.vehicleId : V1_VEHICLE_ID;
                 if (ghost && validGhost(ghost)) e.bestGhost = ghost;
             }
+            // Medal quality is independent of the clock PB. A slower run can
+            // satisfy a style/integrity/trick gate that an earlier fast run
+            // missed, but a faster run with a worse medal must not downgrade it.
+            const medalRank = { bronze: 1, silver: 2, gold: 3 };
+            const nextRank = medalRank[result.medal] ?? 0;
+            const bestRank = medalRank[e.bestMedal] ?? 0;
+            if (nextRank > bestRank) e.bestMedal = result.medal;
+        }
+        if (validBestTrick(result.bestTrick) && result.bestTrick.score > (e.bestTrick?.score ?? 0)) {
+            e.bestTrick = {
+                name: result.bestTrick.name.slice(0, 80),
+                score: Math.min(10_000_000, Math.max(0, result.bestTrick.score)),
+            };
         }
         if (result.style > e.bestStyle) { broke.style = true; e.bestStyle = result.style; }
         if (result.integrity > e.bestIntegrity) {

@@ -218,6 +218,33 @@ test("no localStorage at all: fresh book, save() reports false, no throw", () =>
     }
 });
 
+test("save export/import is defensive and preserves a valid book on bad input", () => {
+    const first = fresh();
+    first.book.burgers = 4;
+    first.book.events["summit-stack"] = { completions: 1, bestTime: 42 };
+    first.save();
+    const backup = first.exportSave();
+    assert.match(backup, /"burgers": 4/);
+
+    const badJson = first.importSave("not-json");
+    assert.equal(badJson.ok, false);
+    assert.equal(first.book.burgers, 4);
+    const future = first.importSave(JSON.stringify({ version: SCHEMA_VERSION + 1 }));
+    assert.equal(future.ok, false);
+    assert.equal(first.book.burgers, 4);
+
+    const clean = fresh();
+    assert.deepEqual(clean.importSave(backup), { ok: true });
+    assert.equal(clean.book.burgers, 4);
+    clean.book.events["summit-stack"].bestGhost = {
+        version: 2, seed: 1, interval: .25, courseId: "summit-line",
+        courseVersion: 1, eventId: "summit-stack", eventVersion: 1,
+        vehicleId: "classic-snowboard", samples: [0, 1, 2],
+    };
+    clean.clearGhosts();
+    assert.equal(clean.book.events["summit-stack"].bestGhost, null);
+});
+
 // -------------------------------------------------------------- v2 round trip
 
 test("record() with meta stamps the run identity and it survives a reload", () => {
@@ -249,6 +276,26 @@ test("record() without meta falls back to the v1 identity", () => {
     assert.equal(e.courseVersion, 1);
     assert.equal(e.eventVersion, 1);
     assert.equal(e.bestVehicle, "classic-snowboard");
+});
+
+test("medal records upgrade independently of the time personal best", () => {
+    const b = fresh();
+    b.record("summit-stack", { ...wonRun(30, 1), medal: "bronze" }, null);
+    b.record("summit-stack", { ...wonRun(42, 2), medal: "gold" }, null);
+    assert.equal(b.book.events["summit-stack"].bestTime, 30);
+    assert.equal(b.book.events["summit-stack"].bestMedal, "gold");
+    b.record("summit-stack", { ...wonRun(25, 3), medal: "silver" }, null);
+    assert.equal(b.book.events["summit-stack"].bestTime, 25);
+    assert.equal(b.book.events["summit-stack"].bestMedal, "gold");
+});
+
+test("best trick is saved as an optional independent record", () => {
+    const b = fresh();
+    b.record("summit-stack", { ...wonRun(40, 1), bestTrick: { name: "Spin", score: 220 } }, null);
+    b.record("summit-stack", { ...wonRun(45, 2), bestTrick: { name: "Flip", score: 420 } }, null);
+    assert.deepEqual(b.book.events["summit-stack"].bestTrick, { name: "Flip", score: 420 });
+    b.record("summit-stack", { ...wonRun(20, 3), bestTrick: { name: "Tiny", score: 12 } }, null);
+    assert.deepEqual(b.book.events["summit-stack"].bestTrick, { name: "Flip", score: 420 });
 });
 
 test("Big Air personal bests persist per vehicle without a schema bump", () => {

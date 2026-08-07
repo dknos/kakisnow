@@ -30,6 +30,8 @@ import { RunState } from "../game/burgerRun.js";
 import { getEvent } from "../game/courses/eventRegistry.js";
 import { COURSES } from "../game/courses/index.js";
 import { S, set as setSetting, applyPreset } from "../core/settings.js";
+import { completionStats, burgerBookPages } from "../game/progression.js";
+import { recipeTapeContent, recipeTapeTitle } from "../game/recipeTapeContent.js";
 
 const ICONS = (import.meta.env?.BASE_URL ?? "/") + "assets/ui/snow-burgers/";
 
@@ -611,6 +613,57 @@ const CSS = `
     color: rgba(219,230,242,0.3);
 }
 
+/* ----------------------------------------------------------- Burger Book */
+.sb-book-wrap, .sb-credits-wrap, .sb-finale-wrap, .sb-howto-wrap, .sb-confirm-wrap {
+    width: min(1180px, calc(100vw - 40px)); max-height: calc(100svh - 32px);
+    overflow: auto; padding: clamp(18px, 3vw, 40px);
+    border-top: 2px solid var(--warm); background: rgba(7,17,27,0.62);
+}
+.sb-book-header { display: flex; align-items: end; justify-content: space-between; gap: 20px; }
+.sb-book-header h1, .sb-credits-wrap h1, .sb-finale-wrap h1, .sb-howto-wrap h1 {
+    margin: 0.4em 0 0; font: 400 clamp(28px, 4vw, 58px)/1.05 "Bahnschrift Condensed", "Arial Narrow", sans-serif;
+    letter-spacing: 0.05em; text-transform: uppercase;
+}
+.sb-book-kicker { color: var(--warm); font: 600 9px/1 ui-monospace, monospace; letter-spacing: .25em; text-transform: uppercase; }
+.sb-book-overview { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 1px; margin: 24px 0 22px; border-block: 1px solid var(--line); background: var(--line); }
+.sb-book-stat { padding: 14px; background: rgba(7,17,27,.72); }
+.sb-book-stat strong { display: block; font: 500 clamp(20px, 2vw, 32px)/1 ui-monospace, monospace; color: var(--snow); }
+.sb-book-stat span { display: block; margin-top: 7px; color: var(--muted); font: 600 9px/1.2 ui-monospace, monospace; letter-spacing: .14em; text-transform: uppercase; }
+.sb-book-progress { margin: 8px 0 20px; color: var(--muted); font: 500 11px/1.5 ui-monospace, monospace; letter-spacing: .05em; }
+.sb-book-progress b { color: var(--warm); font-weight: 600; }
+.sb-book-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid var(--line); }
+.sb-book-tab { appearance: none; border: 0; border-bottom: 2px solid transparent; padding: 9px 12px; background: transparent; color: var(--muted); cursor: pointer; font: 600 10px/1 ui-monospace, monospace; letter-spacing: .1em; text-transform: uppercase; }
+.sb-book-tab:hover, .sb-book-tab:focus-visible, .sb-book-tab.on { color: var(--snow); border-bottom-color: var(--warm); outline: none; }
+.sb-book-course-line { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+.sb-book-course-line h2 { margin: 0; font: 400 clamp(21px, 2.4vw, 38px)/1.1 "Bahnschrift Condensed", "Arial Narrow", sans-serif; letter-spacing: .04em; text-transform: uppercase; }
+.sb-book-course-line p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+.sb-book-course-status { color: var(--warm); font: 600 10px/1 ui-monospace, monospace; letter-spacing: .12em; text-transform: uppercase; text-align: right; }
+.sb-book-events { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 6px; margin-top: 18px; }
+.sb-book-event { appearance: none; border: 0; border-left: 2px solid rgba(233,244,251,.12); padding: 12px; background: rgba(233,244,251,.04); color: var(--snow); text-align: left; cursor: pointer; }
+.sb-book-event:hover, .sb-book-event:focus-visible { border-left-color: var(--warm); background: rgba(255,157,63,.10); outline: none; }
+.sb-book-event strong { display: block; font-size: 14px; font-weight: 600; }
+.sb-book-event span { display: block; margin-top: 5px; color: var(--muted); font: 500 10px/1.3 ui-monospace, monospace; letter-spacing: .05em; }
+.sb-book-tapes { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; margin-top: 22px; }
+.sb-tape { min-height: 104px; padding: 13px; border-left: 3px solid var(--warm); background: rgba(255,157,63,.08); }
+.sb-tape.unfound { border-left-color: rgba(233,244,251,.2); background: rgba(233,244,251,.03); color: rgba(233,244,251,.38); }
+.sb-tape b { display: block; color: inherit; font: 600 10px/1.2 ui-monospace, monospace; letter-spacing: .13em; text-transform: uppercase; }
+.sb-tape p { margin: 9px 0 0; color: inherit; font-size: 12px; line-height: 1.45; }
+.sb-book-footer { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 24px; }
+.sb-book-footer .sb-item { width: auto; min-width: 126px; }
+.sb-credits-wrap, .sb-finale-wrap, .sb-howto-wrap, .sb-confirm-wrap { width: min(760px, calc(100vw - 40px)); }
+.sb-confirm-wrap { width: min(560px, calc(100vw - 40px)); text-align: center; border-top-color: var(--ketchup); }
+.sb-confirm-detail { margin-top: 18px; color: var(--muted); font: 400 12px/1.6 ui-monospace, monospace; }
+.sb-credits-list { display: grid; gap: 13px; margin-top: 24px; color: var(--muted); font: 400 12px/1.55 ui-monospace, monospace; }
+.sb-credits-list strong { display: block; margin-bottom: 3px; color: var(--ice); font-size: 10px; letter-spacing: .15em; text-transform: uppercase; }
+.sb-finale-wrap { text-align: center; border-top-color: var(--warm); }
+.sb-finale-badge { margin: 22px auto 0; width: 110px; height: 110px; display: grid; place-items: center; border: 1px solid var(--warm); color: var(--warm); font: 600 12px/1.4 ui-monospace, monospace; letter-spacing: .15em; text-transform: uppercase; transform: rotate(45deg); }
+.sb-finale-badge span { transform: rotate(-45deg); }
+.sb-finale-copy { margin: 19px auto 0; max-width: 520px; color: var(--muted); font: 400 12px/1.6 ui-monospace, monospace; }
+.sb-howto-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 1px; margin-top: 22px; background: var(--line); }
+.sb-howto-row { padding: 12px; background: rgba(7,17,27,.75); }
+.sb-howto-row strong { display: block; color: var(--snow); font-size: 13px; }
+.sb-howto-row span { display: block; margin-top: 4px; color: var(--muted); font: 500 10px/1.4 ui-monospace, monospace; }
+
 @media (max-width: 900px) {
     .sb-title-grid { grid-template-columns: 1fr; gap: 12px; }
     .sb-aux-pane { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; }
@@ -659,6 +712,9 @@ const CSS = `
     .sb-row .sb-v { white-space: normal; }
     .sb-flight-pb { grid-template-columns: 1fr auto; }
     .sb-flight-pb span { grid-column: 1 / -1; }
+    .sb-book-overview, .sb-book-events, .sb-book-tapes, .sb-howto-grid { grid-template-columns: 1fr; }
+    .sb-book-header, .sb-book-course-line { display: block; }
+    .sb-book-course-status { margin-top: 10px; text-align: left; }
 }
 @media (max-height: 760px) and (min-width: 621px) {
     .sb-title-header { padding-bottom: 12px; }
@@ -739,6 +795,14 @@ export class SnowBurgersUi {
             orderCount: this.root.querySelector("#sb-order-count"),
             results: this.root.querySelector("#sb-results"),
             resultBody: this.root.querySelector("#sb-result-body"),
+            book: this.root.querySelector("#sb-book"),
+            bookBody: this.root.querySelector("#sb-book-body"),
+            credits: this.root.querySelector("#sb-credits"),
+            finale: this.root.querySelector("#sb-finale"),
+            finaleBody: this.root.querySelector("#sb-finale-body"),
+            howto: this.root.querySelector("#sb-howto"),
+            confirm: this.root.querySelector("#sb-confirm"),
+            confirmBody: this.root.querySelector("#sb-confirm-body"),
             avalanche: this.root.querySelector("#sb-avalanche"),
             trick: this.root.querySelector("#sb-trick"),
             trickName: this.root.querySelector("#sb-trick-name"),
@@ -853,6 +917,52 @@ export class SnowBurgersUi {
   <div class="sb-results" id="sb-result-body"></div>
 </div>
 
+<div class="sb-screen" id="sb-book">
+  <div class="sb-book-wrap" id="sb-book-body"></div>
+</div>
+
+<div class="sb-screen" id="sb-credits">
+  <div class="sb-credits-wrap">
+    <div class="sb-book-kicker">Snow-Burgers · release notes</div>
+    <h1>Credits</h1>
+    <div class="sb-credits-list">
+      <div><strong>Project</strong>Snow-Burgers · SHRED. STACK. SERVE.</div>
+      <div><strong>Technology</strong>KAKISNOW Snow Technology · custom WebGPU snow, terrain, deformation, lighting, atmosphere, and post stack.</div>
+      <div><strong>External work</strong>Runtime asset sources, licenses, attribution, and modifications are listed in <code>THIRD_PARTY_NOTICES.txt</code>.</div>
+      <div><strong>Open source</strong>Browser dependencies and their license notices are enumerated in the shipped release documentation.</div>
+      <div><strong>AI disclosure</strong>Some promotional 2D art is AI-assisted. Source prompts, edits, hashes, and the release decision are recorded in the asset ledger.</div>
+      <div><strong>Special thanks</strong>To every rider who took the long line for one more tape.</div>
+    </div>
+    <div class="sb-actions"><button class="sb-item sb-primary" data-action="title">Back to title</button><button class="sb-item" data-action="book">Burger Book</button></div>
+  </div>
+</div>
+
+<div class="sb-screen" id="sb-finale">
+  <div class="sb-finale-wrap" id="sb-finale-body"></div>
+</div>
+
+<div class="sb-screen" id="sb-howto">
+  <div class="sb-howto-wrap">
+    <div class="sb-book-kicker">Rider reference</div>
+    <h1>How to Ride</h1>
+    <div class="sb-howto-grid">
+      <div class="sb-howto-row"><strong>Steer / carve</strong><span>Left stick or A/D. Ease into an edge to hold a clean line.</span></div>
+      <div class="sb-howto-row"><strong>Jump</strong><span>Space / gamepad south (A). Buffer before a lip and release to settle.</span></div>
+      <div class="sb-howto-row"><strong>Spin / flip</strong><span>Q/E or gamepad bumpers spin. Hold the trick modifier and steer to flip.</span></div>
+      <div class="sb-howto-row"><strong>Grab / tweak</strong><span>F / gamepad west (X) while airborne. Left/right tweaks the grab line.</span></div>
+      <div class="sb-howto-row"><strong>Grind</strong><span>Approach a rail with the board level; Space / south pops off.</span></div>
+      <div class="sb-howto-row"><strong>Recover</strong><span>R / gamepad east (B) returns to the last safe spot and costs a little time.</span></div>
+      <div class="sb-howto-row"><strong>Rocket chair</strong><span>Left Shift / right trigger. Fuel refills at ingredients; save it for climbs.</span></div>
+      <div class="sb-howto-row"><strong>Spells / event icons</strong><span>1–5 trigger mountain flourishes. The order card names every event target.</span></div>
+    </div>
+    <div class="sb-actions"><button class="sb-item sb-primary" data-action="book">Back to Burger Book</button><button class="sb-item" data-action="title">Title</button></div>
+  </div>
+</div>
+
+<div class="sb-screen" id="sb-confirm">
+  <div class="sb-confirm-wrap" id="sb-confirm-body"></div>
+</div>
+
 <div class="sb-screen sb-lite" id="sb-pause">
   <div class="sb-pause-card">
     <div class="sb-kicker">Paused</div>
@@ -880,7 +990,7 @@ export class SnowBurgersUi {
 
     /** The screen whose buttons the keyboard and pad drive, or null. */
     _visibleMenuRoot() {
-        for (const id of ["settings", "pause", "title", "order", "results"]) {
+        for (const id of ["settings", "pause", "title", "order", "results", "book", "credits", "finale", "howto", "confirm"]) {
             if (this.el[id]?.classList.contains("on")) return this.el[id];
         }
         return null;
@@ -996,6 +1106,14 @@ export class SnowBurgersUi {
                 this.showTitleSettings();
                 return;
             }
+            if (btn.dataset.bookEvent) {
+                this.hooks.onBookEvent?.(btn.dataset.bookEvent, btn.dataset.bookCourse);
+                return;
+            }
+            if (btn.dataset.bookCourse && /^\d+$/.test(btn.dataset.bookCourse)) {
+                this._renderBook(+btn.dataset.bookCourse);
+                return;
+            }
             if (btn.dataset.event) {
                 this.hooks.onSelectEvent?.(btn.dataset.event);
                 return;
@@ -1010,6 +1128,19 @@ export class SnowBurgersUi {
                 case "retry": this.hooks.onRetry?.(); break;
                 case "next": this.hooks.onNextOrder?.(); break;
                 case "menu": this.hooks.onMenu?.(); break;
+                case "book": this.hooks.onBook?.(); break;
+                case "credits": this.hooks.onCredits?.(); break;
+                case "howto": this.showHowToRide(); break;
+                case "title": this.hooks.onMenu?.(); break;
+                case "finale-credits": this.hooks.onCredits?.(); break;
+                case "finale-book": this.hooks.onBook?.(); break;
+                case "finale-skip": this.hooks.onMenu?.(); break;
+                case "save-export": this.hooks.onSaveAction?.("export"); break;
+                case "save-import": this._startSaveImport(); break;
+                case "clear-ghosts": this.hooks.onSaveAction?.("clear-ghosts"); break;
+                case "reset-progress": this.hooks.onSaveAction?.("reset"); break;
+                case "confirm-yes": this.hooks.onSaveAction?.("confirm", this._confirmAction); break;
+                case "confirm-no": this.showBurgerBook(this._bookInput, this._bookCourseId); break;
                 default: break;
             }
         });
@@ -1018,9 +1149,11 @@ export class SnowBurgersUi {
     // ------------------------------------------------------------- screens
 
     _show(name) {
-        for (const id of ["title", "order", "results"]) {
+        for (const id of ["title", "order", "results", "book", "credits", "finale", "howto", "confirm"]) {
             this.el[id].classList.toggle("on", id === name);
         }
+        if (name !== "pause") this.el.pause.classList.remove("on");
+        if (name !== "settings") this.el.settings.classList.remove("on");
         this.hooks.onScreenVisibilityChange?.();
     }
 
@@ -1038,8 +1171,9 @@ export class SnowBurgersUi {
      * @param {{id:string, name:string, tagline:string}[]} opts.events
      * @param {{id:string, title:string, subtitle:string, locked:boolean,
      *          reason:string}[]} opts.otherCourses
+     * @param {object} [opts.completion] registry-derived tour completion
      */
-    setTitleMenu({ course, continueEntry, events, otherCourses }) {
+    setTitleMenu({ course, continueEntry, events, otherCourses, completion = null }) {
         const safeCourse = course ?? {};
         const safeEvents = Array.isArray(events) ? events : [];
         const safeOther = Array.isArray(otherCourses) ? otherCourses : [];
@@ -1059,11 +1193,14 @@ export class SnowBurgersUi {
         this.el.courseChip.textContent = `${safeEvents.length} event${safeEvents.length === 1 ? "" : "s"}`;
         this.el.courseTitle.textContent = safeCourse.title ?? "Current mountain";
         this.el.courseSubtitle.textContent = safeCourse.subtitle ?? "Choose a line and serve the next order.";
+        const completionBadge = completion?.hundredPercent
+            ? `<span class="sb-strip-hot">100% SERVED</span>`
+            : completion?.tourComplete ? `<span class="sb-strip-hot">BURGER CROWN EARNED</span>` : "";
         this.el.titleStrip.innerHTML = `
             <span class="sb-strip-hot">Burger Tour</span>
             <strong>${escapeHtml(safeCourse.title ?? "Current mountain")}</strong>
             <span>${safeEvents.length} event${safeEvents.length === 1 ? "" : "s"} here</span>
-            <span>${openCourses}/${courseTotal} mountains open</span>`;
+            <span>${openCourses}/${courseTotal} mountains open</span>${completionBadge}`;
 
         const nextName = continueEntry?.name ?? safeEvents[0]?.name ?? "Choose an event";
         const nextCourse = continueEntry?.courseTitle ?? safeCourse.title ?? "Current mountain";
@@ -1077,7 +1214,12 @@ export class SnowBurgersUi {
             `<button class="sb-item sb-compact" data-mode="free-ride">Free Ride Lab<span class="sb-sub">${escapeHtml(safeCourse.title ?? "Current mountain")} · open and unscored</span></button>`,
         ].join("");
 
-        this.el.titleSettings.innerHTML = `<button class="sb-item sb-compact" data-title-settings="1">Settings<span class="sb-sub">Volume · controls · accessibility</span></button>`;
+        this.el.titleSettings.innerHTML = [
+            `<button class="sb-item sb-compact" data-action="book">Burger Book<span class="sb-sub">${registryCourses.length} mountains · ${orderCount} orders · tapes</span></button>`,
+            `<button class="sb-item sb-compact" data-action="howto">How to Ride<span class="sb-sub">Movement · tricks · rocket · recovery</span></button>`,
+            `<button class="sb-item sb-compact" data-title-settings="1">Settings<span class="sb-sub">Volume · controls · accessibility</span></button>`,
+            `<button class="sb-item sb-compact" data-action="credits">Credits<span class="sb-sub">Technology · assets · licenses</span></button>`,
+        ].join("");
 
         this.el.titleMountains.innerHTML = safeOther.map((other) => {
             const title = escapeHtml(other.title ?? other.id ?? "Mountain");
@@ -1107,6 +1249,122 @@ export class SnowBurgersUi {
                 <span class="sb-event-meta"><span>${escapeHtml(describeEventRule(ev))}</span><span>${escapeHtml(describeVehicle(ev))}</span><span>${escapeHtml(describeMedalTarget(ev))}</span></span>
             </button>`;
         }).join("");
+    }
+
+    /**
+     * Open the registry-backed Burger Book. A page is a course, not a second
+     * event picker: every record row and tape count comes from the same source
+     * data the run uses, while the current course remains one clear focus.
+     */
+    showBurgerBook(book, initialCourseId = null) {
+        this._bookInput = book ?? {};
+        this._bookPages = burgerBookPages(this._bookInput);
+        const initial = this._bookPages.findIndex((p) => p.id === initialCourseId);
+        this._bookPage = initial >= 0 ? initial : Math.max(0, this._bookPage ?? 0);
+        this._renderBook(this._bookPage);
+        this._show("book");
+        this.menuButtons()[0]?.focus({ preventScroll: true });
+    }
+
+    _renderBook(index = 0) {
+        if (!this.el.bookBody) return;
+        const pages = this._bookPages ?? [];
+        if (!pages.length) return;
+        this._bookPage = Math.max(0, Math.min(pages.length - 1, index));
+        const stats = completionStats(this._bookInput ?? {});
+        const page = pages[this._bookPage];
+        const courseEvents = page.events.map((event) => {
+            const name = eventDisplayName(event.id);
+            const best = event.bestTime == null ? "No time yet" : `Best ${formatTime(event.bestTime)}`;
+            const medal = event.medal ? `${event.medal} medal` : "No medal";
+            const vehicle = event.bestVehicle ? flightVehicleLabel(event.bestVehicle) : "Not ridden";
+            const definition = eventDefinition(event.id) ?? {};
+            const status = event.completions ? `${event.completions} served · ${medal}` : "Not served yet";
+            const trick = event.trick ? `Best trick ${event.trick.score}` : "No trick record";
+            const metric = [best, vehicle, `Style ${event.style}`, `Integrity ${event.integrity}`, `Rocket ${event.rocket}`, trick, event.ghost ? "Ghost" : "No ghost", `Start ${describeVehicle(definition)}`].join(" · ");
+            const locked = !page.unlocked;
+            return `<button class="sb-book-event${locked ? " sb-locked" : ""}" ${locked ? "aria-disabled=\"true\" tabindex=\"-1\"" : `data-book-event=\"${escapeAttr(event.id)}\" data-book-course=\"${escapeAttr(page.id)}\"`}>
+                <strong>${escapeHtml(name)}</strong><span>${locked ? "Locked · " : ""}${escapeHtml(status)} · ${escapeHtml(describeEventRule(definition))} · ${escapeHtml(describeMedalTarget(definition))}</span><span>${escapeHtml(metric)}</span>
+            </button>`;
+        }).join("");
+        const tapes = page.tapes.map((tape) => tape.found
+            ? `<article class="sb-tape"><b>${escapeHtml(recipeTapeTitle(page.id, tape.id))}</b><p>${escapeHtml(recipeTapeContent(page.id, tape.id))}</p></article>`
+            : `<article class="sb-tape unfound"><b>${escapeHtml(recipeTapeTitle(page.id, tape.id))}</b><p>Undiscovered line note · find this tape on the mountain.</p></article>`
+        ).join("");
+        const eventCompletion = page.events.filter((e) => e.completions > 0).length;
+        const courseMedals = page.events.filter((e) => e.medal).length;
+        this.el.bookBody.innerHTML = `
+            <div class="sb-book-header"><div><div class="sb-book-kicker">Player desk · ${stats.hundredPercent ? "100% complete" : stats.tourComplete ? "Tour complete" : "In progress"}</div><h1>Burger Book</h1></div><div class="sb-book-course-status">${stats.completedEvents}/${stats.eventTotal} orders served</div></div>
+            <div class="sb-book-overview">
+                <div class="sb-book-stat"><strong>${stats.unlockedCourses}/${stats.courseTotal}</strong><span>Mountains open</span></div>
+                <div class="sb-book-stat"><strong>${stats.burgersServed}</strong><span>Burgers served</span></div>
+                <div class="sb-book-stat"><strong>${stats.totalStars}</strong><span>Total stars</span></div>
+                <div class="sb-book-stat"><strong>${stats.completionPercent}%</strong><span>Completion</span></div>
+                <div class="sb-book-stat"><strong>${stats.completedEvents}/${stats.eventTotal}</strong><span>Events served</span></div>
+                <div class="sb-book-stat"><strong>${stats.medalEvents}/${stats.eventTotal}</strong><span>Medals earned</span></div>
+                <div class="sb-book-stat"><strong>${stats.foundTapes}/${stats.tapeTotal}</strong><span>Recipe tapes</span></div>
+                <div class="sb-book-stat"><strong>${stats.runs}</strong><span>Runs logged</span></div>
+            </div>
+            <div class="sb-book-progress"><b>${stats.tourComplete ? "TOUR COMPLETE" : `TOUR ${stats.mainCompleted}/${stats.mainTotal}`}</b> · ${stats.hundredPercent ? "Every event medalled. The book is full." : `${stats.eventTotal - stats.completedEvents} events, ${stats.eventTotal - stats.medalEvents} medals, and ${stats.tapeTotal - stats.foundTapes} tapes remain for 100%.`}</div>
+            <div class="sb-book-tabs" role="tablist" aria-label="Course pages">${pages.map((p, i) => `<button class="sb-book-tab${i === this._bookPage ? " on" : ""}" data-book-course="${i}" role="tab" aria-selected="${i === this._bookPage}">${escapeHtml(p.title)}</button>`).join("")}</div>
+            <div class="sb-book-course-line"><div><h2>${escapeHtml(page.title)}</h2><p>${escapeHtml(page.subtitle ?? "A line worth learning.")}</p></div><div class="sb-book-course-status">${page.unlocked ? "Open" : "Locked"} · ${eventCompletion}/${page.events.length} served · ${courseMedals}/${page.events.length} medals · ${page.tapes.filter((t) => t.found).length}/${page.tapes.length} tapes</div></div>
+            <div class="sb-section-label">Events & records</div><div class="sb-book-events">${courseEvents}</div>
+            <div class="sb-section-label">Recipe Tapes · ${page.tapes.filter((t) => t.found).length}/${page.tapes.length} found</div><div class="sb-book-tapes">${tapes}</div>
+            <div class="sb-book-footer"><button class="sb-item sb-primary" data-action="title">Course menu</button><button class="sb-item" data-action="howto">How to Ride</button><button class="sb-item" data-action="save-export">Export save</button><button class="sb-item" data-action="save-import">Import save</button><button class="sb-item" data-action="clear-ghosts">Clear ghosts</button><button class="sb-item" data-action="reset-progress">Reset progress</button><button class="sb-item" data-action="credits">Credits</button></div>`;
+    }
+
+    showCredits() {
+        this._show("credits");
+        this.menuButtons()[0]?.focus({ preventScroll: true });
+    }
+
+    showBookMessage(text) {
+        const line = this.el.bookBody?.querySelector(".sb-book-progress");
+        if (line) {
+            line.innerHTML = `<b>SAVE DESK</b> · ${escapeHtml(text)}`;
+            return;
+        }
+        this.showNotice(text);
+    }
+
+    /** Game-owned confirmation: reachable by arrows, Enter, and gamepad. */
+    showSaveConfirm(action) {
+        this._confirmAction = action;
+        this._bookCourseId = this._bookPages?.[this._bookPage ?? 0]?.id ?? null;
+        const reset = action === "reset";
+        this.el.confirmBody.innerHTML = `<div class="sb-book-kicker">Save desk · confirm</div><h1>${reset ? "Reset Burger Book?" : "Clear ghosts?"}</h1><p class="sb-confirm-detail">${reset ? "This removes served orders, medals, tapes, records, and completion rewards. It cannot be undone." : "This removes personal-best ghost lines only. Records, medals, tapes, and burgers stay."}</p><div class="sb-actions" style="justify-content:center"><button class="sb-item sb-primary" data-action="confirm-yes">${reset ? "Reset progress" : "Clear ghosts"}</button><button class="sb-item" data-action="confirm-no">Cancel</button></div>`;
+        this._show("confirm");
+        this.menuButtons()[0]?.focus({ preventScroll: true });
+    }
+
+    _startSaveImport() {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "application/json,.json";
+        input.addEventListener("change", async () => {
+            const file = input.files?.[0];
+            if (!file) return;
+            try {
+                this.hooks.onSaveAction?.("import", await file.text());
+            } catch {
+                this.hooks.onSaveAction?.("import", "");
+            }
+        }, { once: true });
+        input.click();
+    }
+
+    showHowToRide() {
+        this._show("howto");
+        this.menuButtons()[0]?.focus({ preventScroll: true });
+    }
+
+    showTourComplete(stats, { hundredPercent = false } = {}) {
+        const countLine = hundredPercent
+            ? `All ${stats.eventTotal} events medalled · all ${stats.tapeTotal} Recipe Tapes found`
+            : `${stats.mainTotal} main deliveries served · ${stats.completedEvents}/${stats.eventTotal} events in the book`;
+        this.el.finaleBody.innerHTML = `<div class="sb-book-kicker">Burger Base Camp · ${hundredPercent ? "perfect book" : "final order"}</div><h1>${hundredPercent ? "100% Served" : "Tour Complete"}</h1><div class="sb-finale-badge"><span>${hundredPercent ? "BOOK\nFULL" : "BURGER\nCROWN"}</span></div><p class="sb-finale-copy">${hundredPercent ? "Every line, every medal, every strange little tape. The mountain is yours." : "The six-course Burger Tour is on the pass. Your crown is waiting at Base Camp."}<br/><br/>${escapeHtml(countLine)}</p><div class="sb-actions" style="justify-content:center"><button class="sb-item sb-primary" data-action="finale-credits">Credits</button><button class="sb-item" data-action="finale-book">Burger Book</button><button class="sb-item" data-action="finale-skip">Keep riding</button></div>`;
+        this._show("finale");
+        this.menuButtons()[0]?.focus({ preventScroll: true });
     }
 
     /**
@@ -1533,8 +1791,9 @@ Seed ${result.seed}${result.notMeasured.length
     : ""}</div>
 <div class="sb-actions">
   <button class="sb-item sb-primary" data-action="retry">Retry</button>
-  <button class="sb-item" data-action="next">Next order</button>
-  <button class="sb-item" data-action="menu">Menu</button>
+  <button class="sb-item" data-action="next">Next event</button>
+  <button class="sb-item" data-action="menu">Course menu</button>
+  <button class="sb-item" data-action="book">Burger Book</button>
 </div>`;
         this._show("results");
         this.setHud(false);

@@ -54,7 +54,7 @@ import { SurfaceStrips } from "./surfaceStrips.js";
 import { Snowcats } from "./snowcats.js";
 import { Avalanche } from "./avalanche.js";
 import { RecipeTapes } from "./secrets.js";
-import { tourState } from "./progression.js";
+import { tourState, completionStats } from "./progression.js";
 
 import { Mode } from "./modes.js";
 import { shouldShowHint } from "../ui/hintVisibility.js";
@@ -265,6 +265,10 @@ export class GameDirector {
             onRetry: () => { audio.ui("confirm"); this.run.retry(); },
             onNextOrder: () => { audio.ui("confirm"); this.startBurgerRun(); },
             onMenu: () => { audio.ui(); this.selectMode(Mode.TITLE); },
+            onBook: () => { audio.ui("confirm"); this.openBurgerBook(); },
+            onCredits: () => { audio.ui("confirm"); this.openCredits(); },
+            onBookEvent: (eventId, courseId) => { audio.ui("confirm"); this.startBookEvent(eventId, courseId); },
+            onSaveAction: (action, payload) => { audio.ui("confirm"); this.handleSaveAction(action, payload); },
             onScreenVisibilityChange: () => this.syncHintVisibility(),
         });
 
@@ -312,6 +316,7 @@ export class GameDirector {
         this.ui.setTitleMenu({
             course: this.course,
             continueEntry,
+            completion: completionStats(this.book.book),
             events: this.course.events.map((id) => getEvent(id)),
             otherCourses: Object.values(COURSES)
                 .filter((c) => c.id !== this.course.id)
@@ -329,6 +334,78 @@ export class GameDirector {
         try { return !!getEvent(id); } catch { return false; }
     }
 
+    /** Open the persistent book as a player-facing desk, not a debug panel. */
+    openBurgerBook() {
+        if (this.mode !== Mode.TITLE) this.selectMode(Mode.TITLE);
+        this.ui.showBurgerBook(this.book.book, this.course.id);
+        audio.setMusicState("menu", { immediate: true });
+    }
+
+    openCredits() {
+        if (this.mode !== Mode.TITLE) this.selectMode(Mode.TITLE);
+        this.ui.showCredits();
+        audio.setMusicState("credits", { immediate: true });
+    }
+
+    startBookEvent(eventId, courseId) {
+        const event = getEvent(eventId);
+        if (!event || event.courseId !== courseId) return;
+        if (!tourState(this.book.book)[courseId]?.unlocked) return;
+        if (event.courseId === this.course.id) {
+            this.startEvent(eventId);
+            return;
+        }
+        this.book.setLastSelected(courseId, eventId);
+        const url = new URL(location.href);
+        url.searchParams.set("course", courseId);
+        url.searchParams.set("event", eventId);
+        url.searchParams.set("mode", "burger-run");
+        location.assign(url.toString());
+    }
+
+    handleSaveAction(action, payload = null) {
+        if (action === "export") {
+            const blob = new Blob([this.book.exportSave()], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = "snow-burgers-save.json";
+            link.click();
+            setTimeout(() => URL.revokeObjectURL(url), 0);
+            this.ui.showNotice("save exported");
+            return;
+        }
+        if (action === "clear-ghosts") {
+            this.ui.showSaveConfirm("clear-ghosts");
+            return;
+        }
+        if (action === "reset") {
+            this.ui.showSaveConfirm("reset");
+            return;
+        }
+        if (action === "confirm") {
+            if (payload === "clear-ghosts") {
+                this.book.clearGhosts();
+                this.ui.showBurgerBook(this.book.book, this.course.id);
+            } else if (payload === "reset") {
+                this.book.reset();
+                this._refreshTitleMenu();
+                this.selectMode(Mode.TITLE);
+            }
+            return;
+        }
+        if (action === "import") {
+            const outcome = this.book.importSave(payload ?? "");
+            if (!outcome.ok) {
+                this.ui.showBookMessage(outcome.error);
+                return;
+            }
+            this._refreshTitleMenu();
+            this.ui.showBurgerBook(this.book.book, this.course.id);
+            return;
+        }
+    }
+
     /** Continue: same course starts it; another course travels with intent. */
     continueLast() {
         const last = this.book.book.lastSelected;
@@ -340,7 +417,7 @@ export class GameDirector {
         const url = new URL(location.href);
         url.searchParams.set("course", last.courseId);
         url.searchParams.set("event", last.eventId);
-        url.searchParams.delete("mode");
+        url.searchParams.set("mode", "burger-run");
         location.assign(url.toString());
     }
 
@@ -1502,6 +1579,7 @@ export class GameDirector {
             this.burger.setActive(false);
             this.ghost.clear();
             this.ui.showResults(this.run.result, this.book.event(this.run.event.id));
+            this._maybeShowCompletion();
         }
         if (next === RunState.ORDER || next === RunState.IDLE) {
             if (next === RunState.IDLE) {
@@ -1514,6 +1592,24 @@ export class GameDirector {
         if (prev === RunState.RESULTS && next === RunState.COUNTDOWN) {
             this.ui.resetCollected();
         }
+    }
+
+    /**
+     * The first completion of the six main deliveries earns the crown. The
+     * state itself is derived from records; only the seen bit is persisted so
+     * reloads do not replay a long ceremony. A 100% book has a distinct final
+     * badge and takes precedence when both milestones land together.
+     */
+    _maybeShowCompletion() {
+        const stats = completionStats(this.book.book);
+        const fullNew = stats.hundredPercent && !this.book.book.seenHundredPercent;
+        const tourNew = stats.tourComplete && !this.book.book.seenTourComplete;
+        if (!fullNew && !tourNew) return;
+        if (tourNew) this.book.book.seenTourComplete = true;
+        if (fullNew) this.book.book.seenHundredPercent = true;
+        this.book.save();
+        audio.setMusicState("tour-complete", { immediate: true });
+        this.ui.showTourComplete(stats, { hundredPercent: fullNew });
     }
 
     /**

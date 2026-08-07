@@ -31,6 +31,7 @@ import { SpellSystem } from "./spells/spellSystem.js";
 import { Overlay } from "./ui/overlay.js";
 import { CourseHud } from "./ui/courseHud.js";
 import { GameDirector, Mode } from "./game/gameDirector.js";
+import { bootIntent } from "./game/bootIntent.js";
 import { COURSES, DEFAULT_COURSE_ID, setActiveCourse } from "./game/courses/index.js";
 import { EVENTS, getEvent } from "./game/courses/eventRegistry.js";
 import { RocketChair } from "./vehicles/rocketChair.js";
@@ -503,10 +504,15 @@ async function boot() {
     gameAudio.setBusVolume("ui", S.uiVolume);
     gameAudio.setEnabled(S.audio !== false);
 
-    const requestedMode = bootParams.get("mode");
+    const intent = bootIntent({
+        requestedMode: bootParams.get("mode"),
+        eventParam,
+        eventRegistry: EVENTS,
+        courseId: course.id,
+    });
     game.selectMode(
-        requestedMode === "free-ride" ? Mode.FREE_RIDE
-            : requestedMode === "burger-run" ? Mode.BURGER_RUN
+        intent === "free-ride" ? Mode.FREE_RIDE
+            : intent === "burger-run" ? Mode.BURGER_RUN
             : Mode.TITLE
     );
 
