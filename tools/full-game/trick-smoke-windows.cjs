@@ -215,6 +215,34 @@ function check(name, ok, detail) {
   check("the grind scored", popped.log[0]?.name === "Grind",
     JSON.stringify(popped.log));
 
+  // ----------------------------------------------------- spells in the run
+  // The water bending rides WITH the run: a cast mid-descent must actually
+  // fire (activeCount or a live water body) and pay its once-per-spell
+  // flair into the run's trick telemetry.
+  await page.waitForFunction(
+    () => window.KAKISNOW.game.run.state === "run", null, { timeout: 15_000 });
+  const flairBefore = await page.evaluate(() =>
+    window.KAKISNOW.game.director._flairPoints);
+  await page.focus("#view");
+  await page.keyboard.press("3"); // Bloom
+  await page.waitForTimeout(500);
+  const cast = await page.evaluate(() => ({
+    active: window.KAKISNOW.spells.activeCount,
+    flair: window.KAKISNOW.game.director._flairPoints,
+    telemetry: window.KAKISNOW.game.run.trickTelemetry?.total ?? 0,
+  }));
+  check("a spell casts during a scored run", cast.active > 0,
+    JSON.stringify(cast));
+  check("the cast pays flair once", cast.flair === flairBefore + 25,
+    JSON.stringify(cast));
+  await page.keyboard.press("3");
+  await page.waitForTimeout(200);
+  const again = await page.evaluate(() =>
+    window.KAKISNOW.game.director._flairPoints);
+  check("the same spell pays nothing twice", again === cast.flair,
+    `${cast.flair} -> ${again}`);
+  await shot("06-spell-in-run");
+
   const report = {
     tool: "tools/full-game/trick-smoke-windows.cjs",
     url, viewport, failures,

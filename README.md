@@ -98,11 +98,9 @@ blender --background --factory-startup --python tools/validate-rockerkaki-rig.py
 - `Left Shift` / gamepad right trigger — rocket thrust, when the chair is fitted
 - `Escape` / gamepad Start / touch corner button — pause
 - Arrows + `Enter` (or d-pad + south) — drive any menu without a mouse
-- `1` — Sweep
-- `2` — Ribbon
-- `3` — Bloom
-- `4` — Crystallize
-- `5` — Vortex
+- `1`–`5` — Sweep, Ribbon, Bloom, Crystallize, Vortex — the water bending,
+  live in every mode; the first cast of each spell in a run pays 25 flair
+  into the trick score
 - `F1` or backtick — developer overlay
 
 Pausing freezes the run clock, the countdown, fuel, the ghost and every

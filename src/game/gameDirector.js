@@ -65,6 +65,11 @@ const ASSEMBLY_TIME_SEEN = 1.5;
 
 const _burgerPos = new Vector3();
 
+/** The five casts, named for the flair notice. Keys match `SPELL_KEYS`. */
+const SPELL_NAMES = {
+    1: "sweep", 2: "ribbon", 3: "bloom", 4: "crystallize", 5: "vortex",
+};
+
 export class GameDirector {
     /**
      * @param {object} deps
@@ -200,6 +205,9 @@ export class GameDirector {
         this._comboSettle = 0;
         this._crashHandled = false;
         this._nearMissPoints = 0;
+        /** Which spells this run has already paid flair for, and the pot. */
+        this._flairCast = new Set();
+        this._flairPoints = 0;
         /** The one obstacle currently being tracked for a near miss. */
         this._nearId = 0;
         this._nearDz = 0;
@@ -620,12 +628,15 @@ export class GameDirector {
         }
         if (this.mode !== Mode.BURGER_RUN) return;
 
-        // No spells on a scored course. Crystallize and the water body write
-        // into the same terrain state the run is ridden on, and a tool that
-        // reshapes the mountain mid-run is not a trick, it is course editing.
-        // The labs keep all five keys.
-        input.spellPressed = 0;
-        input.spellHeld2 = false;
+        // The five spells ride WITH the run. An earlier revision gated them
+        // off scored courses as "course editing" — wrongly: spells write
+        // deformation marks and transient meshes, never the heightfield the
+        // physics grounds on, so a cast cannot move a route or a time. What
+        // it can do is look incredible at nineteen metres a second, which is
+        // the whole reason this hero bends water. Casting even pays a little
+        // flair (see _updateFeel) — once per spell per run, so the reward is
+        // spectacle, not a macro. Only the held states below still silence
+        // them, the same way they silence everything else.
 
         // A held rider is a zeroed input struct, not a skipped controller: the
         // controller still has to run so the terrain keeps grounding it, the
@@ -637,12 +648,16 @@ export class GameDirector {
             input.moveZ = 0;
             input.moving = false;
             input.surf = false;
+            input.spellPressed = 0;
+            input.spellHeld2 = false;
         } else if (this.run.state !== RunState.RUN) {
             input.moveX = 0;
             input.moveZ = 0;
             input.moving = false;
             input.surf = false;
             input.jumpPressed = false;
+            input.spellPressed = 0;
+            input.spellHeld2 = false;
         } else {
             // Surf is the ride. On a timed run the player should not have to
             // hold a mouse button down to be going downhill.
@@ -700,7 +715,7 @@ export class GameDirector {
         this.run.rocketTelemetry =
             this.rocketChair?.active ? this.rocketChair.thrust.telemetry() : null;
         this.run.trickTelemetry = {
-            total: this.tracker.total + this._nearMissPoints,
+            total: this.tracker.total + this._nearMissPoints + this._flairPoints,
             best: this.tracker.best,
             count: this.tracker.trickCount,
         };
@@ -892,6 +907,20 @@ export class GameDirector {
             } else {
                 this._nearId = 0;
             }
+        }
+
+        // ------------------------------------------------------------ flair
+        // Water bending at speed is the hero's whole deal, and a run that
+        // casts deserves to hear it counted. Once per distinct spell per
+        // run: five keys, five small bonuses, and a macro earns nothing.
+        if (this.mode === Mode.BURGER_RUN && this.run.state === RunState.RUN &&
+            input.spellPressed && S.showSpells &&
+            !this._flairCast.has(input.spellPressed)) {
+            this._flairCast.add(input.spellPressed);
+            this._flairPoints += 25;
+            this.ui.showNotice(
+                `flair +25 \u00b7 ${SPELL_NAMES[input.spellPressed] ?? "cast"}`
+            );
         }
 
         // ------------------------------------------------------------ gusts
@@ -1172,6 +1201,8 @@ export class GameDirector {
             this.avalanche.reset(this.course.startZ);
             this.tracker.reset();
             this._nearMissPoints = 0;
+            this._flairCast.clear();
+            this._flairPoints = 0;
             this._comboSettle = 0;
             this.safeSpots.clear();
             this.ui.setCombo(null);
