@@ -1,0 +1,123 @@
+{
+  "sourceCommit": "50097a5",
+  "fixedStep": {
+    "startupOneSecondSpeedMps": {"120Hz": 7.3741, "60Hz": 7.452, "30Hz": 7.6072},
+    "jumpApexM": {"120Hz": 1.3904, "60Hz": 1.3608, "30Hz": 1.3017},
+    "landingAirTimeS": {"120Hz": 0.7833, "60Hz": 0.7833, "30Hz": 0.7667},
+    "rocketTwoSecondSpeedMps": {"60Hz": 25.8566, "30Hz": 25.3071},
+    "rocketFuelRemainingS": {"60Hz": 2.1252, "30Hz": 2.1174}
+  },
+  "naturalTakeoffCoyoteRegression": {
+    "beforeBufferedSpace": {"jumpCount": 1, "verticalVelocityMps": 6.5248},
+    "afterBufferedSpace": {"jumpCount": 1, "verticalVelocityMps": 6.2165, "coyoteConsumed": true},
+    "expectedOldBehavior": "A live coyote gate could apply a second jump impulse here; the regression now forbids that."
+  },
+  "crashRecoveryBufferRegression": {
+    "jumpCountAfterTumbleRecovery": 0,
+    "groundedAfterSafeSpot": true,
+    "expected": "A jump pressed during a crash does not carry into recovery."
+  },
+  "sweptNaturalTakeoff": [
+    {
+      "hz": 30,
+      "launchFrame": 0,
+      "jumpCount": 1,
+      "launchVelocityMps": 6.2295,
+      "launchClearanceM": 0.5199,
+      "apexM": 2.2303,
+      "landingAirTimeS": 0.8333
+    },
+    {
+      "hz": 45,
+      "launchFrame": 1,
+      "jumpCount": 1,
+      "launchVelocityMps": 6.4264,
+      "launchClearanceM": 1.2639,
+      "apexM": 2.4116,
+      "landingAirTimeS": 0.8444
+    },
+    {
+      "hz": 60,
+      "launchFrame": 1,
+      "jumpCount": 1,
+      "launchVelocityMps": 6.5248,
+      "launchClearanceM": 0.5253,
+      "apexM": 2.3882,
+      "landingAirTimeS": 0.85
+    },
+    {
+      "hz": 90,
+      "launchFrame": 2,
+      "jumpCount": 1,
+      "launchVelocityMps": 6.632,
+      "launchClearanceM": 0.5262,
+      "apexM": 2.4452,
+      "landingAirTimeS": 0.8667
+    },
+    {
+      "hz": 120,
+      "launchFrame": 3,
+      "jumpCount": 1,
+      "launchVelocityMps": 6.6856,
+      "launchClearanceM": 0.5363,
+      "apexM": 2.4739,
+      "landingAirTimeS": 0.875
+    }
+  ],
+  "bigAirAuthoredCapture": {
+    "ratesHz": [30, 60],
+    "lanesX": [0, -18, 18],
+    "probes": 6,
+    "allLaunchOnce": true,
+    "postStepVerticalVelocityMps": {
+      "30Hz": 7.8833,
+      "60Hz": 8.1917
+    }
+  },
+  "phaseIndependentLipSweep": {
+    "fromZ": 1.6,
+    "toZ": 2.0,
+    "stepM": 0.005,
+    "rateHz": 30,
+    "probes": 81,
+    "allLaunchOnce": true,
+    "allLandOnce": true,
+    "minimumAirClearanceM": 0.0027209,
+    "launchFrameRange": [0, 1]
+  },
+  "refreshBoundaryLipSweep": [
+    { "hz": 59, "startZ": 1.84, "jumpCount": 1, "landings": 1, "minAirClearanceM": 0.1063898 },
+    { "hz": 60, "startZ": 1.84, "jumpCount": 1, "landings": 1, "minAirClearanceM": 0.0853903 },
+    { "hz": 61, "startZ": 1.84, "jumpCount": 1, "landings": 1, "minAirClearanceM": 0.0649784 }
+  ],
+  "falseLaunchMatrix": {
+    "terrains": ["flat", "steep-linear", "abrupt-downhill"],
+    "ratesHz": [30, 45, 60, 90, 120],
+    "phasesZ": [1.6, 1.84, 2.0],
+    "probes": 45,
+    "allStayedGrounded": true
+  },
+  "authoredWindowSegmentSweep": {
+    "denseCentered": {
+      "fromZ": 298.0,
+      "toZ": 303.9,
+      "stepM": 0.1,
+      "ratesHz": [30, 45, 60, 90, 120],
+      "probes": 300,
+      "launches": 300,
+      "allLaunchOnce": true
+    },
+    "laneCrossings": {
+      "xStart": [24.1, -24.1],
+      "ratesHz": [30, 45, 60, 90, 120],
+      "probes": 10,
+      "launches": 10,
+      "allLaunchOnce": true
+    },
+    "nonIntersecting": {
+      "ratesHz": [30, 45, 60, 90, 120],
+      "probes": 15,
+      "falseLaunches": 0
+    }
+  }
+}

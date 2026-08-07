@@ -73,6 +73,12 @@ const COYOTE_TIME = 0.11;
 const NATURAL_TAKEOFF_MIN_SPEED = 7.5;
 const NATURAL_TAKEOFF_MIN_RISE = 1.15;
 const NATURAL_TAKEOFF_CLEARANCE = 0.008;
+/** Fixed fractions for the conditional, allocation-free lip sweep. */
+const PRELIP_APPROACH_FRACTION = -0.5;
+const PRELIP_FRACTION_1 = 0.2;
+const PRELIP_FRACTION_2 = 0.4;
+const PRELIP_FRACTION_3 = 0.6;
+const PRELIP_FRACTION_4 = 0.8;
 
 // ------------------------------------------------------------------- tricks
 //
@@ -326,13 +332,48 @@ export class CharacterController {
         };
     }
 
-    /** @returns {number|null} the authored launch rise for this frame */
-    _authoredTakeoffRise() {
+    /**
+     * @param {number} [oldX] pre-integration x
+     * @param {number} [oldZ] pre-integration z
+     * @returns {number|null} the authored launch rise for this frame
+     */
+    _authoredTakeoffRise(oldX = this.position.x, oldZ = this.position.z) {
         const a = this.takeoffAssist;
-        if (!a || this.position.z < a.from || this.position.z > a.to ||
-            Math.abs(this.position.x) > a.xHalf ||
-            Math.hypot(this.velocity.x, this.velocity.z) < a.minSpeed ||
+        if (!a || Math.hypot(this.velocity.x, this.velocity.z) < a.minSpeed ||
             this.velocity.z <= 0.5) return null;
+
+        // Slab-test the actual old->new XZ segment against the authored
+        // rectangle. This catches a fast frame crossing the far edge or lane
+        // edge without widening the capture window or allocating a sample
+        // object. A zero-length segment remains a valid point test.
+        const newX = this.position.x;
+        const newZ = this.position.z;
+        const dx = newX - oldX;
+        const dz = newZ - oldZ;
+        let enter = 0;
+        let exit = 1;
+
+        if (Math.abs(dx) < Number.EPSILON) {
+            if (oldX < -a.xHalf || oldX > a.xHalf) return null;
+        } else {
+            let x0 = (-a.xHalf - oldX) / dx;
+            let x1 = (a.xHalf - oldX) / dx;
+            if (x0 > x1) { const swap = x0; x0 = x1; x1 = swap; }
+            enter = Math.max(enter, x0);
+            exit = Math.min(exit, x1);
+            if (enter > exit) return null;
+        }
+
+        if (Math.abs(dz) < Number.EPSILON) {
+            if (oldZ < a.from || oldZ > a.to) return null;
+        } else {
+            let z0 = (a.from - oldZ) / dz;
+            let z1 = (a.to - oldZ) / dz;
+            if (z0 > z1) { const swap = z0; z0 = z1; z1 = swap; }
+            enter = Math.max(enter, z0);
+            exit = Math.min(exit, z1);
+            if (enter > exit) return null;
+        }
         return a.launchRise;
     }
 
@@ -368,7 +409,11 @@ export class CharacterController {
         this.grindStarted = false;
         this.grindEnded = null;
 
-        if (input.jumpPressed) this._jumpBuffer = JUMP_BUFFER;
+        // A jump pressed during a tumble belongs to the failed attempt. Do
+        // not keep refreshing the buffer while crashed, or a late Space can
+        // fire on the first safe frame after recovery.
+        if (this.crashed) this._jumpBuffer = 0;
+        else if (input.jumpPressed) this._jumpBuffer = JUMP_BUFFER;
         else this._jumpBuffer = Math.max(0, this._jumpBuffer - h);
         this._railCool = Math.max(0, this._railCool - h);
         if (this.grounded) this._coyote = COYOTE_TIME;
@@ -417,6 +462,85 @@ export class CharacterController {
         this.groundY = this.terrain.heightAt(this.position.x, this.position.z);
         this.terrain.normalAt(this.position.x, this.position.z, this.groundNormal);
         const groundRate = h > 0 ? (this.groundY - oldGround) / h : 0;
+        // A render frame can straddle a narrow lip. At low or uneven rates the
+        // endpoint is already in the landing drop, so the ordinary endpoint
+        // slope reports a negative rate even though the board crossed an
+        // uphill takeoff table first. Sample a few fixed fractions of the
+        // actual old->new segment, plus a bounded half-step approach sample
+        // for a frame that starts at the crown. This is a conditional,
+        // allocation-free truth probe, not a second integrator.
+        let preLipRate = 0;
+        let preLipPeakGround = oldGround;
+        const endpointDownhillRate =
+            this.groundNormal.x * this.velocity.x + this.groundNormal.z * this.velocity.z;
+        const sweepCandidate = this.groundY < oldGround - NATURAL_TAKEOFF_CLEARANCE ||
+            (this.verticalVelocity >= 0 &&
+                endpointDownhillRate > NATURAL_TAKEOFF_MIN_RISE);
+        if (h > 0 && this.grounded && sweepCandidate) {
+            const stepX = this.position.x - oldX;
+            const stepZ = this.position.z - oldZ;
+            let previousFraction = PRELIP_APPROACH_FRACTION;
+            let previousGround = this.terrain.heightAt(
+                oldX + stepX * previousFraction,
+                oldZ + stepZ * previousFraction,
+            );
+
+            // Keep the largest positive rise over time. A fixed scalar chain
+            // deliberately avoids per-frame arrays/objects in this hot path.
+            let sampleGround = oldGround;
+            let sampleFraction = 0;
+            let sampleRate = (sampleGround - previousGround) /
+                (h * (sampleFraction - previousFraction));
+            if (sampleRate > preLipRate) preLipRate = Scalar.Clamp(sampleRate, -5, 9);
+            if (sampleGround > preLipPeakGround) preLipPeakGround = sampleGround;
+            previousGround = sampleGround;
+            previousFraction = sampleFraction;
+
+            sampleFraction = PRELIP_FRACTION_1;
+            sampleGround = this.terrain.heightAt(
+                oldX + stepX * sampleFraction,
+                oldZ + stepZ * sampleFraction,
+            );
+            sampleRate = (sampleGround - previousGround) /
+                (h * (sampleFraction - previousFraction));
+            if (sampleRate > preLipRate) preLipRate = Scalar.Clamp(sampleRate, -5, 9);
+            if (sampleGround > preLipPeakGround) preLipPeakGround = sampleGround;
+            previousGround = sampleGround;
+            previousFraction = sampleFraction;
+
+            sampleFraction = PRELIP_FRACTION_2;
+            sampleGround = this.terrain.heightAt(
+                oldX + stepX * sampleFraction,
+                oldZ + stepZ * sampleFraction,
+            );
+            sampleRate = (sampleGround - previousGround) /
+                (h * (sampleFraction - previousFraction));
+            if (sampleRate > preLipRate) preLipRate = Scalar.Clamp(sampleRate, -5, 9);
+            if (sampleGround > preLipPeakGround) preLipPeakGround = sampleGround;
+            previousGround = sampleGround;
+            previousFraction = sampleFraction;
+
+            sampleFraction = PRELIP_FRACTION_3;
+            sampleGround = this.terrain.heightAt(
+                oldX + stepX * sampleFraction,
+                oldZ + stepZ * sampleFraction,
+            );
+            sampleRate = (sampleGround - previousGround) /
+                (h * (sampleFraction - previousFraction));
+            if (sampleRate > preLipRate) preLipRate = Scalar.Clamp(sampleRate, -5, 9);
+            previousGround = sampleGround;
+            previousFraction = sampleFraction;
+
+            sampleFraction = PRELIP_FRACTION_4;
+            sampleGround = this.terrain.heightAt(
+                oldX + stepX * sampleFraction,
+                oldZ + stepZ * sampleFraction,
+            );
+            sampleRate = (sampleGround - previousGround) /
+                (h * (sampleFraction - previousFraction));
+            if (sampleRate > preLipRate) preLipRate = Scalar.Clamp(sampleRate, -5, 9);
+            if (sampleGround > preLipPeakGround) preLipPeakGround = sampleGround;
+        }
 
         // A short buffer plus coyote time makes Space reliable at ramp lips and
         // over uneven snow. The impulse keeps useful upward speed from a takeoff.
@@ -435,21 +559,34 @@ export class CharacterController {
             // falls away after a fast rising lip, the same ballistic solve used by
             // a Space jump takes over: authored jumps launch, they do not glue the
             // rider to their downhill face.
-            const authoredRise = this._authoredTakeoffRise();
+            const authoredRise = this._authoredTakeoffRise(oldX, oldZ);
             const launchVelocity = authoredRise === null
-                ? this.verticalVelocity
+                ? Math.max(this.verticalVelocity, preLipRate)
                 : Math.max(this.verticalVelocity, authoredRise);
             const flightY = oldY + launchVelocity * h - GRAVITY * h * h * 0.5;
+            const takeoffSpeed = preLipRate > 0
+                ? Math.hypot(this.velocity.x, this.velocity.z)
+                : this.speed;
+            const sweptLip = preLipRate >= NATURAL_TAKEOFF_MIN_RISE &&
+                preLipPeakGround > this.groundY + NATURAL_TAKEOFF_CLEARANCE;
             const naturalTakeoff =
                 this.surf > 0.45 &&
-                this.speed >= NATURAL_TAKEOFF_MIN_SPEED &&
-                this.verticalVelocity >= NATURAL_TAKEOFF_MIN_RISE &&
+                takeoffSpeed >= NATURAL_TAKEOFF_MIN_SPEED &&
+                Math.max(this.verticalVelocity, preLipRate) >= NATURAL_TAKEOFF_MIN_RISE &&
+                (preLipRate < NATURAL_TAKEOFF_MIN_RISE || sweptLip) &&
                 this.groundY < flightY - NATURAL_TAKEOFF_CLEARANCE;
             const authoredTakeoff = authoredRise !== null;
 
             if (naturalTakeoff || authoredTakeoff) {
                 this.grounded = false;
                 this.airborne = true;
+                // A natural lip is already the jump. Keep coyote time for a
+                // rider who leaves ordinary snow, but do not let a buffered
+                // Space in the first 110 ms of an authored takeoff fire a
+                // second impulse on top of it. Without this handoff, a
+                // player who jumps at a kicker gets two vertical launches
+                // while a player who does not press anything gets one.
+                this._coyote = 0;
                 // The authored window is narrow and only fires on the existing
                 // table. If the baked sample is still a hair above the launch
                 // parabola, plant on that sample for this frame and let the
@@ -777,6 +914,10 @@ export class CharacterController {
     _startCrash() {
         if (this.crashed) return;
         this.crashed = true;
+        // A jump pressed during a tumble belongs to the failed attempt. Do
+        // not carry its buffer through a manual recovery and surprise the
+        // player with an unrequested hop on the next safe spot.
+        this._jumpBuffer = 0;
         this.crashTimer = CRASH_TUMBLE_TIME;
         this.crashCount++;
         this.velocity.x *= CRASH_SPEED_KEEP;
@@ -806,6 +947,7 @@ export class CharacterController {
         this.crashed = false;
         this.crashTimer = 0;
         this.needsRecovery = false;
+        this._jumpBuffer = 0;
         this.position.set(x, y, z);
         this.velocity.setAll(0);
         this.verticalVelocity = 0;

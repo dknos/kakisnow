@@ -54,7 +54,8 @@ const keys = Object.create(null);
 /** Whether the right mouse button is currently holding the ride. */
 let mouseSurf = false;
 /**
- * Whether the poll's own sources (RMB, touch ride) held the ride last frame.
+ * Whether the poll's own sources (RMB, touch ride, or gamepad LT) held the
+ * ride last frame.
  *
  * The touch merge made `pollInput` clear `input.surf` every frame the button
  * was up — which silently broke the committed smoke tools, whose contract is
@@ -65,6 +66,39 @@ let mouseSurf = false;
 let ownSurfHeld = false;
 
 const LOOK_SCALE = 0.0022;
+
+/** Standard pad stick noise is most visible on a slow camera pan, so the
+ * deadzone is radial rather than two independent axis gates. A diagonal at
+ * the edge of the gate therefore cannot sneak a larger value through one
+ * axis than another. */
+export const GAMEPAD_STICK_DEADZONE = 0.18;
+/** Trigger noise should not turn the chair on while the player is idle. */
+export const GAMEPAD_TRIGGER_DEADZONE = 0.08;
+/** Full right-stick look, in radians per second. pollInput scales by dt. */
+export const GAMEPAD_LOOK_RATE = 3.0;
+const DEFAULT_POLL_DT = 1 / 60;
+
+// Reused output objects keep the browser poll path allocation-free. The pure
+// helpers below accept caller-owned output objects too, which makes the input
+// contract testable with deterministic fake pad snapshots.
+const _radialOutput = { x: 0, y: 0 };
+const _leftOutput = { x: 0, y: 0 };
+const _lookOutput = { x: 0, y: 0 };
+const _padSample = {
+    connected: false,
+    moveX: 0,
+    moveZ: 0,
+    lookX: 0,
+    lookY: 0,
+    moveStrength: 0,
+    lookStrength: 0,
+    surf: false,
+    boost: 0,
+    jump: false,
+    spin: 0,
+    trickMod: false,
+    recover: false,
+};
 
 /** @type {(() => void)|null} */
 let onToggleOverlay = null;
@@ -162,8 +196,102 @@ const SPELL_KEYS = {
     Digit5: 5,
 };
 
-/** Resolve held keys into movement axes. Called once per frame before update. */
-export function pollInput() {
+/**
+ * Apply a radial stick deadzone without allocating.
+ *
+ * @param {number} x raw horizontal axis
+ * @param {number} y raw vertical axis
+ * @param {number} deadzone 0..1
+ * @param {{x:number,y:number}} [out] caller-owned result
+ * @returns {{x:number,y:number}}
+ */
+export function applyRadialDeadzone(
+    x, y, deadzone = GAMEPAD_STICK_DEADZONE, out = _radialOutput
+) {
+    const sx = Number.isFinite(x) ? Math.max(-1, Math.min(1, x)) : 0;
+    const sy = Number.isFinite(y) ? Math.max(-1, Math.min(1, y)) : 0;
+    const radius = Math.hypot(sx, sy);
+    const gate = Math.max(0, Math.min(0.99, deadzone));
+    if (radius <= gate || radius <= Number.EPSILON) {
+        out.x = 0;
+        out.y = 0;
+        return out;
+    }
+    const strength = Math.min(1, (radius - gate) / (1 - gate));
+    const scale = strength / radius;
+    out.x = sx * scale;
+    out.y = sy * scale;
+    return out;
+}
+
+function buttonValue(button) {
+    if (!button) return 0;
+    if (Number.isFinite(button.value)) {
+        return Math.max(0, Math.min(1, button.value));
+    }
+    return button.pressed ? 1 : 0;
+}
+
+function buttonActive(button) {
+    return Boolean(button?.pressed) || buttonValue(button) > GAMEPAD_TRIGGER_DEADZONE;
+}
+
+/**
+ * Read one standard-mapped Gamepad snapshot into a caller-owned result.
+ *
+ * The output uses the game's camera-relative convention: standard axis 1 up
+ * is negative, so `moveZ` is positive when the stick points up. This helper
+ * contains no browser/global state and is the contract exercised by the pad
+ * tests as well as by the live poll.
+ */
+export function sampleGamepad(pad, out = _padSample) {
+    const connected = Boolean(pad?.connected);
+    out.connected = connected;
+    if (!connected) {
+        out.moveX = 0;
+        out.moveZ = 0;
+        out.lookX = 0;
+        out.lookY = 0;
+        out.moveStrength = 0;
+        out.lookStrength = 0;
+        out.surf = false;
+        out.boost = 0;
+        out.jump = false;
+        out.spin = 0;
+        out.trickMod = false;
+        out.recover = false;
+        return out;
+    }
+
+    const axes = pad.axes;
+    applyRadialDeadzone(axes?.[0], axes?.[1], GAMEPAD_STICK_DEADZONE, _leftOutput);
+    applyRadialDeadzone(axes?.[2], axes?.[3], GAMEPAD_STICK_DEADZONE, _lookOutput);
+    out.moveX = _leftOutput.x;
+    out.moveZ = -_leftOutput.y;
+    out.lookX = _lookOutput.x;
+    out.lookY = _lookOutput.y;
+    out.moveStrength = Math.hypot(out.moveX, out.moveZ);
+    out.lookStrength = Math.hypot(out.lookX, out.lookY);
+
+    const buttons = pad.buttons;
+    out.surf = buttonActive(buttons[6]);
+    const boost = buttonValue(buttons[7]);
+    out.boost = boost > GAMEPAD_TRIGGER_DEADZONE ? boost : 0;
+    out.jump = Boolean(buttons[0]?.pressed);
+    out.spin = (buttons[4]?.pressed ? -1 : 0) + (buttons[5]?.pressed ? 1 : 0);
+    out.trickMod = Boolean(buttons[2]?.pressed);
+    out.recover = Boolean(buttons[1]?.pressed);
+    return out;
+}
+
+function connectedGamepads() {
+    if (typeof navigator === "undefined" ||
+        typeof navigator.getGamepads !== "function") return null;
+    return navigator.getGamepads();
+}
+
+/** Resolve held keys, touch, and standard gamepad input before update. */
+export function pollInput(dt = DEFAULT_POLL_DT) {
     let x = 0;
     let z = 0;
     if (keys.KeyW || keys.ArrowUp) z += 1;
@@ -177,19 +305,73 @@ export function pollInput() {
         x /= len;
         z /= len;
     }
-    // Merge the touch stick here rather than letting it write `input` itself.
-    // This function rebuilds the axes from held keys every frame, so anything
-    // assigned from outside is overwritten before the controller reads it.
+    const keyStrength = Math.hypot(x, z);
+    const pads = connectedGamepads();
+    let padMoveX = 0;
+    let padMoveZ = 0;
+    let padMoveStrength = 0;
+    let padLookX = 0;
+    let padLookY = 0;
+    let padLookStrength = 0;
+    let padSurf = false;
+    let padBoost = 0;
+    let padSpin = 0;
+    let padTrickMod = false;
+
+    const padCount = Math.max(
+        pads?.length ?? 0, _padSouth.length, _padEast.length
+    );
+    for (let i = 0; i < padCount; i++) {
+        const pad = pads?.[i];
+        if (!pad?.connected) {
+            // A disconnect is a release, including the edge-state buttons.
+            _padSouth[i] = false;
+            _padEast[i] = false;
+            continue;
+        }
+        const sample = sampleGamepad(pad);
+        if (sample.moveStrength >= padMoveStrength) {
+            padMoveStrength = sample.moveStrength;
+            padMoveX = sample.moveX;
+            padMoveZ = sample.moveZ;
+        }
+        if (sample.lookStrength >= padLookStrength) {
+            padLookStrength = sample.lookStrength;
+            padLookX = sample.lookX;
+            padLookY = sample.lookY;
+        }
+        padSurf = padSurf || sample.surf;
+        padBoost = Math.max(padBoost, sample.boost);
+        padSpin += sample.spin;
+        padTrickMod = padTrickMod || sample.trickMod;
+        if (sample.jump && !_padSouth[i]) input.jumpPressed = true;
+        if (sample.recover && !_padEast[i]) input.recoverPressed = true;
+        _padSouth[i] = sample.jump;
+        _padEast[i] = sample.recover;
+    }
+
+    // Touch has always taken over the keyboard stick while it is engaged. A
+    // live gamepad is the next strongest explicit source; otherwise the
+    // established keyboard vector remains authoritative. Comparing strength
+    // keeps a half-deflected pad from stealing a deliberate full keyboard
+    // direction, while ties prefer the pad's analog intent.
     if (touch.x || touch.y) {
         x = touch.x;
         z = touch.y;
+    } else if (padMoveStrength >= keyStrength && padMoveStrength > 0) {
+        x = padMoveX;
+        z = padMoveZ;
     }
 
     input.moveX = x;
     input.moveZ = z;
     input.moving = Math.hypot(x, z) > 0.001;
     input.sprint = !!(keys.ShiftLeft || keys.ShiftRight);
-    input.boost = Math.max(pollBoost(), touch.boost);
+    input.boost = Math.max(
+        keys.ShiftLeft || keys.ShiftRight ? 1 : 0,
+        padBoost,
+        touch.boost,
+    );
 
     // Tricks. Q/E spin; F is the modifier that turns W/S into flips and A/D
     // into tweaks (the controller reads moveX/moveZ under trickMod). Gamepad:
@@ -198,66 +380,37 @@ export function pollInput() {
     if (keys.KeyQ) spin -= 1;
     if (keys.KeyE) spin += 1;
     let trickMod = !!keys.KeyF || touch.trick;
-    const pads = navigator.getGamepads ? navigator.getGamepads() : null;
-    if (pads) {
-        for (let i = 0; i < pads.length; i++) {
-            const pad = pads[i];
-            if (!pad || !pad.connected) continue;
-            const b = pad.buttons;
-            if (b[4]?.pressed) spin -= 1; // LB
-            if (b[5]?.pressed) spin += 1; // RB
-            if (b[2]?.pressed) trickMod = true; // west
-            const east = !!b[1]?.pressed;
-            if (east && !_padEast[i]) input.recoverPressed = true;
-            _padEast[i] = east;
-        }
-    }
+    spin += padSpin;
+    trickMod = trickMod || padTrickMod;
     input.spin = Math.max(-1, Math.min(1, spin));
     input.trickMod = trickMod;
     // Held, not toggled: the ride button behaves like the right mouse button
     // it stands in for. Cleared on release rather than reconciled every frame
     // — see `ownSurfHeld`.
-    const ownSurf = touch.ride || mouseSurf;
+    const ownSurf = touch.ride || mouseSurf || padSurf;
     if (ownSurf) input.surf = true;
     else if (ownSurfHeld) input.surf = false;
     ownSurfHeld = ownSurf;
     if (touch.jump) input.jumpPressed = true;
     input.lookX += touch.lookX;
     input.lookY += touch.lookY;
-}
 
-
-/**
- * Throttle, from the keyboard or a gamepad's right trigger.
- *
- * The gamepad is read here rather than through events because that is the only
- * way the API offers: `navigator.getGamepads` returns a fresh snapshot and a
- * connected pad that is never polled reports nothing. Reading it inside the
- * frame poll also means a pad disconnecting mid-run simply stops contributing
- * on the next frame instead of leaving a stuck throttle.
- *
- * Whichever input is asking for more wins, so a player can hold Shift with a
- * pad plugged in and not have the pad's idle trigger argue with it.
- */
-function pollBoost() {
-    let boost = (keys.ShiftLeft || keys.ShiftRight) ? 1 : 0;
-    const pads = navigator.getGamepads ? navigator.getGamepads() : null;
-    if (!pads) return boost;
-    for (let i = 0; i < pads.length; i++) {
-        const pad = pads[i];
-        if (!pad || !pad.connected) continue;
-        // Standard mapping puts the right trigger at button 7, and it reports a
-        // value even though it is typed as a button. Sticks and triggers idle
-        // at small non-zero values on worn hardware, so a deadzone is not
-        // optional.
-        const trigger = pad.buttons && pad.buttons[7] ? pad.buttons[7].value : 0;
-        if (trigger > 0.08) boost = Math.max(boost, trigger);
+    // A held right stick is a rate, not a per-frame delta. Scaling by the
+    // simulation's dt keeps one second of look identical at 30/60/120 Hz,
+    // while the radial deadzone above prevents worn-stick drift. Mouse and
+    // touch deltas retain their established additive semantics.
+    const frameDt = Number.isFinite(dt) && dt > 0 ? Math.min(dt, 0.1) : 0;
+    if (frameDt > 0 && padLookStrength > 0) {
+        input.lookX += padLookX * GAMEPAD_LOOK_RATE * frameDt;
+        input.lookY += padLookY * GAMEPAD_LOOK_RATE * frameDt
+            * (S.invertY ? -1 : 1);
     }
-    return boost;
 }
 
 /** Per-pad east-button state, for the recover edge. */
 const _padEast = [];
+/** Per-pad south-button state, for the jump edge. */
+const _padSouth = [];
 
 /** Clear per-frame accumulators. Called at the very end of the frame. */
 export function endFrame() {

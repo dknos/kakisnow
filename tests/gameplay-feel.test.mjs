@@ -44,6 +44,21 @@ function resetInput() {
     input.trickMod = false;
 }
 
+function runAuthoredProbe({ hz, x = 0, z = 300, vx = 0, vz = 10 }) {
+    resetInput();
+    input.surf = true;
+    const controller = new CharacterController(new FlatTerrain());
+    controller.setTakeoffAssist({
+        jump: BIG_AIR_BASIN.terrain.skiJumps[0],
+        laneHalf: BIG_AIR_BASIN.terrain.laneHalf,
+    });
+    controller.position.set(x, 0, z);
+    controller.velocity.set(vx, 0, vz);
+    controller.surf = 1;
+    controller.update(1 / hz, rig);
+    return controller;
+}
+
 test("Big Air authored launch captures centered and mild lateral approaches", () => {
     resetInput();
     const jump = BIG_AIR_BASIN.terrain.skiJumps[0];
@@ -55,22 +70,59 @@ test("Big Air authored launch captures centered and mild lateral approaches", ()
         launchRise: 8.5,
     });
 
-    for (const x of [0, -18, 18]) {
-        const controller = new CharacterController(new FlatTerrain());
-        controller.setTakeoffAssist({
-            jump,
-            laneHalf: BIG_AIR_BASIN.terrain.laneHalf,
-        });
-        controller.position.set(x, 0, 297.9);
-        controller.velocity.set(0, 0, 10);
-        controller.surf = 1;
-        input.surf = true;
+    for (const hz of [30, 60]) {
+        for (const x of [0, -18, 18]) {
+            const controller = new CharacterController(new FlatTerrain());
+            controller.setTakeoffAssist({
+                jump,
+                laneHalf: BIG_AIR_BASIN.terrain.laneHalf,
+            });
+            controller.position.set(x, 0, 297.9);
+            controller.velocity.set(0, 0, 10);
+            controller.surf = 1;
+            input.surf = true;
 
-        controller.update(1 / 60, rig);
+            controller.update(1 / hz, rig);
 
-        assert.equal(controller.airborne, true, `x=${x} did not launch`);
-        assert.equal(controller.grounded, false, `x=${x} remained grounded`);
-        assert.ok(controller.verticalVelocity > 8, `x=${x} launch rise was not authored`);
+            assert.equal(controller.airborne, true, `${hz} Hz x=${x} did not launch`);
+            assert.equal(controller.grounded, false, `${hz} Hz x=${x} remained grounded`);
+            assert.equal(controller.jumpCount, 1, `${hz} Hz x=${x} double-launched`);
+            // The authored 8.5 m/s rise is integrated for this render step;
+            // 30 Hz therefore reports 7.883 m/s after gravity, while 60 Hz
+            // reports 8.192 m/s. Both retain the signature launch.
+            assert.ok(controller.verticalVelocity > 7.7, `${hz} Hz x=${x} launch rise was not authored`);
+        }
+    }
+});
+
+test("Big Air authored capture follows the actual segment across dense phases and rates", () => {
+    for (const hz of [30, 45, 60, 90, 120]) {
+        for (let i = 0; i <= 59; i++) {
+            const z = 298 + i * 0.1;
+            const controller = runAuthoredProbe({ hz, z });
+            assert.equal(controller.airborne, true, `${hz} Hz z=${z} missed capture`);
+            assert.equal(controller.grounded, false, `${hz} Hz z=${z} stayed grounded`);
+            assert.equal(controller.jumpCount, 1, `${hz} Hz z=${z} double-launched`);
+            assert.ok(controller.verticalVelocity > 0, `${hz} Hz z=${z} launch was not upward`);
+        }
+    }
+});
+
+test("Big Air authored capture includes lane-edge crossings but rejects non-intersections", () => {
+    for (const hz of [30, 45, 60, 90, 120]) {
+        for (const [x, vx, side] of [[24.1, -30, "right"], [-24.1, 30, "left"]]) {
+            const controller = runAuthoredProbe({ hz, x, vx, z: 303.9 });
+            assert.equal(controller.airborne, true, `${hz} Hz ${side} lane crossing missed`);
+            assert.equal(controller.jumpCount, 1, `${hz} Hz ${side} lane crossing repeated`);
+        }
+
+        const farOutside = runAuthoredProbe({ hz, z: 304.01 });
+        assert.equal(farOutside.airborne, false, `${hz} Hz far-outside segment launched`);
+        assert.equal(farOutside.jumpCount, 0, `${hz} Hz far-outside segment counted a jump`);
+
+        const laneOutside = runAuthoredProbe({ hz, x: 24.2, vx: -20, z: 303.9 });
+        assert.equal(laneOutside.airborne, false, `${hz} Hz non-intersecting lane segment launched`);
+        assert.equal(laneOutside.jumpCount, 0, `${hz} Hz non-intersecting lane counted a jump`);
     }
 });
 

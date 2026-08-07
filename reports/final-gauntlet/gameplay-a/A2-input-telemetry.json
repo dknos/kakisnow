@@ -1,0 +1,46 @@
+{
+  "workstream": "gameplay-a",
+  "round": "A2",
+  "date": "2026-08-07",
+  "branch": "feat/final-polish-gauntlet",
+  "source": "tests/input.test.mjs",
+  "pollPath": "navigator.getGamepads -> pollInput(dt)",
+  "probes": {
+    "stickNoise": {
+      "raw": [0.1, 0.1],
+      "deadzone": 0.18,
+      "move": [0, 0]
+    },
+    "diagonal": {
+      "raw": [0.6, -0.8],
+      "mapped": [0.6, 0.8],
+      "magnitude": 1
+    },
+    "rightStickOneSecond": [
+      { "hz": 30, "yawRadians": 2.4, "pitchRadians": -1.8 },
+      { "hz": 60, "yawRadians": 2.4, "pitchRadians": -1.8 },
+      { "hz": 120, "yawRadians": 2.4, "pitchRadians": -1.8 }
+    ],
+    "triggerNoise": {
+      "left": 0.03,
+      "right": 0.03,
+      "surf": false,
+      "boost": 0
+    },
+    "lateCrashJump": {
+      "tumbleFramesBeforePress": 52,
+      "postPressFrames": 18,
+      "jumpCountAfterRecovery": 0,
+      "groundedAfterRecovery": true
+    }
+  },
+  "automated": {
+    "focusedTests": "14/14 passed",
+    "fullTests": "140/140 passed",
+    "build": "passed"
+  },
+  "hardware": {
+    "physicalOrVirtualGamepad": false,
+    "manualGate": "controller stick feel, platform button labels, and disconnect timing remain for Windows hardware review"
+  }
+}

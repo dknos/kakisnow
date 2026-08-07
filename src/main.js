@@ -391,7 +391,7 @@ async function boot() {
         const dt = (S.freezeTime || pause.active) ? 0 : dtMs / 1000;
         time += dt;
 
-        pollInput();
+        pollInput(dt);
         // In the poll-to-controller window, like everything that overrides
         // input: the gamepad Start edge is polled here, and a paused frame
         // zeroes the struct so held keys steer nothing and nothing pressed
