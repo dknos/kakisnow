@@ -13,12 +13,14 @@
 
 import { SUMMIT_LINE } from "./summitLine.js";
 import { PINECONE_PASS } from "./pineconePass.js";
+import { GLACIER_GORGE } from "./glacierGorge.js";
 import { validateCourse } from "./validate.js";
 
 /** @type {Record<string, object>} every playable course, keyed by id. */
 export const COURSES = {
     [SUMMIT_LINE.id]: SUMMIT_LINE,
     [PINECONE_PASS.id]: PINECONE_PASS,
+    [GLACIER_GORGE.id]: GLACIER_GORGE,
 };
 
 export const DEFAULT_COURSE_ID = SUMMIT_LINE.id;

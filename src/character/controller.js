@@ -251,6 +251,14 @@ export class CharacterController {
          */
         this.world = null;
 
+        /**
+         * How hard the snow underfoot is, 0 powder .. 1 blue ice. Written by
+         * the game layer from the course's surface strips. Ice steals edge
+         * grip — the board still thrusts and still steers its heading, but
+         * the velocity stops following it, which is exactly what ice does.
+         */
+        this.surfaceHardness = 0;
+
         // ------------------------------------------------------------- rails
         /** Attached to a rail. Grounded is false; ballistics are suspended. */
         this.grinding = false;
@@ -524,14 +532,23 @@ export class CharacterController {
         const rx = Math.cos(this.facing);
         const rz = -Math.sin(this.facing);
         const lat = this.velocity.x * rx + this.velocity.z * rz;
-        const grip = Math.min(1, SURF_GRIP * h);
+        // Ice steals most of the edge. Grounded only — the air owes nothing
+        // to the surface it is above.
+        const gripScale = this.grounded
+            ? 1 - 0.72 * this.surfaceHardness
+            : 1;
+        const grip = Math.min(1, SURF_GRIP * gripScale * h);
         this.velocity.x -= rx * lat * grip;
         this.velocity.z -= rz * lat * grip;
 
         // Quadratic drag → a natural terminal speed.
         const s = Math.hypot(this.velocity.x, this.velocity.z);
         if (s > 0.0001) {
-            let drag = SURF_DRAG * s * s * 0.02 + 0.9;
+            // Ice is also faster: less of the base bites, so less drags.
+            const dragScale = this.grounded
+                ? 1 - 0.22 * this.surfaceHardness
+                : 1;
+            let drag = (SURF_DRAG * s * s * 0.02 + 0.9) * dragScale;
             // Above the unboosted top speed, drag grows fast enough to settle
             // the rider rather than let the clamp below catch them. This is
             // what makes a boosted terminal feel like an engine running out of

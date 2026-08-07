@@ -98,6 +98,20 @@ export function validateCourse(c) {
         }
     }
 
+    for (const [i, sf] of (c.surfaces ?? []).entries()) {
+        if (![sf.zFrom, sf.zTo, sf.xFrom, sf.xTo, sf.hardness]
+            .every(Number.isFinite)) {
+            p.push(`surface ${i} is missing a field`);
+            continue;
+        }
+        if (sf.zFrom >= sf.zTo || sf.xFrom >= sf.xTo) {
+            p.push(`surface ${i} rectangle is inverted`);
+        }
+        if (sf.hardness < 0 || sf.hardness > 1) {
+            p.push(`surface ${i} hardness must be 0..1`);
+        }
+    }
+
     if (!c.zones || typeof c.zones !== "object" || !Object.keys(c.zones).length) {
         p.push("course has no ingredient zones");
     } else {
@@ -182,6 +196,13 @@ export function validateEvent(e, course) {
     if (!e.medals ||
         !(e.medals.gold < e.medals.silver && e.medals.silver < e.medals.bronze)) {
         p.push("medals must satisfy gold < silver < bronze (seconds)");
+    }
+
+    for (const key of ["styleTarget", "integrityTarget"]) {
+        if (e[key] !== undefined &&
+            !(Number.isFinite(e[key]) && e[key] > 0 && e[key] <= 100)) {
+            p.push(`${key} must be a number in 1..100`);
+        }
     }
 
     if (e.seedPolicy !== "random" && e.seedPolicy !== "fixed") {

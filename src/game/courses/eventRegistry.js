@@ -183,6 +183,68 @@ export const BRANCH_MANAGER = {
     unlock: null,
 };
 
+/**
+ * The Blue Plate — Glacier Gorge's delivery.
+ *
+ * Medals measured 2026-08-07: the autopilot runs the gorge in 39.2-40.1 s,
+ * riding the slot ice without fear because it steers by writing the camera.
+ * A human pays for that line in grip, so the ladder sits wider.
+ */
+export const BLUE_PLATE = {
+    id: "blue-plate",
+    version: 1,
+    courseId: "glacier-gorge",
+    name: "The Blue Plate",
+    tagline: "Cold order, colder mountain. Mind the crevasses.",
+    mode: "delivery",
+    required: ["cheese", "patty", "tomato", "lettuce"],
+    seedPolicy: "random",
+    fixedSeed: null,
+    allowedVehicles: ["classic-snowboard", "rocket-chair"],
+    forcedVehicle: null,
+    startZ: -140,
+    finishZ: 588,
+    gold: 43,
+    silver: 55,
+    bronze: 72,
+    get medals() {
+        return { gold: this.gold, silver: this.silver, bronze: this.bronze };
+    },
+    unlock: null,
+};
+
+/**
+ * Handle With Care — the same order, but the burger is judged.
+ *
+ * The medal also needs Stack Integrity at 70+: one crash (-18) and normal
+ * sketchy riding still clear it, which is the brief's explicit fairness bar —
+ * finishable after one ordinary mistake, unforgiving of a second.
+ */
+export const HANDLE_WITH_CARE = {
+    id: "handle-with-care",
+    version: 1,
+    courseId: "glacier-gorge",
+    name: "Handle With Care",
+    tagline: "The stack remembers every landing.",
+    mode: "delivery",
+    required: ["cheese", "patty", "tomato", "lettuce"],
+    seedPolicy: "random",
+    fixedSeed: null,
+    allowedVehicles: ["classic-snowboard"],
+    forcedVehicle: "classic-snowboard",
+    startZ: -140,
+    finishZ: 588,
+    /** A medal here also needs integrity at or above this. */
+    integrityTarget: 70,
+    gold: 47,
+    silver: 59,
+    bronze: 76,
+    get medals() {
+        return { gold: this.gold, silver: this.silver, bronze: this.bronze };
+    },
+    unlock: null,
+};
+
 /** @type {Record<string, object>} every event, keyed by id. */
 export const EVENTS = {
     [SUMMIT_STACK.id]: SUMMIT_STACK,
@@ -190,6 +252,8 @@ export const EVENTS = {
     [ROCKET_REHEAT.id]: ROCKET_REHEAT,
     [TIMBER_MELT.id]: TIMBER_MELT,
     [BRANCH_MANAGER.id]: BRANCH_MANAGER,
+    [BLUE_PLATE.id]: BLUE_PLATE,
+    [HANDLE_WITH_CARE.id]: HANDLE_WITH_CARE,
 };
 
 for (const event of Object.values(EVENTS)) {

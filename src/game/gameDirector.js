@@ -49,6 +49,7 @@ import { TrickTracker } from "./trickScore.js";
 import { SafeSpots } from "./recovery.js";
 import { CollisionWorld } from "./collisionWorld.js";
 import { RailField } from "./railField.js";
+import { SurfaceStrips } from "./surfaceStrips.js";
 
 import { Mode } from "./modes.js";
 export { Mode };
@@ -165,6 +166,11 @@ export class GameDirector {
             depthPass: deps.depthPass, terrain: deps.terrain,
             collision: this.collision,
         });
+        /** Ice and packed strips: one source for physics, audio and the eye. */
+        this.surfaces = new SurfaceStrips({
+            scene: deps.scene, sky: deps.sky, shadows: deps.shadows,
+            depthPass: deps.depthPass, terrain: deps.terrain,
+        });
         this._scrapeCool = 0;
         this._wasAirborne = false;
         this._comboSettle = 0;
@@ -241,6 +247,7 @@ export class GameDirector {
         // After the collision world exists: the rails register segments into
         // it, and like the camp they ground on the finished terrain readback.
         this.rails.build(this.course);
+        this.surfaces.build(this.course);
         return { ingredients: loaded, burger: burgerOk };
     }
 
@@ -292,6 +299,7 @@ export class GameDirector {
         await this.dressing.warmUp();
         await this.ghost.warmUp();
         await this.rails.warmUp();
+        await this.surfaces.warmUp();
         await this.camp.warmUp();
         await this.field.warmUp();
         this.burger.setActive(true);
@@ -313,6 +321,7 @@ export class GameDirector {
         out.push(...this.ghost.beautyMaterials);
         out.push(...this.dressing.beautyMaterials);
         out.push(...this.rails.beautyMaterials);
+        out.push(...this.surfaces.beautyMaterials);
         return out;
     }
 
@@ -569,6 +578,11 @@ export class GameDirector {
      * @param {number} dt
      */
     update(dt) {
+        // Surface truth applies in every mode — visual ice that behaved like
+        // powder in the lab would make the lab a liar.
+        const c = this.controller;
+        c.surfaceHardness = this.surfaces.hardnessAt(c.position.x, c.position.z);
+
         if (this.mode === Mode.FREE_RIDE) {
             // Only what safety demands: a crashed rider must stand back up in
             // the lab too, or a tree is a softlock. Everything else — toasts,
@@ -779,7 +793,7 @@ export class GameDirector {
             grounded: c.grounded,
             airborne: c.airborne,
             wind01: Math.min(1, c.speed01 * (c.airborne ? 1.0 : 0.7)),
-            surfaceHardness: 0,
+            surfaceHardness: c.surfaceHardness,
         });
     }
 
@@ -845,12 +859,14 @@ export class GameDirector {
             this.camp.sync(cameraPos);
             this.dressing.sync(cameraPos);
             this.rails.sync(cameraPos);
+            this.surfaces.sync(cameraPos);
             return;
         }
         this.field.sync(cameraPos);
         this.camp.sync(cameraPos);
         this.dressing.sync(cameraPos);
         this.rails.sync(cameraPos);
+        this.surfaces.sync(cameraPos);
         this.ghost.sync(cameraPos);
         this.burger.sync(cameraPos);
     }

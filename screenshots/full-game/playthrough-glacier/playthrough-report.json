@@ -1,0 +1,264 @@
+{
+  "tool": "tools/snow-burgers/playthrough-windows.cjs",
+  "url": "http://127.0.0.1:5173/?course=glacier-gorge",
+  "viewport": {
+    "width": 2560,
+    "height": 1440
+  },
+  "seeds": 3,
+  "vehicle": "classic-snowboard",
+  "runs": [
+    {
+      "seed": 1,
+      "vehicle": "classic-snowboard",
+      "ok": true,
+      "finalState": "results",
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "x": -5.51,
+          "y": -7.31,
+          "z": -49.3,
+          "zone": "cheese"
+        },
+        {
+          "ingredient": "patty",
+          "x": -17.15,
+          "y": -1.28,
+          "z": 206.31,
+          "zone": "patty"
+        },
+        {
+          "ingredient": "tomato",
+          "x": 10.28,
+          "y": -3.49,
+          "z": 373.82,
+          "zone": "tomato"
+        },
+        {
+          "ingredient": "lettuce",
+          "x": 4.5,
+          "y": -1.94,
+          "z": 473.7,
+          "zone": "lettuce"
+        }
+      ],
+      "collected": [
+        "cheese",
+        "patty",
+        "tomato",
+        "lettuce"
+      ],
+      "lastZ": 592.2,
+      "fuelAtFinish": 1,
+      "blocked": null,
+      "result": {
+        "completed": true,
+        "time": 39.21,
+        "medal": "gold",
+        "style": 30,
+        "integrity": 82,
+        "stars": 4,
+        "grade": "Summit Stack",
+        "splits": {
+          "cheese": 6.141199999988058,
+          "patty": 19.38359999999408,
+          "tomato": 28.05619999998842,
+          "lettuce": 33.25529999998267
+        },
+        "detail": {
+          "airTime": 1.51,
+          "airShare": 0.038,
+          "carve": 0.046,
+          "pace": 1,
+          "pipeTime": 0,
+          "routeRisk": 0.425,
+          "landings": 3,
+          "hardLandings": 1,
+          "worstLanding": 1.1,
+          "distance": 728.1
+        },
+        "rocket": 0,
+        "notMeasured": [
+          "rocket efficiency"
+        ]
+      }
+    },
+    {
+      "seed": 2,
+      "vehicle": "classic-snowboard",
+      "ok": true,
+      "finalState": "results",
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "x": 2.95,
+          "y": -5.29,
+          "z": -53.5,
+          "zone": "cheese"
+        },
+        {
+          "ingredient": "patty",
+          "x": -7.48,
+          "y": 2.28,
+          "z": 215.99,
+          "zone": "patty"
+        },
+        {
+          "ingredient": "tomato",
+          "x": 25.37,
+          "y": 2.37,
+          "z": 345.11,
+          "zone": "tomato"
+        },
+        {
+          "ingredient": "lettuce",
+          "x": 11.6,
+          "y": -1.18,
+          "z": 461.67,
+          "zone": "lettuce"
+        }
+      ],
+      "collected": [
+        "cheese",
+        "patty",
+        "tomato",
+        "lettuce"
+      ],
+      "lastZ": 592.2,
+      "fuelAtFinish": 1,
+      "blocked": null,
+      "result": {
+        "completed": true,
+        "time": 39.5,
+        "medal": "gold",
+        "style": 41,
+        "integrity": 76,
+        "stars": 4,
+        "grade": "Summit Stack",
+        "splits": {
+          "cheese": 5.9404999999999974,
+          "patty": 19.894099999994086,
+          "tomato": 26.807199999988388,
+          "lettuce": 32.88300000000052
+        },
+        "detail": {
+          "airTime": 4.84,
+          "airShare": 0.123,
+          "carve": 0.074,
+          "pace": 1,
+          "pipeTime": 0,
+          "routeRisk": 0.425,
+          "landings": 8,
+          "hardLandings": 3,
+          "worstLanding": 1.31,
+          "distance": 728.1
+        },
+        "rocket": 0,
+        "notMeasured": [
+          "rocket efficiency"
+        ]
+      }
+    },
+    {
+      "seed": 3,
+      "vehicle": "classic-snowboard",
+      "ok": true,
+      "finalState": "results",
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "x": 18.28,
+          "y": -5.59,
+          "z": -52.94,
+          "zone": "cheese"
+        },
+        {
+          "ingredient": "patty",
+          "x": -18.96,
+          "y": -0.3,
+          "z": 208.56,
+          "zone": "patty"
+        },
+        {
+          "ingredient": "tomato",
+          "x": 15.85,
+          "y": -3.24,
+          "z": 364.19,
+          "zone": "tomato"
+        },
+        {
+          "ingredient": "lettuce",
+          "x": -14.21,
+          "y": 1.15,
+          "z": 444.08,
+          "zone": "lettuce"
+        }
+      ],
+      "collected": [
+        "cheese",
+        "patty",
+        "tomato",
+        "lettuce"
+      ],
+      "lastZ": 591.6,
+      "fuelAtFinish": 1,
+      "blocked": null,
+      "result": {
+        "completed": true,
+        "time": 40.05,
+        "medal": "gold",
+        "style": 37,
+        "integrity": 86,
+        "stars": 4,
+        "grade": "Summit Stack",
+        "splits": {
+          "cheese": 6.266199999988078,
+          "patty": 19.90039999997625,
+          "tomato": 28.066799999982496,
+          "lettuce": 32.479699999988604
+        },
+        "detail": {
+          "airTime": 2.97,
+          "airShare": 0.074,
+          "carve": 0.163,
+          "pace": 1,
+          "pipeTime": 0,
+          "routeRisk": 0.425,
+          "landings": 4,
+          "hardLandings": 1,
+          "worstLanding": 1.2,
+          "distance": 728
+        },
+        "rocket": 0,
+        "notMeasured": [
+          "rocket efficiency"
+        ]
+      }
+    }
+  ],
+  "screenshots": [
+    "00-title",
+    "001-pickup-1-cheese",
+    "001-pickup-2-patty",
+    "001-pickup-3-tomato",
+    "001-pickup-4-lettuce",
+    "001-assembly",
+    "001-results",
+    "002-pickup-1-cheese",
+    "002-pickup-2-patty",
+    "002-pickup-3-tomato",
+    "002-pickup-4-lettuce",
+    "002-assembly",
+    "002-results",
+    "003-pickup-1-cheese",
+    "003-pickup-2-patty",
+    "003-pickup-3-tomato",
+    "003-pickup-4-lettuce",
+    "003-assembly",
+    "003-results"
+  ],
+  "consoleErrors": [],
+  "webgpuValidation": [],
+  "ok": true
+}

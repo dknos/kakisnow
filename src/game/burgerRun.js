@@ -399,6 +399,13 @@ export class BurgerRun {
             )
         );
 
+        // An integrity event's medal minds the stack the same way a style
+        // event minds the line. One crash (-18) survives a reasonable target;
+        // treating the burger like luggage does not.
+        if (medal && ev.integrityTarget && integrity < ev.integrityTarget) {
+            medal = null;
+        }
+
         const rocket = this.rocketTelemetry ? this.rocketTelemetry.efficiency : 0;
 
         // Overall, one to five. Completion is the gate: an incomplete run is
