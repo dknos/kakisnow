@@ -57,6 +57,12 @@ import { RecipeTapes } from "./secrets.js";
 import { tourState } from "./progression.js";
 
 import { Mode } from "./modes.js";
+import { shouldShowHint } from "../ui/hintVisibility.js";
+import { predictLandingAim } from "../core/cameraMath.js";
+import {
+    BigAirFlightTelemetry,
+    isBigAirCourse,
+} from "./bigAirFlight.js";
 export { Mode };
 
 /** Seconds the burger assembly plays before the results screen. */
@@ -160,6 +166,8 @@ export class GameDirector {
         });
 
         this.mode = Mode.TITLE;
+        /** The legacy control line is a director decision, not a timer. */
+        this._hintMode = Mode.TITLE;
         /** Written by the pause system; read by anything that must not creep. */
         this.paused = false;
         /** What the rider was on before the Rocket Board Test borrowed them. */
@@ -169,6 +177,7 @@ export class GameDirector {
         this._alertShown = null;
         /** Rig state on entering the assembly, restored when it ends. */
         this._camEntry = new Vector3();
+        this._camEntryDistance = this.rig.distance;
 
         audio.init();
         this._lastCount = -1;
@@ -180,6 +189,12 @@ export class GameDirector {
         this.safeSpots = new SafeSpots(this.course);
         /** Solid things. Filled from the dressing's records after load. */
         this.collision = new CollisionWorld();
+        /**
+         * Render-only occluders for the camera. Finish and venue structures
+         * should block the spring arm without changing the rider's collision
+         * or recovery rules.
+         */
+        this.cameraCollision = new CollisionWorld();
         /** Grind rails: meshes plus their segment colliders. */
         this.rails = new RailField({
             scene: deps.scene, sky: deps.sky, shadows: deps.shadows,
@@ -223,6 +238,23 @@ export class GameDirector {
         this._nearId = 0;
         this._nearDz = 0;
         this._nearCool = 0;
+        /** Controller-authoritative metrics for Big Air's signature flight. */
+        this.bigAirFlight = new BigAirFlightTelemetry({
+            lipZ: this.course.terrain?.skiJumps?.[0]?.lipZ,
+        });
+        // Reused scalar aim state for the signature-flight camera. The aim is
+        // refreshed a few times per flight, not every frame, so the terrain
+        // truth remains cheap even on a dense custom height field.
+        this._bigAirAimCool = 0;
+        this._bigAirAimValid = false;
+        this._bigAirAimX = 0;
+        this._bigAirAimY = 0;
+        this._bigAirAimZ = 0;
+        this._bigAirAimInput = {
+            x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0,
+            groundAt: (x, z) => this.terrain.heightAt(x, z),
+        };
+        this._bigAirAimOutput = {};
 
         this.ui = new SnowBurgersUi({
             onSelectMode: (m) => { audio.ui("confirm"); this.selectMode(m); },
@@ -233,6 +265,7 @@ export class GameDirector {
             onRetry: () => { audio.ui("confirm"); this.run.retry(); },
             onNextOrder: () => { audio.ui("confirm"); this.startBurgerRun(); },
             onMenu: () => { audio.ui(); this.selectMode(Mode.TITLE); },
+            onScreenVisibilityChange: () => this.syncHintVisibility(),
         });
 
         this.field.onCollect = (id) => {
@@ -246,6 +279,16 @@ export class GameDirector {
         this.run.onStateChange = (next, prev) => this._onRunState(next, prev);
 
         this._refreshTitleMenu();
+    }
+
+    /**
+     * Keep the legacy control hint in lockstep with game mode and screens.
+     * Labs may show it during active riding, while title/order/results/pause
+     * and settings always own the screen and suppress it.
+     */
+    syncHintVisibility() {
+        const screenVisible = this.ui?.anyScreenVisible?.() ?? true;
+        this.deps.setHintVisible?.(shouldShowHint(this._hintMode, screenVisible));
     }
 
     /**
@@ -333,6 +376,9 @@ export class GameDirector {
         // rows up the bowl wall by sampling it.
         await this.venue.load();
         this.venue.build();
+        this.cameraCollision.clear();
+        this.camp.buildCameraCollision(this.cameraCollision);
+        this.venue.buildCameraCollision(this.cameraCollision);
         const loaded = await this.field.load(INGREDIENT_IDS);
         const burgerOk = await this.burger.load(BURGER_MODEL);
         if (!burgerOk) {
@@ -344,6 +390,11 @@ export class GameDirector {
         this.rails.build(this.course);
         this.surfaces.build(this.course);
         this.snowcats.build(this.course);
+        // Gameplay colliders cover trees, rocks, rails and moving snowcats;
+        // the separate world covers finish/venue structures without making any
+        // of those render-only props player-solid.
+        this.rig.obstacleWorld = this.collision;
+        this.rig.cameraWorld = this.cameraCollision;
         this.tapes.build(this.course);
         return { ingredients: loaded, burger: burgerOk };
     }
@@ -433,6 +484,9 @@ export class GameDirector {
     selectMode(mode) {
         const prev = this.mode;
         this.mode = mode;
+        this._hintMode = mode;
+        this.rig.setAirborneContext(null);
+        this.syncHintVisibility();
         // Leaving the Rocket Board Test hands back what it borrowed. Without
         // this the test leaked `vehicle=rocket-chair` and an infinite tank
         // into whatever mode came next.
@@ -487,6 +541,7 @@ export class GameDirector {
                 this._setCourseHudVisible(false);
                 break;
         }
+        this.syncHintVisibility();
     }
 
     /**
@@ -727,6 +782,7 @@ export class GameDirector {
         if (this.mode !== Mode.BURGER_RUN) return;
 
         this._updateFeel(dt);
+        this._updateBigAirCamera(dt);
         const state = this.run.state;
         // The run reads telemetry rather than the vehicle, so a run on the
         // classic board scores against a `null` and the results screen says
@@ -809,12 +865,18 @@ export class GameDirector {
     _updateFeel(dt) {
         const c = this.controller;
 
+        this.bigAirFlight.tick(dt);
+
         // ------------------------------------------------------- air + land
         if (c.airborne && !this._wasAirborne) {
             this.tracker.beginAir({ onKicker: this._nearKicker(c.position.z) });
+            if (isBigAirCourse(this.course) && this.bigAirFlight.shouldBegin(c)) {
+                this.bigAirFlight.begin(c, this.run.vehicleId ?? S.vehicle);
+            }
             audio.jump(Math.min(1, Math.max(0, c.verticalVelocity) / 8));
         }
         if (c.airborne) {
+            this.bigAirFlight.observe(c, dt);
             // The tracker's pitch convention is negative-nose-down; the
             // controller's flip is positive-nose-down (Babylon's +X). One
             // negation, here, at the single point the two meet.
@@ -824,6 +886,10 @@ export class GameDirector {
         if (c.landed) {
             const grade = c.landingGrade ?? "clean";
             const res = this.tracker.land(grade);
+            const flight = isBigAirCourse(this.course)
+                ? this.bigAirFlight.finish(c, res)
+                : null;
+            if (flight) this.run.flightTelemetry = flight;
             this.ui.flashGrade(grade);
             audio.land(grade, Math.min(1, c.landingImpact / 1.5));
             // A perfect landing stamps the snow: one compact ring of powder
@@ -967,6 +1033,84 @@ export class GameDirector {
             wind01: Math.min(1, c.speed01 * (c.airborne ? 1.0 : 0.7)),
             surfaceHardness: c.surfaceHardness,
         });
+    }
+
+    /**
+     * Give the camera a bounded down-course context only for Big Air's
+     * authored flight (plus its brief landing read). The rider's input still
+     * owns `rig.yaw`; CameraRig applies this as a reversible additive offset.
+     */
+    _updateBigAirCamera(dt) {
+        if (!isBigAirCourse(this.course) || this.run.state !== RunState.RUN) {
+            this.rig.setAirborneContext(null);
+            this.ui.setBigAirFlight?.(null);
+            this._bigAirAimValid = false;
+            return;
+        }
+        const c = this.controller;
+        const speed = Math.hypot(c.velocity.x, c.velocity.z);
+        const heading = speed > 0.1
+            ? Math.atan2(c.velocity.x, c.velocity.z)
+            : c.facing;
+        const active = this.bigAirFlight.framingActive;
+        if (active) this._refreshBigAirLandingAim(c, heading, dt);
+        const aimDx = this._bigAirAimX - c.position.x;
+        const aimDz = this._bigAirAimZ - c.position.z;
+        const aimDistance = Math.hypot(aimDx, aimDz);
+        const aimYaw = this._bigAirAimValid && aimDistance > 1e-3
+            ? Math.atan2(aimDx, aimDz) : heading;
+        const aimPitch = this._bigAirAimValid && aimDistance > 1e-3
+            ? Math.atan2(c.position.y + 1.62 - this._bigAirAimY, aimDistance)
+            : NaN;
+        this.rig.setAirborneContext({
+            active,
+            heading,
+            aimYaw,
+            aimPitch,
+        });
+        this.ui.setBigAirFlight?.(this.bigAirFlight.snapshot());
+    }
+
+    /**
+     * Refresh a reusable, controller/terrain-authoritative landing target.
+     * During flight this finds the first ballistic crossing of the actual
+     * terrain. During the short post-touchdown read it looks down the current
+     * line at the next runout surface, which keeps the result visible without
+     * taking control away.
+     */
+    _refreshBigAirLandingAim(c, heading, dt) {
+        this._bigAirAimCool = Math.max(0, this._bigAirAimCool - Math.max(0, dt));
+        if (this._bigAirAimCool > 0) return;
+        this._bigAirAimCool = 0.12;
+
+        if (c.airborne) {
+            const aimInput = this._bigAirAimInput;
+            aimInput.x = c.position.x;
+            aimInput.y = c.position.y;
+            aimInput.z = c.position.z;
+            aimInput.vx = c.velocity.x;
+            aimInput.vy = c.verticalVelocity;
+            aimInput.vz = c.velocity.z;
+            const aim = predictLandingAim(aimInput, this._bigAirAimOutput);
+            if (aim.valid) {
+                this._bigAirAimX = aim.x;
+                this._bigAirAimY = aim.y;
+                this._bigAirAimZ = aim.z;
+                this._bigAirAimValid = true;
+                return;
+            }
+        }
+
+        // A touchdown has already supplied the exact contact surface through
+        // controller.groundY. Extend the current line a modest distance for a
+        // readable landing/runout target; no cinematic turn is added.
+        const distance = Math.min(32, Math.max(16, Math.hypot(c.velocity.x, c.velocity.z) * 0.8));
+        const dx = Math.sin(heading) * distance;
+        const dz = Math.cos(heading) * distance;
+        this._bigAirAimX = c.position.x + dx;
+        this._bigAirAimZ = c.position.z + dz;
+        this._bigAirAimY = this.terrain.heightAt(this._bigAirAimX, this._bigAirAimZ) + 0.55;
+        this._bigAirAimValid = Number.isFinite(this._bigAirAimY);
     }
 
     /**
@@ -1123,7 +1267,10 @@ export class GameDirector {
                 : ASSEMBLY_TIME;
             this._assembly = this._assemblyTotal;
 
-            // Ahead of the rider, on the line they are already travelling.
+            // Ahead and just off the rider's shoulder, in camera space. The
+            // old centre-line placement hid the reward behind the rider and
+            // the run-out rise; this offset keeps both the hero and the burger
+            // in the same frame without changing the finish trigger.
             //
             // Standing it on the grill's counter was the obvious idea and the
             // wrong one: the rig orbits the rider, so framing something off to
@@ -1131,19 +1278,26 @@ export class GameDirector {
             // that swing puts it inside the arch. The committed frame from that
             // attempt is a flat brown rectangle — the inside of the banner.
             //
-            // Putting the reward where the camera is already pointed costs
-            // nothing and composes better anyway: the burger lands centre
-            // frame with the arch, the grill and the lodge behind it.
-            // Close enough to the rider that the run's own camera frames it.
-            _burgerPos.set(c.position.x, 0, c.position.z + 4.2);
+            // Putting the reward just off the camera's forward line composes
+            // better than swinging around the rider: the burger shares the
+            // frame with the arch, grill and lodge while the hero remains the
+            // visual anchor.
+            const side = this.rig.right;
+            const view = this.rig.forward;
+            _burgerPos.set(
+                c.position.x + side.x * 1.9 + view.x * 1.9,
+                0,
+                c.position.z + side.z * 1.9 + view.z * 1.9
+            );
             _burgerPos.y = this.terrain.heightAt(_burgerPos.x, _burgerPos.z) + 0.55;
             this.burger.root.position.copyFrom(_burgerPos);
             this._camEntry.set(this.rig.yaw, this.rig.pitch, this.rig.distanceTarget);
+            this._camEntryDistance = this.rig.distance;
             // Stage the reward: the ride camera stays the finish camera (two
             // committed attempts at a dedicated one photographed the inside
             // of the arch), but it can at least lean in — the burger was the
             // report's own "small in frame" limitation.
-            this.rig.distanceTarget = 4.4;
+            this.rig.distanceTarget = 4.8;
             this.burger.root.scaling.setAll(0.01);
             this.burger.setActive(true);
             this.ui.setHud(false);
@@ -1161,11 +1315,24 @@ export class GameDirector {
 
         this._assembly = Math.max(0, this._assembly - dt);
         const t = 1 - this._assembly / this._assemblyTotal;
-        const ease = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        // The order should read on the first presentation frame, not spend
+        // most of the ceremony as a one-pixel seed. A quadratic ease-out keeps
+        // the reveal gentle at the start and reaches a useful silhouette well
+        // before the repeatable ceremony ends.
+        const ease = 1 - (1 - t) * (1 - t);
 
         this.burger.root.scaling.setAll(Scalar.Lerp(0.01, 1, ease));
         this.burger.root.position.y = _burgerPos.y + ease * 0.5;
-        this.burger.root.rotation.y += dt * 0.8;
+        if (!S.reducedMotion) this.burger.root.rotation.y += dt * 0.8;
+
+        // A small, repeatable presentation lift gives the completed order a
+        // readable silhouette while reduced motion retains the player's entry
+        // pitch and avoids adding another camera movement.
+        if (!S.reducedMotion) {
+            this.rig.pitch = Scalar.Lerp(
+                this.rig.pitch, 0.24, 1 - Math.exp(-dt * 4.2)
+            );
+        }
 
         // Settle the yaw down the fall line, and touch nothing else.
         //
@@ -1206,6 +1373,10 @@ export class GameDirector {
         // starts.
         if (next === RunState.COUNTDOWN) {
             this.ui.hideScreens();
+            this.bigAirFlight.reset();
+            this.run.flightTelemetry = null;
+            this._bigAirAimCool = 0;
+            this._bigAirAimValid = false;
             // Full tank at every gate, however the rider got there — first
             // drop, retry from the results, or a restart out of the pause
             // menu. This is where "a run starts with a full tank" is actually
@@ -1272,7 +1443,11 @@ export class GameDirector {
             this._refreshTitleMenu();
             // Hand the camera back the way it was found, or the next run starts
             // with the finish sequence's framing still applied.
+            this.rig.yaw = this._camEntry.x;
+            this.rig.pitch = this._camEntry.y;
             this.rig.distanceTarget = this._camEntry.z || this.rig.distanceTarget;
+            this.rig.distance = this._camEntryDistance;
+            this.rig.obstacleDistance = this.rig.distance;
             this.burger.setActive(false);
             this.ghost.clear();
             this.ui.showResults(this.run.result, this.book.event(this.run.event.id));

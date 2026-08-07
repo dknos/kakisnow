@@ -105,6 +105,8 @@ export class BurgerBaseCamp {
         this.village = new ShadedAsset({
             scene, sky, shadows, depthPass, name: "campVillage",
         });
+        /** Camera-only occluders; these never enter the rider collision world. */
+        this.cameraCollisionBuilt = false;
         this.built = false;
     }
 
@@ -207,6 +209,80 @@ export class BurgerBaseCamp {
             p.asset.setActive(false);
         }
         return this.hut.available;
+    }
+
+    /**
+     * Register conservative camera occluders for the finish presentation.
+     *
+     * The rider deliberately does not collide with the camp: the finish arch
+     * is a gate, not a wall. The follow camera does need to know that its arm
+     * cannot occupy the arch, grill, order board or lodge. Keeping these in a
+     * second CollisionWorld preserves the player collision contract while
+     * making the presentation safe. All placement values mirror `build()` and
+     * `load()` above; imported hut bounds use bounded shells rather than render
+     * triangles, so this remains cheap and deterministic.
+     *
+     * @param {import("./collisionWorld.js").CollisionWorld} world
+     */
+    buildCameraCollision(world) {
+        if (this.cameraCollisionBuilt || !world) return;
+        const g = (x, z) => this.terrain.heightAt(x, z);
+        const addBox = (x, y, z, hx, hy, hz, kind, ry = 0) => world.addBox({
+            x, y, z, hx, hy, hz, ry, kind, data: null,
+        });
+        const archZ = this.campZ - 14;
+        const beamY = Math.min(g(-ARCH_HALF, archZ), g(ARCH_HALF, archZ)) + ARCH_HEIGHT;
+        for (const side of [-1, 1]) {
+            const x = side * ARCH_HALF;
+            addBox(x, g(x, archZ) + ARCH_HEIGHT * 0.5, archZ,
+                0.62, ARCH_HEIGHT * 0.5, 0.62, "finish-arch");
+        }
+        addBox(0, beamY - 0.42, archZ, ARCH_HALF + 0.6, 0.42, 0.4, "finish-arch");
+        addBox(0, beamY - 1.55, archZ - 0.08,
+            ARCH_HALF - 0.7, 0.75, 0.16, "finish-banner");
+
+        const gx = 11.5;
+        const gz = this.campZ + 26;
+        const gy = g(gx, gz);
+        addBox(gx, gy + 1.15, gz, 3.4, 1.15, 2.0, "camp-grill", 0.5);
+        addBox(gx, gy + 1.6, gz - 0.15, 3.6, 0.45, 1.7, "camp-grill", 0.4);
+        world.addCapsule({
+            ax: gx + 1.3, ay: gy + 2.05, az: gz - 0.2,
+            bx: gx + 1.3, by: gy + 4.25, bz: gz - 0.2,
+            r: 0.28, kind: "camp-grill", data: null,
+        });
+        addBox(gx - 2.6, gy + 1.0, gz + 0.6,
+            1.6, 1.0, 2.4, "camp-counter", 0);
+        addBox(gx - 2.6, gy + 1.07, gz + 0.6,
+            1.9, 0.14, 2.7, "camp-counter", 0);
+
+        const bx = -13.5;
+        const bz = this.campZ + 24;
+        const by = g(bx, bz);
+        for (const side of [-1, 1]) {
+            world.addCapsule({
+                ax: bx + side * 1.5, ay: by, az: bz,
+                bx: bx + side * 1.5, by: by + 3.0, bz,
+                r: 0.24, kind: "order-board", data: null,
+            });
+        }
+        addBox(bx, by + 3.2, bz, 1.9, 1.1, 0.18, "order-board", 0);
+
+        // The imported huts are not part of the gameplay collision world. A
+        // bounded shell is enough to keep the camera out of their walls while
+        // remaining stable if an asset is unavailable.
+        const huts = [
+            { x: -30, z: this.campZ + 40, sx: 1.5, hx: 6.5, hz: 5.0, h: 7.0, ry: 0.5 },
+            { x: 27, z: this.campZ + 52, sx: 1.15, hx: 5.2, hz: 4.1, h: 5.5, ry: -1.9 },
+            { x: -78, z: this.campZ + 96, sx: 1.0, hx: 18, hz: 12, h: 6.0, ry: 0.35 },
+        ];
+        for (const hut of huts) {
+            const ground = g(hut.x, hut.z);
+            addBox(hut.x, ground + hut.h * 0.5, hut.z,
+                hut.hx * hut.sx, hut.h * 0.5, hut.hz * hut.sx,
+                "camp-lodge", hut.ry);
+        }
+        this.cameraCollisionBuilt = true;
     }
 
     async warmUp() {

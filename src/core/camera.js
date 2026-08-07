@@ -6,15 +6,23 @@
  * character drifts forward in frame. FOV widens with speed, the rig banks into
  * carves, and everything eases. Nothing here snaps.
  *
- * Open snow field, so there is no obstacle collision solve — only the ground
- * itself pushes the arm up, which buys a rig that never pops through a drift.
+ * The arm is also swept against the gameplay obstacle world and a separate
+ * camera-only world for structures that must not affect the rider. A quick
+ * inward correction and a slower release keep scenery from entering the lens
+ * without making a thin rail turn into a visible camera tick.
  */
 
-import { Vector3, Matrix, Quaternion } from "@babylonjs/core/Maths/math.vector.js";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector.js";
 import { Scalar } from "@babylonjs/core/Maths/math.scalar.js";
 import { UniversalCamera } from "@babylonjs/core/Cameras/universalCamera.js";
 import { input } from "./input.js";
 import { S } from "./settings.js";
+import {
+    CAMERA_ARM_MIN,
+    solveCameraArmDistance,
+    solveAirFrameOffset,
+    shortestAngleDelta,
+} from "./cameraMath.js";
 
 // ------------------------------------------------------- module-scope scratch
 const _pivot = new Vector3();
@@ -26,6 +34,9 @@ const _tmp = new Vector3();
 
 /** Height probes taken along the spring arm each frame. */
 const ARM_SAMPLES = 5;
+const CAMERA_ARM_RADIUS = 0.34;
+const CAMERA_ARM_MARGIN = 0.18;
+const CAMERA_CLEAR_HOLD = 0.14;
 
 const PITCH_MIN = -0.62; // looking up
 const PITCH_MAX = 1.05; // looking down
@@ -52,8 +63,27 @@ export class CameraRig {
         this.yaw = 2.4;
         this.pitch = 0.17;
 
+        /**
+         * A short-lived additive bias for a course's signature jump. The
+         * player's yaw/pitch remain untouched, so look input is live and the
+         * exact pre-jump view returns after the landing window. Game code
+         * supplies the controller/terrain-derived heading and landing aim;
+         * this rig still owns the final transform, obstruction sweep, and
+         * terrain clearance.
+         */
+        this.airborneContext = null;
+        this.airYawOffset = 0;
+        this.airPitchOffset = 0;
+
         this.distance = 6.2;
         this.distanceTarget = 6.2;
+        /** Current collision-corrected distance; user zoom remains target. */
+        this.obstacleDistance = this.distance;
+        /** Gameplay obstacles (trees, rocks, rails, snowcats). */
+        this.obstacleWorld = null;
+        /** Camera-only structures (finish camp and Big Air venue). */
+        this.cameraWorld = null;
+        this._obstacleClearHold = 0;
 
         /** Smoothed pivot position (the thing the spring chases). */
         this.pivot = new Vector3(0, 0, 0);
@@ -102,6 +132,17 @@ export class CameraRig {
     }
 
     /**
+     * Set the bounded context for a signature jump. Passing null restores the
+     * player's camera over the same spring used to enter it.
+     *
+     * @param {{active?:boolean, heading?:number, aimYaw?:number,
+     *          aimPitch?:number}|null} context
+     */
+    setAirborneContext(context) {
+        this.airborneContext = context?.active ? context : null;
+    }
+
+    /**
      * @param {number} dt seconds
      * @param {Vector3} targetPos character world position (feet)
      * @param {Vector3} targetVel character world velocity
@@ -113,6 +154,48 @@ export class CameraRig {
         // ------------------------------------------------------------- look
         this.yaw += input.lookX;
         this.pitch = Scalar.Clamp(this.pitch + input.lookY, PITCH_MIN, PITCH_MAX);
+
+        // A signature-jump assist is additive rather than a hidden camera
+        // state. Small lateral corrections keep their meaning, but the frame
+        // aims at the controller/terrain landing point supplied by the game
+        // layer. The reduced-motion path is deliberately exact: no additive
+        // yaw or pitch is applied, so the rider's own look input remains the
+        // complete camera motion under that setting.
+        const air = this.airborneContext;
+        let airYawWant = 0;
+        let airPitchWant = 0;
+        if (air && Number.isFinite(air.heading)) {
+            const aimYaw = Number.isFinite(air.aimYaw) ? air.aimYaw : air.heading;
+            const maxYaw = S.reducedMotion ? 0 : 0.46;
+            airYawWant = Scalar.Clamp(
+                shortestAngleDelta(this.yaw, aimYaw), -maxYaw, maxYaw
+            );
+            if (!S.reducedMotion) {
+                // The game layer gives us an absolute pitch aimed at a real
+                // landing surface. Only add downward pitch, and cap the
+                // assist so the player's active look remains authoritative.
+                const aimPitch = Number.isFinite(air.aimPitch)
+                    ? air.aimPitch : this.pitch + 0.15;
+                airPitchWant = Scalar.Clamp(aimPitch - this.pitch, 0, 0.36);
+            }
+        }
+        if (S.reducedMotion) {
+            // Do not leave a stale authored offset on screen when the player
+            // enables reduced motion during a jump.
+            this.airYawOffset = 0;
+            this.airPitchOffset = 0;
+        } else {
+            this.airYawOffset = solveAirFrameOffset(
+                this.airYawOffset, airYawWant, dt, 5.5, 3.2
+            );
+            this.airPitchOffset = solveAirFrameOffset(
+                this.airPitchOffset, airPitchWant, dt, 5.0, 3.2
+            );
+        }
+        const cameraYaw = this.yaw + this.airYawOffset;
+        const cameraPitch = Scalar.Clamp(
+            this.pitch + this.airPitchOffset, PITCH_MIN, PITCH_MAX
+        );
 
         // ------------------------------------------------------------- zoom
         this.distanceTarget = Scalar.Clamp(
@@ -164,13 +247,13 @@ export class CameraRig {
         const shake = this.trauma * this.trauma * shakeScale;
 
         // ------------------------------------------------------ compose xform
-        const cp = Math.cos(this.pitch);
+        const cp = Math.cos(cameraPitch);
         _fwd.set(
-            Math.sin(this.yaw) * cp,
-            -Math.sin(this.pitch),
-            Math.cos(this.yaw) * cp
+            Math.sin(cameraYaw) * cp,
+            -Math.sin(cameraPitch),
+            Math.cos(cameraYaw) * cp
         );
-        _right.set(Math.cos(this.yaw), 0, -Math.sin(this.yaw));
+        _right.set(Math.cos(cameraYaw), 0, -Math.sin(cameraYaw));
         Vector3.CrossToRef(_right, _fwd, _up);
         _up.normalize();
 
@@ -182,6 +265,61 @@ export class CameraRig {
         _desired.addInPlace(_tmp.copyFrom(_fwd).scaleInPlace(-this.distance));
         _desired.addInPlace(_tmp.copyFrom(_right).scaleInPlace(this.shoulder));
         _desired.addInPlace(_tmp.copyFrom(_up).scaleInPlace(0.22));
+
+        // ------------------------------------------------------ solid arm solve
+        // The camera has a small radius rather than being a point. This catches
+        // the near edge of a tree, post, rail or arch before it is already in
+        // the lens. CollisionWorld returns a shared result object, so only the
+        // scalar `t` is copied and no per-frame object is retained or created.
+        const armX = _desired.x - this.pivot.x;
+        const armY = _desired.y - this.pivot.y;
+        const armZ = _desired.z - this.pivot.z;
+        const armLength = Math.hypot(armX, armY, armZ);
+        let hitT = Infinity;
+        if (armLength > 1e-5) {
+            if (this.obstacleWorld) {
+                const hit = this.obstacleWorld.sweepSphere(
+                    this.pivot.x, this.pivot.y, this.pivot.z,
+                    _desired.x, _desired.y, _desired.z,
+                    CAMERA_ARM_RADIUS
+                );
+                if (hit && hit.t < hitT) hitT = hit.t;
+            }
+            if (this.cameraWorld) {
+                const hit = this.cameraWorld.sweepSphere(
+                    this.pivot.x, this.pivot.y, this.pivot.z,
+                    _desired.x, _desired.y, _desired.z,
+                    CAMERA_ARM_RADIUS
+                );
+                if (hit && hit.t < hitT) hitT = hit.t;
+            }
+        }
+
+        // Zooming inward should never wait for the release spring. When a
+        // thin obstacle flickers between adjacent sampled frames, hold the
+        // compressed arm briefly before the slow outward relaxation begins.
+        this.obstacleDistance = Math.min(this.obstacleDistance, this.distance);
+        const hitDistance = Number.isFinite(hitT)
+            ? Math.max(CAMERA_ARM_MIN, armLength * hitT - CAMERA_ARM_MARGIN)
+            : Infinity;
+        if (Number.isFinite(hitT)) {
+            this._obstacleClearHold = CAMERA_CLEAR_HOLD;
+        } else if (this._obstacleClearHold > 0) {
+            this._obstacleClearHold = Math.max(0, this._obstacleClearHold - dt);
+        }
+        const heldDistance = Number.isFinite(hitT)
+            ? hitDistance
+            : (this._obstacleClearHold > 0 ? this.obstacleDistance : Infinity);
+        this.obstacleDistance = solveCameraArmDistance(
+            this.obstacleDistance, this.distance, heldDistance, dt
+        );
+
+        if (this.obstacleDistance < this.distance - 1e-4 && armLength > 1e-5) {
+            const scale = this.obstacleDistance / armLength;
+            _desired.x = this.pivot.x + armX * scale;
+            _desired.y = this.pivot.y + armY * scale;
+            _desired.z = this.pivot.z + armZ * scale;
+        }
 
         // ---- keep the arm out of the snow --------------------------------
         // The lift rises quickly and relaxes slowly: snapping down the instant a
@@ -221,8 +359,8 @@ export class CameraRig {
         cam.position.copyFrom(_desired);
         cam.fov = this.fov;
         cam.rotation.set(
-            this.pitch + (shake > 0.0001 ? (noise1(this.shakeTime * 31 + 11) * 2 - 1) * shake * 0.02 : 0),
-            this.yaw + (shake > 0.0001 ? (noise1(this.shakeTime * 29 + 53) * 2 - 1) * shake * 0.02 : 0),
+            cameraPitch + (shake > 0.0001 ? (noise1(this.shakeTime * 31 + 11) * 2 - 1) * shake * 0.02 : 0),
+            cameraYaw + (shake > 0.0001 ? (noise1(this.shakeTime * 29 + 53) * 2 - 1) * shake * 0.02 : 0),
             this.roll + (shake > 0.0001 ? (noise1(this.shakeTime * 23 + 97) * 2 - 1) * shake * 0.05 : 0)
         );
     }

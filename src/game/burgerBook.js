@@ -24,8 +24,20 @@
  * the priorities.
  */
 
+// Big Air flight records are optional v2 fields.  Keeping them on the event
+// rather than introducing a save-version bump means an existing v1/v2 book
+// can gain the signature-flight record on its next completion without any
+// migration ceremony.  Only the two released vehicles are accepted here so a
+// rotten save cannot create arbitrary result rows or cross-contaminate a
+// classic-board best with a rocket-chair best.
+import { isBetterBigAirFlight } from "./bigAirFlight.js";
+
 const KEY = "snow-burgers.book";
 export const SCHEMA_VERSION = 2;
+
+const BIG_AIR_VEHICLES = new Set(["classic-snowboard", "rocket-chair"]);
+const FLIGHT_GRADES = new Set(["perfect", "clean", "sketchy", "crash"]);
+const BIG_AIR_EVENT_ID = "big-air-basin-stack";
 
 /**
  * Identity for everything a version 1 save recorded. Version 1 shipped exactly
@@ -82,6 +94,8 @@ function emptyEvent() {
         bestVehicle: null,
         /** @type {null|object} a v2 ghost, see `validGhost` */
         bestGhost: null,
+        /** @type {Record<string, object>} optional Big Air PBs by vehicle */
+        bestBigAirFlights: {},
     };
 }
 
@@ -232,10 +246,67 @@ function readV2(raw) {
                 ? e.eventVersion : V1_EVENT_VERSION;
             out.bestVehicle = typeof e.bestVehicle === "string" ? e.bestVehicle : null;
             out.bestGhost = validGhost(e.bestGhost) ? e.bestGhost : null;
+            out.bestBigAirFlights = readBestBigAirFlights(e.bestBigAirFlights);
             book.events[id] = out;
         }
     }
     return book;
+}
+
+/**
+ * Read one Big Air flight into a bounded, fresh value.  This is intentionally
+ * stricter than the generic result display: flight records cross a reload and
+ * are therefore untrusted save data.  Every number is finite and bounded,
+ * every string is length-limited, and the record key is derived from the
+ * vehicle instead of trusted from storage.
+ */
+function sanitizeBigAirFlight(raw, vehicleHint = null) {
+    if (!raw || typeof raw !== "object") return null;
+    if (typeof raw.vehicle === "string" && vehicleHint && raw.vehicle !== vehicleHint) {
+        // The map key is the identity when reading a save. A rocket record
+        // copied under the classic key must never become a classic PB.
+        return null;
+    }
+    const vehicle = typeof raw.vehicle === "string" ? raw.vehicle : vehicleHint;
+    if (!BIG_AIR_VEHICLES.has(vehicle)) return null;
+    const number = (value, max) => Number.isFinite(value)
+        ? Math.min(max, Math.max(0, value)) : null;
+    const airtime = number(raw.airtime, 30);
+    const distance = number(raw.distance, 1000);
+    const maxHeight = number(raw.maxHeight, 500);
+    const maxClearance = number(raw.maxClearance, 500);
+    const trickScore = number(raw.trickScore, 10_000_000);
+    if (airtime === null || distance === null || maxHeight === null ||
+        maxClearance === null || trickScore === null) return null;
+    const trick = typeof raw.trick === "string"
+        ? raw.trick.slice(0, 80) : null;
+    const landingGrade = FLIGHT_GRADES.has(raw.landingGrade)
+        ? raw.landingGrade : null;
+    return {
+        vehicle,
+        airtime,
+        distance,
+        maxHeight,
+        maxClearance,
+        trick,
+        trickScore,
+        landingGrade,
+        recordKey: `big-air-basin:${vehicle}`,
+    };
+}
+
+function readBestBigAirFlights(raw) {
+    const clean = {};
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return clean;
+    for (const vehicle of BIG_AIR_VEHICLES) {
+        const flight = sanitizeBigAirFlight(raw[vehicle], vehicle);
+        if (flight) clean[vehicle] = flight;
+    }
+    return clean;
+}
+
+function cloneFlight(flight) {
+    return flight ? { ...flight } : null;
 }
 
 function validGhost(g) {
@@ -338,7 +409,50 @@ export class BurgerBook {
      */
     record(eventId, result, ghost, meta) {
         const e = this.event(eventId);
-        const broke = { time: false, style: false, integrity: false, stars: false };
+        const broke = {
+            time: false, style: false, integrity: false, stars: false,
+            /** True only when this run improves its vehicle's Big Air PB. */
+            bigAir: false,
+        };
+
+        // Older v2 event objects may have been kept in memory by a host that
+        // constructed them before this optional field existed.  Repair just
+        // this field, preserving every other record rather than replacing the
+        // event or forcing a schema migration.
+        if (!e.bestBigAirFlights || typeof e.bestBigAirFlights !== "object" ||
+            Array.isArray(e.bestBigAirFlights)) {
+            e.bestBigAirFlights = {};
+        }
+
+        // The registry event id is the trust boundary.  Do not let an
+        // arbitrary caller-supplied meta object manufacture a Big Air record
+        // on an ordinary event.
+        const isBigAirResult = eventId === BIG_AIR_EVENT_ID && result?.completed === true;
+        const candidate = isBigAirResult
+            ? sanitizeBigAirFlight(result?.bigAirFlight) : null;
+        if (candidate) {
+            const previous = sanitizeBigAirFlight(
+                e.bestBigAirFlights[candidate.vehicle], candidate.vehicle
+            );
+            const improved = isBetterBigAirFlight(candidate, previous);
+            if (improved) {
+                e.bestBigAirFlights[candidate.vehicle] = candidate;
+                broke.bigAir = true;
+            }
+            // `record()` is the save boundary, so publish both sides of the
+            // comparison on the result before the caller assigns records.
+            // The current best is the persisted winner; `candidate` remains
+            // available when a repeat attempt did not beat it.
+            if (result && typeof result === "object") {
+                result.bigAirBest = {
+                    vehicle: candidate.vehicle,
+                    isNew: improved,
+                    previous: cloneFlight(previous),
+                    current: cloneFlight(improved ? candidate : previous),
+                    candidate: cloneFlight(candidate),
+                };
+            }
+        }
 
         this.book.runs++;
         if (result.completed) {

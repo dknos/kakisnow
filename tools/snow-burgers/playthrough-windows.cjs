@@ -54,7 +54,10 @@ const timeLimit = Number(arg("--limit", "150"));
  * from held keys every frame.
  */
 const vehicle = arg("--vehicle", "classic-snowboard");
-const viewport = { width: 2560, height: 1440 };
+const viewport = {
+  width: Number(arg("--width", "2560")),
+  height: Number(arg("--height", "1440")),
+};
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), "snow-burgers-play-"));
 const validationPattern =
   /GPUValidationError|GPUInternalError|GPUOutOfMemoryError|WebGPU uncaptured error|WebGPU context lost|Validation Error|device lost|Destroyed texture/i;
@@ -194,11 +197,14 @@ let context = null;
     const startedAt = Date.now();
     let state = "run";
     let last = null;
+    let flightHudSeen = null;
 
     while (Date.now() - startedAt < timeLimit * 1000) {
       last = await page.evaluate(() => {
-        const g = window.KAKISNOW.game;
-        const c = window.KAKISNOW.character;
+        const app = window.KAKISNOW;
+        if (!app?.game || !app.character) return null;
+        const g = app.game;
+        const c = app.character;
         return {
           state: g.run.state,
           time: g.run.time,
@@ -206,17 +212,45 @@ let context = null;
           z: +c.position.z.toFixed(1),
           x: +c.position.x.toFixed(1),
           speed: +c.speed.toFixed(1),
+          airborne: c.airborne,
+          flight: g.run.flightTelemetry ?? g.director?.bigAirFlight?.snapshot?.() ?? null,
           blocked: g.run.blockedReason,
           result: g.run.result,
           fuel: g.rocketChair ? +g.rocketChair.thrust.level.toFixed(3) : null,
+          flightHud: (() => {
+            const el = document.querySelector("#sb-hud-flight");
+            return el ? { on: el.classList.contains("on"), text: el.textContent.trim() } : null;
+          })(),
         };
       });
+      if (!last) {
+        state = "app-lost";
+        failures++;
+        break;
+      }
       state = last.state;
+      if (last.flightHud?.on) flightHudSeen = last.flightHud;
 
       for (const id of last.collected) {
         if (seen.has(id)) continue;
         seen.add(id);
         await shot(`${label}-pickup-${seen.size}-${id}`);
+      }
+
+      if (last.airborne && !seen.has("__airborne")) {
+        seen.add("__airborne");
+        await shot(`${label}-airborne-context`);
+      }
+
+      // The first airborne frame is often a warm-up pipe hop. The signature
+      // capture is keyed to the live Big Air HUD so the evidence actually
+      // shows the authored landing surface and cue, not merely any airtime.
+      if (last.flightHud?.on && !seen.has("__big-air")) {
+        seen.add("__big-air");
+        // Let the telemetry accumulate enough airtime to show a useful
+        // trajectory/landing read rather than the HUD's first 0.01 s frame.
+        await page.waitForTimeout(420);
+        await shot(`${label}-big-air-flight`);
       }
 
       if (state === "assembly" && !seen.has("__assembly")) {
@@ -251,6 +285,9 @@ let context = null;
       placements: started.placements,
       collected: last?.collected ?? [],
       lastZ: last?.z ?? null,
+      flightHud: last?.flightHud ?? null,
+      flightHudSeen,
+      airborneObserved: Boolean(last?.airborne),
       fuelAtFinish: last?.fuel ?? null,
       blocked: last?.blocked ?? null,
       result: result && {
@@ -263,6 +300,7 @@ let context = null;
         grade: result.grade,
         splits: result.splits,
         detail: result.detail,
+        bigAirFlight: result.bigAirFlight,
         rocket: result.rocket,
         notMeasured: result.notMeasured,
       },
