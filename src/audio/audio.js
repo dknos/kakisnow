@@ -62,9 +62,59 @@ const DUCK = 0.16;
  *  review rather than silently routing to nothing. */
 const BUS_NAMES = ["music", "sfx", "ambience", "ui"];
 
+/**
+ * The musical states are deliberately a closed vocabulary.  The director can
+ * move between them without knowing how the score is built, and a typo cannot
+ * silently leave a run in the menu mix.
+ */
+export const MUSIC_STATES = Object.freeze([
+    "menu", "order", "countdown", "run", "speed", "trick",
+    "avalanche", "big-air", "finish", "results", "tour-complete", "credits",
+]);
+
+/**
+ * One shared Snow-Burgers language: cold sustained pad, a clipped diner-radio
+ * pulse, a small melodic lift, and a low mountain throb.  Values are gain
+ * targets rather than songs.  That makes the crossfade continuous and avoids
+ * loading or starting a new source on every state change.
+ */
+const MUSIC_PROFILE = Object.freeze({
+    menu:          Object.freeze({ pad: 0.15, pulse: 0.025, lead: 0.025, bass: 0.015, pulseTone: 560, leadTone: 620 }),
+    order:         Object.freeze({ pad: 0.19, pulse: 0.050, lead: 0.085, bass: 0.018, pulseTone: 620, leadTone: 660 }),
+    countdown:     Object.freeze({ pad: 0.16, pulse: 0.080, lead: 0.12,  bass: 0.022, pulseTone: 700, leadTone: 700 }),
+    run:           Object.freeze({ pad: 0.12, pulse: 0.065, lead: 0.045, bass: 0.024, pulseTone: 680, leadTone: 660 }),
+    speed:         Object.freeze({ pad: 0.105, pulse: 0.10, lead: 0.075, bass: 0.028, pulseTone: 820, leadTone: 740 }),
+    trick:         Object.freeze({ pad: 0.10, pulse: 0.095, lead: 0.20,  bass: 0.024, pulseTone: 900, leadTone: 820 }),
+    avalanche:     Object.freeze({ pad: 0.14, pulse: 0.11, lead: 0.035, bass: 0.018, pulseTone: 520, leadTone: 540 }),
+    "big-air":    Object.freeze({ pad: 0.17, pulse: 0.095, lead: 0.24,  bass: 0.032, pulseTone: 860, leadTone: 880 }),
+    finish:        Object.freeze({ pad: 0.21, pulse: 0.075, lead: 0.28,  bass: 0.028, pulseTone: 720, leadTone: 760 }),
+    results:       Object.freeze({ pad: 0.18, pulse: 0.050, lead: 0.16,  bass: 0.020, pulseTone: 600, leadTone: 640 }),
+    "tour-complete": Object.freeze({ pad: 0.22, pulse: 0.09, lead: 0.34, bass: 0.036, pulseTone: 840, leadTone: 880 }),
+    credits:       Object.freeze({ pad: 0.14, pulse: 0.025, lead: 0.13,  bass: 0.015, pulseTone: 500, leadTone: 560 }),
+});
+
+const MUSIC_CROSSFADE = 0.32;
+
+/** A compact, original eight-step phrase in the same cold/diner key center. */
+const PHRASE_FREQUENCIES = Object.freeze([
+    261.63, 329.63, 392.00, 329.63,
+    293.66, 349.23, 440.00, 392.00,
+]);
+
+/** Step envelope for the held pulse voice; no per-note source is needed. */
+const PULSE_GATE = Object.freeze([
+    0.16, 0.72, 0.30, 0.58,
+    0.20, 0.68, 0.34, 0.86,
+]);
+
+const PHRASE_ACCENT = Object.freeze([
+    1.00, 0.58, 0.78, 0.58,
+    1.00, 0.58, 0.78, 0.58,
+]);
+
 /** @param {number} v @returns {number} v clamped to 0..1 */
 function clamp01(v) {
-    return Math.max(0, Math.min(1, v));
+    return Number.isFinite(v) ? Math.max(0, Math.min(1, v)) : 0;
 }
 
 export class GameAudio {
@@ -87,6 +137,22 @@ export class GameAudio {
         this._busVolumes = { music: 1, sfx: 1, ambience: 1, ui: 1 };
         /** @type {Record<string, GainNode>|null} */
         this.buses = null;
+        this._music = null;
+        this._musicState = "menu";
+        this._musicSpeed = 0;
+        this._musicTrick = 0;
+        this._musicAvalanche = 0;
+        this._musicBigAir = 0;
+        this._musicPhraseStep = -1;
+        this._musicPulseGate = PULSE_GATE[0];
+        this._musicPulseBase = 0;
+        this._musicPhraseLevel = 0;
+        this._musicPhraseFrequency = PHRASE_FREQUENCIES[0];
+        this._musicTransitionCount = 0;
+        this._musicUpdateCount = 0;
+        this._musicPhraseStepCount = 0;
+        this._focusPaused = false;
+        this._focusListenersAttached = false;
     }
 
     /**
@@ -132,16 +198,23 @@ export class GameAudio {
         this._buildGrind();
         this._buildSnowcat();
         this._buildRumble();
+        this._buildMusic();
+        this._applyMusicProfile(true);
 
         const unlock = () => {
             if (this.unlocked) return;
             this.unlocked = true;
             this.ctx.resume().catch(() => {});
-            window.removeEventListener("pointerdown", unlock);
-            window.removeEventListener("keydown", unlock);
+            if (globalThis.window?.removeEventListener) {
+                globalThis.window.removeEventListener("pointerdown", unlock);
+                globalThis.window.removeEventListener("keydown", unlock);
+            }
         };
-        window.addEventListener("pointerdown", unlock);
-        window.addEventListener("keydown", unlock);
+        if (globalThis.window?.addEventListener) {
+            globalThis.window.addEventListener("pointerdown", unlock);
+            globalThis.window.addEventListener("keydown", unlock);
+        }
+        this._attachFocusListeners();
     }
 
     setEnabled(on) {
@@ -151,7 +224,7 @@ export class GameAudio {
 
     /** @param {number} v 0..1 */
     setVolume(v) {
-        this.volume = Math.max(0, Math.min(1, v));
+        this.volume = clamp01(v);
         this._applyGain();
     }
 
@@ -182,6 +255,23 @@ export class GameAudio {
         this._applyGain();
     }
 
+    /**
+     * Focus/visibility safety hook for the host game.  PauseSystem already
+     * ducks on an intentional pause; this separate flag suspends only when the
+     * browser actually takes the tab away, so a background tab cannot keep a
+     * live oscillator graph consuming audio time.
+     */
+    setFocusPaused(on) {
+        this._focusPaused = !!on;
+        if (!this.ctx || !this.unlocked) return;
+        const operation = this._focusPaused ? this.ctx.suspend?.() : this.ctx.resume?.();
+        if (operation?.catch) operation.catch(() => {});
+    }
+
+    get focusPaused() {
+        return this._focusPaused;
+    }
+
     _applyGain() {
         if (!this.master) return;
         const level = this.enabled
@@ -191,7 +281,263 @@ export class GameAudio {
     }
 
     get ready() {
-        return !!this.ctx && this.unlocked && this.enabled;
+        return !!this.ctx && this.unlocked && this.enabled && !this._focusPaused;
+    }
+
+    // ---------------------------------------------------------- the score
+
+    /**
+     * Select a score state.  The graph is built once at init; later transitions
+     * only schedule gain targets on the held voices.  `immediate` is reserved
+     * for boot/retry edges where a stale menu phrase should not bleed into a
+     * new order.
+     *
+     * @param {string} state one of MUSIC_STATES
+     * @param {{immediate?: boolean}} [options]
+     * @returns {boolean} whether the state was accepted
+     */
+    setMusicState(state, options) {
+        const immediate = options?.immediate === true;
+        if (!Object.prototype.hasOwnProperty.call(MUSIC_PROFILE, state)) return false;
+        if (this._musicState === state && !immediate) return true;
+        this._musicState = state;
+        this._musicTransitionCount++;
+        if (this._music) this._applyMusicProfile(immediate);
+        return true;
+    }
+
+    get musicState() {
+        return this._musicState;
+    }
+
+    /**
+     * Continuous score telemetry.  Positional arguments are intentional: this
+     * function is safe to call from the render loop without creating a
+     * per-frame object.  The values only modulate held gains and filters.
+     *
+     * @param {number} speed01 current speed pressure
+     * @param {number} trick01 active combo/trick lift
+     * @param {number} avalanche01 avalanche pressure
+     * @param {number} bigAir01 airborne Big Air lift
+     */
+    updateMusic(speed01 = 0, trick01 = 0, avalanche01 = 0, bigAir01 = 0) {
+        this._musicUpdateCount++;
+        this._musicSpeed = clamp01(speed01);
+        this._musicTrick = clamp01(trick01);
+        this._musicAvalanche = clamp01(avalanche01);
+        this._musicBigAir = clamp01(bigAir01);
+        if (!this._music || !this.ctx || !this.enabled) return;
+
+        const t = this.ctx.currentTime;
+        const k = 0.10;
+        const profile = MUSIC_PROFILE[this._musicState];
+        const m = this._music;
+
+        // A held oscillator advances through a deterministic eight-step phrase
+        // on the audio clock. The guard means this schedules only at a phrase
+        // boundary, not once per render frame; there are no timers to leak on
+        // retry and no new node/source allocation.
+        const phraseStep = Math.floor(this.ctx.currentTime * 4) % PHRASE_FREQUENCIES.length;
+        if (phraseStep !== this._musicPhraseStep) {
+            this._musicPhraseStep = phraseStep;
+            this._musicPhraseStepCount++;
+            this._musicPulseGate = PULSE_GATE[phraseStep];
+            const accent = PHRASE_ACCENT[phraseStep];
+            const phraseLevel = Math.min(
+                0.30,
+                (profile.lead + 0.022 + this._musicTrick * 0.08 + this._musicBigAir * 0.11) *
+                1.05 * accent
+            );
+            this._musicPhraseLevel = phraseLevel;
+            this._musicPhraseFrequency = PHRASE_FREQUENCIES[phraseStep];
+            m.phraseOsc.frequency.setTargetAtTime(
+                this._musicPhraseFrequency, t, 0.018
+            );
+            m.phrase.gain.setTargetAtTime(phraseLevel, t, 0.018);
+        }
+
+        // All scalar arithmetic, with no newly allocated arrays, nodes, or
+        // helper objects on this hot path. The phrase gate is multiplied into
+        // the base pulse so these frame-rate writes cannot flatten the rhythm
+        // back into a drone.
+        this._musicPulseBase = Math.min(
+            0.20,
+            profile.pulse + this._musicSpeed * 0.035 + this._musicAvalanche * 0.045
+        );
+        m.pulse.gain.setTargetAtTime(
+            this._musicPulseBase * this._musicPulseGate, t, k
+        );
+        m.lead.gain.setTargetAtTime(
+            Math.min(0.34, profile.lead + this._musicTrick * 0.10 + this._musicBigAir * 0.13),
+            t, k
+        );
+        m.bass.gain.setTargetAtTime(
+            Math.min(0.055, profile.bass + this._musicAvalanche * 0.01 + this._musicSpeed * 0.006),
+            t, k
+        );
+        m.pulseTone.frequency.setTargetAtTime(
+            profile.pulseTone + this._musicSpeed * 100 + this._musicAvalanche * 70,
+            t, k
+        );
+        m.leadTone.frequency.setTargetAtTime(
+            profile.leadTone + this._musicTrick * 180 + this._musicBigAir * 260,
+            t, k
+        );
+        m.bassTone.frequency.setTargetAtTime(
+            112 + this._musicSpeed * 24 + this._musicAvalanche * 16, t, k
+        );
+    }
+
+    /**
+     * Non-allocating health snapshot useful to QA and future telemetry.  It is
+     * intentionally only called outside the frame loop by diagnostics/tests.
+     */
+    getMusicDiagnostics() {
+        return {
+            state: this._musicState,
+            crossfadeSeconds: MUSIC_CROSSFADE,
+            graphBuilt: !!this._music,
+            nodeCount: this._music?.nodeCount ?? 0,
+            speed01: this._musicSpeed,
+            trick01: this._musicTrick,
+            avalanche01: this._musicAvalanche,
+            bigAir01: this._musicBigAir,
+            pulseGate: this._musicPulseGate,
+            pulseBase: this._musicPulseBase,
+            phraseLevel: this._musicPhraseLevel,
+            phraseFrequency: this._musicPhraseFrequency,
+            transitionCount: this._musicTransitionCount,
+            updateCount: this._musicUpdateCount,
+            phraseStepCount: this._musicPhraseStepCount,
+        };
+    }
+
+    _applyMusicProfile(immediate = false) {
+        if (!this._music || !this.ctx) return;
+        const p = MUSIC_PROFILE[this._musicState];
+        const t = this.ctx.currentTime;
+        const k = immediate ? 0.005 : MUSIC_CROSSFADE;
+        const step = this._musicPhraseStep < 0 ? 0 : this._musicPhraseStep;
+        this._musicPulseBase = p.pulse;
+        this._musicPhraseLevel = Math.min(
+            0.30, (p.lead + 0.022) * 1.05 * PHRASE_ACCENT[step]
+        );
+        this._music.pad.gain.setTargetAtTime(p.pad, t, k);
+        this._music.pulse.gain.setTargetAtTime(
+            p.pulse * this._musicPulseGate, t, k
+        );
+        this._music.lead.gain.setTargetAtTime(p.lead, t, k);
+        this._music.bass.gain.setTargetAtTime(p.bass, t, k);
+        this._music.padTone.frequency.setTargetAtTime(this._musicState === "credits" ? 196 : 174, t, k);
+        this._music.pulseTone.frequency.setTargetAtTime(p.pulseTone, t, k);
+        this._music.leadTone.frequency.setTargetAtTime(p.leadTone, t, k);
+        this._music.phrase.gain.setTargetAtTime(this._musicPhraseLevel, t, k);
+        this._music.phraseTone.frequency.setTargetAtTime(
+            this._musicState === "avalanche" ? 920 : 1280, t, k
+        );
+    }
+
+    /**
+     * Build one restrained, original procedural score. The voices never stop
+     * during a session; state changes are crossfades, so retries cannot create
+     * a source/node pile-up or click at a musical seam.
+     */
+    _buildMusic() {
+        const ctx = this.ctx;
+        const bus = ctx.createGain();
+        bus.gain.value = 1;
+        bus.connect(this.buses.music);
+
+        const voice = (type, frequency, level = 0) => {
+            const osc = ctx.createOscillator();
+            osc.type = type;
+            osc.frequency.value = frequency;
+            const gain = ctx.createGain();
+            gain.gain.value = level;
+            osc.connect(gain).connect(bus);
+            osc.start();
+            return { osc, gain };
+        };
+
+        const pad = voice("triangle", 174);
+        const pulse = voice("triangle", 348);
+        const lead = voice("sine", 660);
+        const bass = voice("sine", 87);
+        const phrase = voice("triangle", PHRASE_FREQUENCIES[0]);
+        const pulseTone = ctx.createBiquadFilter();
+        pulseTone.type = "lowpass";
+        pulseTone.frequency.value = 680;
+        pulseTone.Q.value = 0.42;
+        pulse.gain.disconnect?.();
+        pulse.osc.disconnect?.();
+        pulse.osc.connect(pulse.gain).connect(pulseTone).connect(bus);
+        const padTone = ctx.createBiquadFilter();
+        padTone.type = "lowpass";
+        padTone.frequency.value = 760;
+        padTone.Q.value = 0.4;
+        // The pad was initially connected directly so the graph stays small;
+        // route its held oscillator through the filter now for a warmer bed.
+        // Reconnecting is setup-only, never a state/update operation.
+        pad.gain.disconnect?.();
+        pad.osc.disconnect?.();
+        pad.osc.connect(pad.gain).connect(padTone).connect(bus);
+
+        const leadTone = ctx.createBiquadFilter();
+        leadTone.type = "lowpass";
+        leadTone.frequency.value = 1500;
+        leadTone.Q.value = 0.45;
+        lead.gain.disconnect?.();
+        lead.osc.disconnect?.();
+        lead.osc.connect(lead.gain).connect(leadTone).connect(bus);
+
+        const bassTone = ctx.createBiquadFilter();
+        bassTone.type = "lowpass";
+        bassTone.frequency.value = 180;
+        bassTone.Q.value = 0.55;
+        bass.gain.disconnect?.();
+        bass.osc.disconnect?.();
+        bass.osc.connect(bass.gain).connect(bassTone).connect(bus);
+
+        const phraseTone = ctx.createBiquadFilter();
+        phraseTone.type = "lowpass";
+        phraseTone.frequency.value = 1280;
+        phraseTone.Q.value = 0.45;
+        phrase.gain.disconnect?.();
+        phrase.osc.disconnect?.();
+        phrase.osc.connect(phrase.gain).connect(phraseTone).connect(bus);
+
+        this._music = {
+            bus,
+            pad: pad.gain,
+            pulse: pulse.gain,
+            lead: lead.gain,
+            bass: bass.gain,
+            phrase: phrase.gain,
+            phraseOsc: phrase.osc,
+            padTone,
+            leadTone,
+            bassTone,
+            pulseTone,
+            phraseTone,
+            nodeCount: 16,
+        };
+    }
+
+    _attachFocusListeners() {
+        if (this._focusListenersAttached) return;
+        const doc = globalThis.document;
+        const win = globalThis.window;
+        if (!doc?.addEventListener && !win?.addEventListener) return;
+        this._focusListenersAttached = true;
+        if (doc?.addEventListener) {
+            doc.addEventListener("visibilitychange", () => {
+                this.setFocusPaused(doc.visibilityState === "hidden");
+            });
+        }
+        if (win?.addEventListener) {
+            win.addEventListener("blur", () => this.setFocusPaused(true));
+            win.addEventListener("focus", () => this.setFocusPaused(false));
+        }
     }
 
     // ------------------------------------------------------------ the rocket
@@ -262,15 +608,17 @@ export class GameAudio {
         const r = this._rocket;
         const t = this.ctx.currentTime;
         const k = 0.06;
+        const throttle01 = clamp01(throttle);
+        const speed01Safe = clamp01(speed01);
         // Airborne thrust is thinner: less of the engine couples back through
         // the board, and the brief asks for the two to read differently.
         const air = grounded ? 1 : 0.72;
-        r.bus.gain.setTargetAtTime(Math.min(1, throttle) * 0.55 * air, t, k);
-        r.body.frequency.setTargetAtTime(58 + throttle * 46 + speed01 * 14, t, k);
-        r.sub.frequency.setTargetAtTime(29 + throttle * 22, t, k);
-        r.subGain.gain.setTargetAtTime(Math.max(0, throttle - 0.55) * 0.5, t, k);
-        r.band.frequency.setTargetAtTime(520 + throttle * 1500 + speed01 * 400, t, k);
-        r.tone.frequency.setTargetAtTime(340 + throttle * 2600, t, k);
+        r.bus.gain.setTargetAtTime(throttle01 * 0.55 * air, t, k);
+        r.body.frequency.setTargetAtTime(58 + throttle01 * 46 + speed01Safe * 14, t, k);
+        r.sub.frequency.setTargetAtTime(29 + throttle01 * 22, t, k);
+        r.subGain.gain.setTargetAtTime(Math.max(0, throttle01 - 0.55) * 0.5, t, k);
+        r.band.frequency.setTargetAtTime(520 + throttle01 * 1500 + speed01Safe * 400, t, k);
+        r.tone.frequency.setTargetAtTime(340 + throttle01 * 2600, t, k);
     }
 
     /** A short bright transient on top of the ramp, when the engine lights. */
@@ -467,7 +815,7 @@ export class GameAudio {
     avalancheUpdate(intensity01) {
         if (!this.ready || !this._rumble) return;
         const t = this.ctx.currentTime;
-        const v = Math.max(0, Math.min(1, intensity01));
+        const v = clamp01(intensity01);
         this._rumble.bus.gain.setTargetAtTime(v * v * 0.55, t, 0.15);
         this._rumble.lp.frequency.setTargetAtTime(70 + v * 160, t, 0.15);
     }
@@ -476,7 +824,7 @@ export class GameAudio {
     snowcatUpdate(gain01) {
         if (!this.ready || !this._snowcat) return;
         const t = this.ctx.currentTime;
-        const v = Math.max(0, Math.min(1, gain01));
+        const v = clamp01(gain01);
         this._snowcat.bus.gain.setTargetAtTime(v * 0.34, t, 0.12);
         this._snowcat.engine.frequency.setTargetAtTime(42 + v * 10, t, 0.12);
     }
@@ -617,7 +965,7 @@ export class GameAudio {
      */
     scrape(level01 = 0.6) {
         if (!this.ready) return;
-        const v = Math.max(0, Math.min(1, level01));
+        const v = clamp01(level01);
         this._noiseHit({
             level: 0.08 + v * 0.14, attack: 0.004, decay: 0.14 + v * 0.1,
             from: 2100, to: 500, q: 1.8,

@@ -18,7 +18,8 @@
 
 export const GLACIER_GORGE = {
     id: "glacier-gorge",
-    version: 1,
+    // v2 reserves player-error margin in deterministic ingredient routes.
+    version: 2,
     title: "Glacier Gorge",
     subtitle: "The blue hour",
     difficulty: "double-black",

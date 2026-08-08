@@ -1,16 +1,18 @@
 # Asset and source provenance
 
-This inventory covers non-code assets vendored under `public/assets/`. Byte
-counts and SHA-256 hashes were measured from the local files on 2026-07-28.
-Source licenses remain controlling; this document does not grant additional
-rights.
+This inventory covers non-code assets vendored under `public/assets/`. The
+archival inventory was measured on 2026-07-28; the active Snow-Burgers runtime
+inventory, derivatives, and hashes were refreshed on 2026-08-07. Source
+licenses remain controlling; this document does not grant additional rights.
 
 The current procedural renderer does not sample the retained Poly Haven HDRI,
 Snow 02 scans, or generated mountain mattes. They remain vendored as archival
-art-study inputs and are not deleted or relicensed. RockerKaki, the snowboard
-she rides, and the shared Draco decoder are the only assets in this inventory
-loaded by the current runtime; RockerKaki is initialized during loading as the
-default playable hero.
+art-study inputs and are not deleted or relicensed. The active runtime loads
+RockerKaki, the classic snowboard, the shared Draco decoder, the thirteen
+procedural Snow-Burgers ingredient/burger/rocket-chair/camp/dressing models,
+the Big Air venue models, and the Snow-Burgers UI images listed by
+`art/generated-assets/snow-burgers/RUNTIME_MANIFEST.json`. RockerKaki is
+initialized during loading as the default playable hero.
 
 ## Imported renderer source — MIT
 
@@ -96,14 +98,62 @@ cylinder. The files are not fetched or decoded by the current renderer.
 
 ## RockerKaki character
 
-Status: project-owner-supplied, AI-generated runtime derivative. Created with
-Grok Imagine and Tencent HY 3D Global. It is not CC0 and is not offered as a
-standalone reusable asset. It is loaded as the default playable, unrigged hero;
-the procedural Snowbound figure remains selectable.
+Status: active project-owned procedural runtime source. RockerKaki remains the
+default playable hero and the procedural Snowbound figure remains selectable.
+The release runtime now uses a clean local replacement made from Blender
+primitives and a repository-local 64×64 palette. The source has no imported
+geometry, imported texture, network input, background-removal service, or
+third-party model dependency.
 
-The local source chain was recovered from browser history, Windows origin
+The reproducible source is `tools/generate-rockerkaki.py`, run with Blender
+5.1.1 using:
+
+```text
+blender --background --factory-startup --python tools/generate-rockerkaki.py
+```
+
+The generation record is
+`art/generated-assets/rockerkaki/GENERATION_RECORD.json`. It records the
+palette, source/rig outputs, exact byte counts and hashes, identity notes, and
+explicitly empty external-input arrays. The source mesh has one material,
+12,928 triangles, 8,962 exported rig vertices, and the recognizable RockerKaki
+silhouette: large chibi head, violet/white hair, small horns, dark alpine
+outfit, seated boots, and electric guitar.
+
+| Runtime/source | Path | Bytes | SHA-256 |
+| --- | --- | ---: | --- |
+| Source GLB | `public/assets/models/rockerkaki.glb` | 366,316 | `c3a4c7325e86db85f43a8bc06694cc4621cec7a1acfb7ea8dbcb6dc01424b602` |
+| Rigged GLB | `public/assets/models/rockerkaki-rigged.glb` | 555,636 | `c300cb1a1b581ac07d7f0319a4c0902340ee4d64520294a1ec4ac82fcb658007` |
+| Source blend | `art/rockerkaki-source.blend` | 340,075 | `10a73d6a01a10fbd82132ca1605fe478aeb7c526bed2328522fd7314567b086d` |
+| Editable rig blend | `art/rockerkaki-rig.blend` | 396,689 | `0cd42b7c301ccf756447b1db9b269259ccd02da9c075b005c00ffec07deb2d08` |
+| Palette | `art/generated-assets/rockerkaki/rockerkaki-palette.png` | 248 | `83a80a58ac2f0e34af5537ec6cd577cb5191fda14938eebec5748b0807fd63d7` |
+
+The rigging pass is reproducible with
+`blender --background --factory-startup --python tools/rig-rockerkaki.py`.
+The rig contains one root control and nine deform bones, with the
+`RockerBreath` action. `tools/validate-rockerkaki-rig.py` is the headless
+acceptance check. The source is intentionally held in its authored rigid pose
+at runtime because the mesh is made from many disconnected surface islands;
+ride, carve, jump and landing motion is applied to the complete model so its
+face, hair and guitar remain intact through the custom beauty, depth, prepass
+and shadow WGSL paths.
+
+The clean replacement passed Blender structure/turntable review, real Windows
+Chrome/WebGPU face review, and a full downhill traversal with zero console or
+GPU validation errors at 60 FPS. Those checks establish runtime and source
+integrity; they do not replace physical-controller, touch-device, human audio,
+human colour-vision, or exact target-GPU review.
+
+Two clean Blender 5.1.1 processes produced byte-identical source and rigged
+GLBs after canonicalization. Blender's editable `.blend` container metadata is
+not claimed byte-deterministic; the table and generation record identify the
+exact editable files carried by this release candidate.
+
+### Historical rejected source chain
+
+The former source chain was recovered from browser history, Windows origin
 metadata, embedded image metadata, texture comparison, and project Git
-history:
+history. It is retained for audit only and is not runtime:
 
 1. Grok concept image
    `grok-image-433071f4-1f4b-4b90-a03e-79199adf1239.png`
@@ -116,7 +166,7 @@ history:
    (SHA-256 prefix `c80b8661`).
 4. Project optimization commit
    `52ee61982ce66b8c5ad3ab7cd0490c82115991c7`, followed by the
-   40,000-triangle runtime derivative used here.
+   40,000-triangle former runtime derivative.
 
 - Original local source:
   `/home/nemoclaw/Kaki-Survivors-2/assets/breakroom/rockerkaki.glb`
@@ -128,7 +178,7 @@ history:
   - Size: 512,464 bytes.
   - SHA-256:
     `9fbf425a3d7afd2fb910acdc9faa25e7dc95cbc5b09b7288e7922073533948fe`
-- Shipped KAKISNOW copy: `public/assets/models/rockerkaki.glb`
+- Former shipped KAKISNOW copy (now rejected from runtime): `public/assets/models/rockerkaki.glb`
   - Size: 512,464 bytes.
   - SHA-256:
     `9fbf425a3d7afd2fb910acdc9faa25e7dc95cbc5b09b7288e7922073533948fe`
@@ -156,13 +206,13 @@ the face and guitar intact through the custom beauty, depth, prepass, and shadow
 WGSL paths. `tools/validate-rockerkaki-rig.py` is the headless Blender
 acceptance check.
 
-The current reproducible derivative hashes are:
+The historical reproducible derivative hashes are retained for audit only:
 
 - Source GLB: `9fbf425a3d7afd2fb910acdc9faa25e7dc95cbc5b09b7288e7922073533948fe`
 - Rigged GLB: `70e9e944297398013ec65d31af9b1f082b5eb9a3b9e632ac8361961033393d7c`
 - Editable BLEND: `c839dc7d3eb1f051b1eb3bfc7ebcc20a3f94245c8e0aa4d3f19c0febbd87201a`
 
-The applicable
+The historical chain's applicable
 [xAI terms](https://x.ai/legal/terms-of-service/previous-2026-04-10)
 state that users retain ownership of inputs and outputs and request attribution.
 The applicable
@@ -171,11 +221,10 @@ assign Tencent's output rights to the user subject to input rights and require
 AI disclosure. The remove.bg account/plan used in the chain could not be
 recovered; its
 [commercial-use policy](https://www.remove.bg/help/a/can-i-use-remove-bg-for-commercial-purposes)
-limits free/no-account outputs to noncommercial use. Accordingly, this local
-demo records the generator disclosure and keeps commercial redistribution
-gated on confirming a qualifying remove.bg plan or replacing that uncertain
-step. Do not describe RockerKaki as CC0 or extract it as a generally licensed
-asset.
+limits free/no-account outputs to noncommercial use. That chain was rejected
+from the active build; the clean local procedural source above contains no
+remove.bg output. Do not describe the historical chain as cleared or extract
+either chain as a generally licensed standalone asset.
 
 ## Snowboard — CC BY 4.0, runtime
 
@@ -252,19 +301,20 @@ notices. The production build includes the combined notice and license text as
 `THIRD_PARTY_NOTICES.txt`. The decoder is initialized during loading so the
 default RockerKaki model can be displayed without a runtime network fetch.
 
-## Snow-Burgers game assets — provenance unresolved
+## Historical supplied Snow-Burgers game assets — not runtime
 
 Seven GLBs supplied by the project owner from a local `Downloads` folder on
 2026-08-05: five ingredients, the completed burger, and the rocket chair
-snowboard. They are the pickups, the reward and the second vehicle of the
-Snow-Burgers game layer.
+snowboard. These were the former pickups, reward, and second vehicle of the
+Snow-Burgers game layer; they are preserved for audit only and are no longer
+loaded by the runtime after the 2026-08-07 procedural replacement promotion.
 
 **None of them carries a licence.** Every one reports `copyright: null` and an
 empty `extras`; five have Sketchfab download signatures in their node names and
 two are generated assets whose textures are dated 2025-09-01. Being supplied
-locally establishes nothing about redistribution rights, and nothing here
-should be read as commercial clearance. This is the same unresolved status
-RockerKaki carries, recorded rather than resolved.
+locally establishes nothing about redistribution rights. These historical files
+are not part of the active release asset set; the active replacements and their
+conditional output basis are recorded below and in `ASSET_LEDGER.md`.
 
 Source files are preserved on the authoring machine at
 `art/source-assets/snow-burgers/*-source.glb` and excluded from version
@@ -295,15 +345,14 @@ decimation are in `art/source-assets/snow-burgers/OPTIMIZATION_REPORT.md`.
 Runtime SHA-256 hashes are in `OPTIMIZATION_REPORT.json`; validator results are
 in `VALIDATION.json`.
 
-## Camp and dressing derivatives (added with the game expansion)
+## Historical supplied camp and dressing derivatives — not runtime
 
-Six runtime GLBs produced by `tools/snow-burgers/optimize-dressing.mjs` from
+Six former runtime GLBs produced by `tools/snow-burgers/optimize-dressing.mjs` from
 supplied sources at `art/source-assets/snow-burgers/` (bush/fir-set/hut/pine/
 rock/village-source.glb, preserved locally, excluded from git like the seven
-ingredient sources). **Provenance: unresolved**, the same status as the seven
-audited game assets — `copyright: null`, empty `extras`, supplied locally,
-which establishes nothing about redistribution rights. Recorded here so the
-count of unresolved assets is honest rather than smaller than reality.
+ingredient sources). **Provenance: unresolved historical inputs** — these are
+not the files loaded by the current build. The active camp/dressing replacements
+are the promoted procedural GLBs documented below.
 
 | Runtime file | Bytes | SHA-256 (first 16) | Used by |
 | --- | ---: | --- | --- |
@@ -321,6 +370,64 @@ spec-gloss source run through it will light as raw metal (the tomato trap).
 Everything the expansion itself added — rails, ice sheets, snowcats, tapes,
 camp primitives — is procedural geometry with no external source, and every
 sound remains synthesised at runtime.
+
+## KAKISNOW original replacement set — promoted 2026-08-07
+
+To resolve the rights gap without relying on the supplied files,
+`tools/snow-burgers/generate-original-assets.py` builds all thirteen central
+and camp/dressing replacement GLBs from Blender primitives and mesh code. It
+imports no source asset and embeds no external texture. The generator was
+created in an owner-directed AI-assisted Codex session. The independent
+critic-approved exact files were promoted into the active runtime on
+2026-08-07; `art/generated-assets/snow-burgers/` remains the reproducible source
+directory and `public/assets/models/snow-burgers/` is the exact runtime copy.
+
+The conditional output basis is documented in `ASSET_LEDGER.md`: the
+[OpenAI Terms of Use](https://openai.com/policies/terms-of-use/) describe user
+ownership of Output as between OpenAI and user, subject to input rights and
+non-uniqueness; the [OpenAI Service Terms](https://openai.com/policies/service-terms/)
+warn that code-generation output may be subject to third-party licenses. This
+record does not assert copyrightability, exclusivity, or blanket commercial
+clearance. No model, texture, or network input entered the local generator.
+
+- Candidate source: `tools/snow-burgers/generate-original-assets.py`.
+- Candidate validation: `tools/snow-burgers/validate-original-assets.mjs`.
+- Candidate manifest/hashes: `art/generated-assets/snow-burgers/VALIDATION.json`.
+- Neutral turntable QA: `screenshots/final-gauntlet/assets/candidate/qa-round4-final/all-assets-contact-sheet.png` (four reviewed views for all 13 promoted GLBs).
+- Pre-promotion measurements and hash proof: `screenshots/final-gauntlet/assets/candidate/runtime-round4/RUNTIME_EVIDENCE.md` and `HASH_PROOF.md`; high-volume raw frames remain local evidence rather than release-package weight.
+- Post-promotion runtime hashes: `screenshots/final-gauntlet/assets/candidate/runtime-promoted-hashes.sha256`.
+- Runtime status: all 13 active paths match the generated source hashes exactly;
+  no external inputs are embedded.
+- Rights statement: the no-import process and conditional OpenAI output basis
+  are documented without a copyrightability, exclusivity, or blanket
+  commercial-clearance conclusion. The clean local RockerKaki source is
+  separately hash-locked above; the former remove.bg chain is rejected
+  non-runtime history.
+
+The former supplied GLBs remain preserved and untouched as historical audit
+inputs. Runtime validation, WebGPU captures, and the exact promoted hashes are
+required evidence for this replacement set.
+
+## Snow-Burgers social preview — AI-generated and rights-review gated
+
+`public/assets/ui/snow-burgers/social-preview.webp` is an AI-generated product
+artwork derivative, not a gameplay capture or a third-party licensed image.
+The built-in image-generation tool did not expose a more specific model
+identifier. The source, narrow edit, prompt, and local derivative command are
+retained in `art/generated-assets/2d/social-preview-generation.md`. This record
+does not assert project ownership or commercial rights; owner review and the
+applicable generation-tool terms remain controlling.
+
+| File | Relationship | Dimensions | Bytes | SHA-256 |
+| --- | --- | ---: | ---: | --- |
+| `art/generated-assets/2d/social-preview-source-v1.png` | Original generated source retained for audit | 1672×941 | 2,132,512 | `e778ce8591e5aecd52a15de7db0b2c52210b42f2eab42b513963e8ef167b26c4` |
+| `art/generated-assets/2d/social-preview-source.png` | Image-generation edit removing one isolated sky speck | 1672×941 | 2,233,322 | `75cbc43e31ac5c831db211c91948190bdc1bae99f788e2043fd12634c123c237` |
+| `public/assets/ui/snow-burgers/social-preview.webp` | Locally encoded runtime/social derivative | 1200×630 | 111,080 | `f5c8582750dbe49cbd9f209f10c28ffa5066a28c2513ee7b492dffd005eb222e` |
+
+The local derivative was encoded from the edited source with FFmpeg 7.0.2
+using the command retained in the generation record. It uses no network input,
+brand, watermark, or external asset; disclosure remains part of the release
+package.
 
 ## Big Air Basin venue — CC BY 4.0, runtime
 

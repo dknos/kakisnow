@@ -71,6 +71,7 @@ const PROPS = {
 
 const STEEL = new Color3(0.34, 0.36, 0.40);
 const CABLE = new Color3(0.12, 0.12, 0.14);
+const LANDING_CUE = new Color3(0.92, 0.18, 0.06);
 
 export class JumpVenue {
     constructor({ scene, sky, shadows, depthPass, terrain, course }) {
@@ -90,6 +91,8 @@ export class JumpVenue {
         this.propCount = 0;
         this.drawCalls = 0;
         this.triangles = 0;
+        /** Camera-only occluders; venue props remain non-solid to the rider. */
+        this.cameraCollisionBuilt = false;
     }
 
     /** Whether this course has a venue at all. Most do not. */
@@ -218,6 +221,7 @@ export class JumpVenue {
         for (const w of v.windsocks ?? []) place("windsock", w.x, w.z, { ry: w.ry ?? 0 });
         this._lights(v, place);
         this._lift(v, place);
+        this._landingCue(v);
 
         for (const [key, b] of buckets) {
             if (!b.idx.length) continue;
@@ -237,6 +241,140 @@ export class JumpVenue {
         this.asset.available = this.asset.meshes.length > 0;
         this.asset.setActive(false);
         this.built = true;
+    }
+
+    /**
+     * A restrained, world-space read of the authored landing zone. The cue is
+     * deliberately inside the ride line and low enough to stay a landing
+     * marker rather than a new obstacle: two orange safety poles bracket the
+     * measured touchdown and two transverse snow stripes give the eye a
+     * readable near/far target while airborne.
+     */
+    _landingCue(v) {
+        const jump = this.course.terrain?.skiJumps?.[0];
+        if (!jump || !v) return;
+        const z = jump.lipZ + 50;
+        const halfWidth = 12;
+        const poleHeight = 4.8;
+        for (const x of [-halfWidth, halfWidth]) {
+            const ground = this.terrain.heightAt(x, z);
+            this._post(x, z, ground, poleHeight, 0.16, LANDING_CUE);
+            // A short cap makes the marker legible against a white ridge even
+            // when the full pole is partly hidden by the landing slope.
+            this._post(x, z + 0.2, ground + poleHeight - 0.18, 0.36, 0.24, LANDING_CUE);
+        }
+        const y = this.terrain.heightAt(0, z) + 0.13;
+        for (const offset of [-4, 4]) {
+            this._beam(
+                -halfWidth, y, z + offset,
+                halfWidth, y, z + offset,
+                0.22, LANDING_CUE
+            );
+        }
+    }
+
+    /**
+     * Add bounded camera occluders for the authored Big Air venue.
+     *
+     * These records deliberately live in a camera-only CollisionWorld. The
+     * crowd, flags and safety infrastructure should frame a jump without
+     * turning into surprise gameplay walls. Dimensions follow the same authored
+     * placement loops as `build()` and use cheap capsules/boxes instead of
+     * imported render triangles.
+     *
+     * @param {import("./collisionWorld.js").CollisionWorld} world
+     */
+    buildCameraCollision(world) {
+        if (this.cameraCollisionBuilt || !world || !this.wanted) return;
+        const v = this.course.venue;
+        const g = (x, z) => this.terrain.heightAt(x, z);
+        const addPost = (x, z, height, radius, kind) => {
+            const ground = g(x, z);
+            world.addCapsule({
+                ax: x, ay: ground, az: z,
+                bx: x, by: ground + height, bz: z,
+                r: radius, kind, data: null,
+            });
+        };
+        const addBox = (x, y, z, hx, hy, hz, kind, ry = 0) => world.addBox({
+            x, y, z, hx, hy, hz, ry, kind, data: null,
+        });
+
+        const gantry = v.gantry;
+        if (gantry) {
+            const bay = PROPS.scaffold.height;
+            for (const side of [-1, 1]) {
+                const x = side * gantry.halfWidth;
+                const ground = g(x, gantry.z);
+                addBox(x, ground + gantry.bays * bay * 0.5, gantry.z,
+                    0.8, gantry.bays * bay * 0.5, 0.8, "venue-gantry", Math.PI / 2);
+                addPost(x + side * 1.4, gantry.z, gantry.bays * bay, 0.16, "venue-gantry");
+            }
+            addBox(0, g(0, gantry.z) + gantry.bays * bay + 0.5,
+                gantry.z, gantry.halfWidth, 0.2, 0.2, "venue-gantry");
+        }
+
+        const judges = v.judges;
+        if (judges) {
+            const ground = g(judges.x, judges.z);
+            addBox(judges.x, ground + (judges.height ?? 16) * 0.5, judges.z,
+                7.0, (judges.height ?? 16) * 0.5, 7.0,
+                "venue-judges", judges.ry ?? 0);
+        }
+
+        const stands = v.stands;
+        if (stands) {
+            for (let z = stands.zFrom; z <= stands.zTo; z += stands.spacing) {
+                for (const side of [-1, 1]) {
+                    let x = side * stands.innerX;
+                    let last = g(x, z);
+                    let placed = 0;
+                    while (placed < stands.tiers && Math.abs(x) < stands.outerX) {
+                        x += side * 2;
+                        const h = g(x, z);
+                        if (h - last < stands.rise) continue;
+                        addBox(x, h + PROPS.bleacher.height * 0.5, z,
+                            2.2, PROPS.bleacher.height * 0.5, 0.7,
+                            "venue-stands", side > 0 ? Math.PI / 2 : -Math.PI / 2);
+                        last = h;
+                        placed++;
+                    }
+                }
+            }
+        }
+
+        // The authored flags use a symmetric half-width rather than x fields.
+        if (v.flags) {
+            for (let z = v.flags.zFrom; z <= v.flags.zTo; z += v.flags.spacing) {
+                for (const side of [-1, 1]) {
+                    addPost(side * v.flags.halfWidth, z, PROPS.flag.height, 0.12, "venue-flag");
+                }
+            }
+        }
+        for (const w of v.windsocks ?? []) {
+            addPost(w.x, w.z, PROPS.windsock.height, 0.16, "venue-windsock");
+        }
+        for (const l of v.lights ?? []) {
+            addPost(l.x, l.z, l.height ?? 14, 0.22, "venue-light");
+        }
+
+        const lift = v.lift;
+        if (lift && lift.pylons > 0) {
+            const span = lift.zTo - lift.zFrom;
+            for (let i = 0; i <= lift.pylons; i++) {
+                const z = lift.zFrom + (span * i) / lift.pylons;
+                addPost(lift.x, z, lift.height, 0.30, "venue-lift");
+            }
+            for (let i = 0; i < lift.chairs; i++) {
+                const z = lift.zFrom + span * ((i + 0.5) / lift.chairs);
+                const ground = g(lift.x, z);
+                world.addSphere({
+                    x: lift.x, y: ground + lift.height - 3.4, z,
+                    r: 0.8, kind: "venue-chair", data: null,
+                });
+            }
+        }
+        this.cameraCollisionBuilt = true;
     }
 
     /**

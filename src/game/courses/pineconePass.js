@@ -13,7 +13,7 @@
  * the "bigger jumps" of the ridge route are the ridge itself running out, not
  * an authored kicker crossing both lanes.
  *
- * Route maths that are load-bearing (the 0.84 lateral-ratio rule): the creek
+ * Route maths that are load-bearing (the 0.66 release route budget): the creek
  * and shelf zones sit 70+ metres apart along z, so a route that picks the
  * creek's Patty and the shelf's Tomato stays inside a rider's turning
  * authority. Tighten these spans and `selectRoute` starts exhausting retries.
@@ -21,7 +21,8 @@
 
 export const PINECONE_PASS = {
     id: "pinecone-pass",
-    version: 1,
+    // v2 reserves player-error margin in deterministic ingredient routes.
+    version: 2,
     title: "Pinecone Pass",
     subtitle: "The treeline split",
     difficulty: "black",

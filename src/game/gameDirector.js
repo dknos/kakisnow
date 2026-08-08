@@ -54,9 +54,19 @@ import { SurfaceStrips } from "./surfaceStrips.js";
 import { Snowcats } from "./snowcats.js";
 import { Avalanche } from "./avalanche.js";
 import { RecipeTapes } from "./secrets.js";
-import { tourState } from "./progression.js";
+import { tourState, completionStats } from "./progression.js";
+import { resetPlayerSettings } from "../core/playerSettings.js";
+import { resetBindings } from "../core/playerBindings.js";
+import { getInputFamily } from "../core/inputFamily.js";
+import { ridePrompts } from "../ui/inputPrompts.js";
 
 import { Mode } from "./modes.js";
+import { shouldShowHint } from "../ui/hintVisibility.js";
+import { predictLandingAim } from "../core/cameraMath.js";
+import {
+    BigAirFlightTelemetry,
+    isBigAirCourse,
+} from "./bigAirFlight.js";
 export { Mode };
 
 /** Seconds the burger assembly plays before the results screen. */
@@ -160,6 +170,8 @@ export class GameDirector {
         });
 
         this.mode = Mode.TITLE;
+        /** The legacy control line is a director decision, not a timer. */
+        this._hintMode = Mode.TITLE;
         /** Written by the pause system; read by anything that must not creep. */
         this.paused = false;
         /** What the rider was on before the Rocket Board Test borrowed them. */
@@ -169,6 +181,7 @@ export class GameDirector {
         this._alertShown = null;
         /** Rig state on entering the assembly, restored when it ends. */
         this._camEntry = new Vector3();
+        this._camEntryDistance = this.rig.distance;
 
         audio.init();
         this._lastCount = -1;
@@ -180,6 +193,12 @@ export class GameDirector {
         this.safeSpots = new SafeSpots(this.course);
         /** Solid things. Filled from the dressing's records after load. */
         this.collision = new CollisionWorld();
+        /**
+         * Render-only occluders for the camera. Finish and venue structures
+         * should block the spring arm without changing the rider's collision
+         * or recovery rules.
+         */
+        this.cameraCollision = new CollisionWorld();
         /** Grind rails: meshes plus their segment colliders. */
         this.rails = new RailField({
             scene: deps.scene, sky: deps.sky, shadows: deps.shadows,
@@ -223,6 +242,27 @@ export class GameDirector {
         this._nearId = 0;
         this._nearDz = 0;
         this._nearCool = 0;
+        this._captionCool = 0;
+        this._snowcatCaption = false;
+        this._fuelCaption = false;
+        this._manualJumpEdge = false;
+        /** Controller-authoritative metrics for Big Air's signature flight. */
+        this.bigAirFlight = new BigAirFlightTelemetry({
+            lipZ: this.course.terrain?.skiJumps?.[0]?.lipZ,
+        });
+        // Reused scalar aim state for the signature-flight camera. The aim is
+        // refreshed a few times per flight, not every frame, so the terrain
+        // truth remains cheap even on a dense custom height field.
+        this._bigAirAimCool = 0;
+        this._bigAirAimValid = false;
+        this._bigAirAimX = 0;
+        this._bigAirAimY = 0;
+        this._bigAirAimZ = 0;
+        this._bigAirAimInput = {
+            x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0,
+            groundAt: (x, z) => this.terrain.heightAt(x, z),
+        };
+        this._bigAirAimOutput = {};
 
         this.ui = new SnowBurgersUi({
             onSelectMode: (m) => { audio.ui("confirm"); this.selectMode(m); },
@@ -233,11 +273,19 @@ export class GameDirector {
             onRetry: () => { audio.ui("confirm"); this.run.retry(); },
             onNextOrder: () => { audio.ui("confirm"); this.startBurgerRun(); },
             onMenu: () => { audio.ui(); this.selectMode(Mode.TITLE); },
+            onBook: () => { audio.ui("confirm"); this.openBurgerBook(); },
+            onCredits: () => { audio.ui("confirm"); this.openCredits(); },
+            onBookEvent: (eventId, courseId) => { audio.ui("confirm"); this.startBookEvent(eventId, courseId); },
+            onSaveAction: (action, payload) => { audio.ui("confirm"); this.handleSaveAction(action, payload); },
+            onScreenVisibilityChange: () => this.syncHintVisibility(),
         });
 
         this.field.onCollect = (id) => {
             this.run.noteCollected(id);
             this.ui.markCollected(id);
+            if (S.hazardWarnings !== false) {
+                this.ui.setCaption("ingredient", { label: INGREDIENTS[id]?.label ?? id });
+            }
             audio.pickup(id);
             // The order and the engine are the same decision: the detour that
             // costs time also buys back the boost that wins it.
@@ -246,6 +294,16 @@ export class GameDirector {
         this.run.onStateChange = (next, prev) => this._onRunState(next, prev);
 
         this._refreshTitleMenu();
+    }
+
+    /**
+     * Keep the legacy control hint in lockstep with game mode and screens.
+     * Labs may show it during active riding, while title/order/results/pause
+     * and settings always own the screen and suppress it.
+     */
+    syncHintVisibility() {
+        const screenVisible = this.ui?.anyScreenVisible?.() ?? true;
+        this.deps.setHintVisible?.(shouldShowHint(this._hintMode, screenVisible));
     }
 
     /**
@@ -269,6 +327,7 @@ export class GameDirector {
         this.ui.setTitleMenu({
             course: this.course,
             continueEntry,
+            completion: completionStats(this.book.book),
             events: this.course.events.map((id) => getEvent(id)),
             otherCourses: Object.values(COURSES)
                 .filter((c) => c.id !== this.course.id)
@@ -286,6 +345,92 @@ export class GameDirector {
         try { return !!getEvent(id); } catch { return false; }
     }
 
+    /** Open the persistent book as a player-facing desk, not a debug panel. */
+    openBurgerBook() {
+        if (this.mode !== Mode.TITLE) this.selectMode(Mode.TITLE);
+        this.ui.showBurgerBook(this.book.book, this.course.id);
+        audio.setMusicState("menu", { immediate: true });
+    }
+
+    openCredits() {
+        if (this.mode !== Mode.TITLE) this.selectMode(Mode.TITLE);
+        this.ui.showCredits();
+        audio.setMusicState("credits", { immediate: true });
+    }
+
+    startBookEvent(eventId, courseId) {
+        const event = getEvent(eventId);
+        if (!event || event.courseId !== courseId) return;
+        if (!tourState(this.book.book)[courseId]?.unlocked) return;
+        if (event.courseId === this.course.id) {
+            this.startEvent(eventId);
+            return;
+        }
+        this.book.setLastSelected(courseId, eventId);
+        const url = new URL(location.href);
+        url.searchParams.set("course", courseId);
+        url.searchParams.set("event", eventId);
+        url.searchParams.set("mode", "burger-run");
+        location.assign(url.toString());
+    }
+
+    handleSaveAction(action, payload = null) {
+        if (action === "export") {
+            const blob = new Blob([this.book.exportSave()], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = "snow-burgers-save.json";
+            link.click();
+            setTimeout(() => URL.revokeObjectURL(url), 0);
+            this.ui.showNotice("save exported");
+            return;
+        }
+        if (action === "clear-ghosts") {
+            this.ui.showSaveConfirm("clear-ghosts");
+            return;
+        }
+        if (action === "reset") {
+            this.ui.showSaveConfirm("reset");
+            return;
+        }
+        if (action === "reset-settings") {
+            this.ui.showSaveConfirm("reset-settings");
+            return;
+        }
+        if (action === "reset-bindings") {
+            this.ui.showSaveConfirm("reset-bindings");
+            return;
+        }
+        if (action === "confirm") {
+            if (payload === "clear-ghosts") {
+                this.book.clearGhosts();
+                this.ui.showBurgerBook(this.book.book, this.course.id);
+            } else if (payload === "reset") {
+                this.book.reset();
+                this._refreshTitleMenu();
+                this.selectMode(Mode.TITLE);
+            } else if (payload === "reset-settings") {
+                resetPlayerSettings();
+                this.ui.showSettingsAfterReset?.();
+            } else if (payload === "reset-bindings") {
+                resetBindings();
+                this.ui.showSettingsAfterReset?.();
+            }
+            return;
+        }
+        if (action === "import") {
+            const outcome = this.book.importSave(payload ?? "");
+            if (!outcome.ok) {
+                this.ui.showBookMessage(outcome.error);
+                return;
+            }
+            this._refreshTitleMenu();
+            this.ui.showBurgerBook(this.book.book, this.course.id);
+            return;
+        }
+    }
+
     /** Continue: same course starts it; another course travels with intent. */
     continueLast() {
         const last = this.book.book.lastSelected;
@@ -297,7 +442,7 @@ export class GameDirector {
         const url = new URL(location.href);
         url.searchParams.set("course", last.courseId);
         url.searchParams.set("event", last.eventId);
-        url.searchParams.delete("mode");
+        url.searchParams.set("mode", "burger-run");
         location.assign(url.toString());
     }
 
@@ -333,6 +478,9 @@ export class GameDirector {
         // rows up the bowl wall by sampling it.
         await this.venue.load();
         this.venue.build();
+        this.cameraCollision.clear();
+        this.camp.buildCameraCollision(this.cameraCollision);
+        this.venue.buildCameraCollision(this.cameraCollision);
         const loaded = await this.field.load(INGREDIENT_IDS);
         const burgerOk = await this.burger.load(BURGER_MODEL);
         if (!burgerOk) {
@@ -344,6 +492,11 @@ export class GameDirector {
         this.rails.build(this.course);
         this.surfaces.build(this.course);
         this.snowcats.build(this.course);
+        // Gameplay colliders cover trees, rocks, rails and moving snowcats;
+        // the separate world covers finish/venue structures without making any
+        // of those render-only props player-solid.
+        this.rig.obstacleWorld = this.collision;
+        this.rig.cameraWorld = this.cameraCollision;
         this.tapes.build(this.course);
         return { ingredients: loaded, burger: burgerOk };
     }
@@ -433,6 +586,9 @@ export class GameDirector {
     selectMode(mode) {
         const prev = this.mode;
         this.mode = mode;
+        this._hintMode = mode;
+        this.rig.setAirborneContext(null);
+        this.syncHintVisibility();
         // Leaving the Rocket Board Test hands back what it borrowed. Without
         // this the test leaked `vehicle=rocket-chair` and an infinite tank
         // into whatever mode came next.
@@ -472,9 +628,13 @@ export class GameDirector {
                 this.ghost.clear();
                 this.ui.hideAll();
                 this._setCourseHudVisible(true);
+                audio.setMusicState("run", { immediate: true });
+                audio.updateMusic(0, 0, 0, 0);
                 break;
             case Mode.ROCKET_TEST:
                 this._startRocketTest();
+                audio.setMusicState("run", { immediate: true });
+                audio.updateMusic(0, 0, 0, 0);
                 break;
             case Mode.TITLE:
             default:
@@ -485,8 +645,11 @@ export class GameDirector {
                 this.ghost.clear();
                 this.ui.showTitle();
                 this._setCourseHudVisible(false);
+                audio.setMusicState("menu", { immediate: true });
+                audio.updateMusic(0, 0, 0, 0);
                 break;
         }
+        this.syncHintVisibility();
     }
 
     /**
@@ -695,6 +858,11 @@ export class GameDirector {
      * @param {number} dt
      */
     update(dt) {
+        // Snapshot the one-frame jump edge before physics consumes it. Natural
+        // terrain airtime must not dismiss the first-run jump lesson.
+        this._jumpActionEdge = !!input.jumpPressed;
+        this._steerActionSeen = Math.abs(input.moveX) > 0.3;
+        this._captionCool = Math.max(0, this._captionCool - Math.max(0, dt));
         // Surface truth applies in every mode — visual ice that behaved like
         // powder in the lab would make the lab a liar.
         const c = this.controller;
@@ -706,6 +874,15 @@ export class GameDirector {
             this.mode === Mode.FREE_RIDE ? 0 : dt, c.position
         );
         if (this.mode !== Mode.FREE_RIDE) audio.snowcatUpdate(catProx);
+        if (this.mode !== Mode.FREE_RIDE && S.hazardWarnings !== false) {
+            if (catProx > 0.68 && !this._snowcatCaption && this._captionCool <= 0) {
+                this._snowcatCaption = true;
+                this._captionCool = 1.2;
+                this.ui.setCaption("snowcat", { distance: (1 - catProx) * 60 });
+            } else if (catProx < 0.42) {
+                this._snowcatCaption = false;
+            }
+        }
         // Tapes collect everywhere the board rides — the labs included; a
         // secret that only counts during a scored run is homework.
         this.tapes.update(c.position);
@@ -716,17 +893,20 @@ export class GameDirector {
             // combos, board audio — stays out; Free Ride Lab is the original
             // snow study and keeps sounding like it.
             this._updateRecovery(false);
+            this._updateRideMusic(c.speed01, 0, 0, 0);
             return;
         }
         if (this.mode === Mode.ROCKET_TEST) {
             this._updateFeel(dt);
             if (this.rocketChair) this.ui.setFuel(this.rocketChair.thrust.level, true);
             this._updateEngineAudio();
+            this._updateRideMusic(c.speed01, 0, 0, 0);
             return;
         }
         if (this.mode !== Mode.BURGER_RUN) return;
 
         this._updateFeel(dt);
+        this._updateBigAirCamera(dt);
         const state = this.run.state;
         // The run reads telemetry rather than the vehicle, so a run on the
         // classic board scores against a `null` and the results screen says
@@ -742,6 +922,7 @@ export class GameDirector {
         this.run.update(dt);
         this.field.update(dt, this.run.time, state === RunState.RUN);
         this._updateEngineAudio();
+        let avalancheMusic = 0;
 
         switch (state) {
             case RunState.ORDER:
@@ -763,9 +944,12 @@ export class GameDirector {
                 );
                 if (ava) {
                     this.ui.setAvalanche(ava.distance);
-                    audio.avalancheUpdate(
-                        Math.max(0, 1 - ava.distance / 70)
-                    );
+                    if (S.hazardWarnings !== false && ava.distance < 25 && this._captionCool <= 0) {
+                        this._captionCool = 1.2;
+                        this.ui.setCaption("avalanche", { distance: ava.distance });
+                    }
+                    avalancheMusic = Math.max(0, 1 - ava.distance / 70);
+                    audio.avalancheUpdate(avalancheMusic);
                     if (ava.caught && !this.controller.crashed) {
                         // Caught: exactly one crash, and the wall grants the
                         // relief window the reset gives it.
@@ -785,6 +969,15 @@ export class GameDirector {
                     this.rocketChair?.thrust.level ?? 0,
                     !!this.rocketChair?.active
                 );
+                const fuelLevel = this.rocketChair?.thrust.level ?? 1;
+                if (this.rocketChair?.active && S.hazardWarnings !== false &&
+                    fuelLevel < 0.25 && !this._fuelCaption && this._captionCool <= 0) {
+                    this._fuelCaption = true;
+                    this._captionCool = 1.2;
+                    this.ui.setCaption("fuel", { level: fuelLevel });
+                } else if (fuelLevel >= 0.3) {
+                    this._fuelCaption = false;
+                }
                 this._updateAlert();
                 break;
             }
@@ -798,6 +991,20 @@ export class GameDirector {
             default:
                 break;
         }
+
+        if (state === RunState.RUN && this.run.state === RunState.RUN) {
+            // Read tracker scalars directly so this bridge does not call the
+            // allocating `open` getter in the frame loop.
+            const trickMusic = this.tracker._comboCount > 0
+                ? Math.min(1, this.tracker._comboScore / 600) : 0;
+            const bigAirMusic = isBigAirCourse(this.course)
+                ? (this.bigAirFlight.inFlight ? 1
+                    : this.bigAirFlight.hold > 0 ? 0.55 : 0)
+                : 0;
+            this._updateRideMusic(
+                c.speed01, trickMusic, avalancheMusic, bigAirMusic
+            );
+        }
     }
 
     /**
@@ -809,12 +1016,18 @@ export class GameDirector {
     _updateFeel(dt) {
         const c = this.controller;
 
+        this.bigAirFlight.tick(dt);
+
         // ------------------------------------------------------- air + land
         if (c.airborne && !this._wasAirborne) {
             this.tracker.beginAir({ onKicker: this._nearKicker(c.position.z) });
+            if (isBigAirCourse(this.course) && this.bigAirFlight.shouldBegin(c)) {
+                this.bigAirFlight.begin(c, this.run.vehicleId ?? S.vehicle);
+            }
             audio.jump(Math.min(1, Math.max(0, c.verticalVelocity) / 8));
         }
         if (c.airborne) {
+            this.bigAirFlight.observe(c, dt);
             // The tracker's pitch convention is negative-nose-down; the
             // controller's flip is positive-nose-down (Babylon's +X). One
             // negation, here, at the single point the two meet.
@@ -824,7 +1037,12 @@ export class GameDirector {
         if (c.landed) {
             const grade = c.landingGrade ?? "clean";
             const res = this.tracker.land(grade);
+            const flight = isBigAirCourse(this.course)
+                ? this.bigAirFlight.finish(c, res)
+                : null;
+            if (flight) this.run.flightTelemetry = flight;
             this.ui.flashGrade(grade);
+            if (S.hazardWarnings !== false) this.ui.setCaption("landing", { grade });
             audio.land(grade, Math.min(1, c.landingImpact / 1.5));
             // A perfect landing stamps the snow: one compact ring of powder
             // out of the shared pool, gone in half a second.
@@ -892,6 +1110,7 @@ export class GameDirector {
             audio.crash();
             this.tracker.loseCombo("crash");
             this.ui.setCombo(null);
+            if (S.hazardWarnings !== false) this.ui.setCaption("crash");
         } else if (!c.crashed) {
             this._crashHandled = false;
         }
@@ -970,6 +1189,84 @@ export class GameDirector {
     }
 
     /**
+     * Give the camera a bounded down-course context only for Big Air's
+     * authored flight (plus its brief landing read). The rider's input still
+     * owns `rig.yaw`; CameraRig applies this as a reversible additive offset.
+     */
+    _updateBigAirCamera(dt) {
+        if (!isBigAirCourse(this.course) || this.run.state !== RunState.RUN) {
+            this.rig.setAirborneContext(null);
+            this.ui.setBigAirFlight?.(null);
+            this._bigAirAimValid = false;
+            return;
+        }
+        const c = this.controller;
+        const speed = Math.hypot(c.velocity.x, c.velocity.z);
+        const heading = speed > 0.1
+            ? Math.atan2(c.velocity.x, c.velocity.z)
+            : c.facing;
+        const active = this.bigAirFlight.framingActive;
+        if (active) this._refreshBigAirLandingAim(c, heading, dt);
+        const aimDx = this._bigAirAimX - c.position.x;
+        const aimDz = this._bigAirAimZ - c.position.z;
+        const aimDistance = Math.hypot(aimDx, aimDz);
+        const aimYaw = this._bigAirAimValid && aimDistance > 1e-3
+            ? Math.atan2(aimDx, aimDz) : heading;
+        const aimPitch = this._bigAirAimValid && aimDistance > 1e-3
+            ? Math.atan2(c.position.y + 1.62 - this._bigAirAimY, aimDistance)
+            : NaN;
+        this.rig.setAirborneContext({
+            active,
+            heading,
+            aimYaw,
+            aimPitch,
+        });
+        this.ui.setBigAirFlight?.(this.bigAirFlight.snapshot());
+    }
+
+    /**
+     * Refresh a reusable, controller/terrain-authoritative landing target.
+     * During flight this finds the first ballistic crossing of the actual
+     * terrain. During the short post-touchdown read it looks down the current
+     * line at the next runout surface, which keeps the result visible without
+     * taking control away.
+     */
+    _refreshBigAirLandingAim(c, heading, dt) {
+        this._bigAirAimCool = Math.max(0, this._bigAirAimCool - Math.max(0, dt));
+        if (this._bigAirAimCool > 0) return;
+        this._bigAirAimCool = 0.12;
+
+        if (c.airborne) {
+            const aimInput = this._bigAirAimInput;
+            aimInput.x = c.position.x;
+            aimInput.y = c.position.y;
+            aimInput.z = c.position.z;
+            aimInput.vx = c.velocity.x;
+            aimInput.vy = c.verticalVelocity;
+            aimInput.vz = c.velocity.z;
+            const aim = predictLandingAim(aimInput, this._bigAirAimOutput);
+            if (aim.valid) {
+                this._bigAirAimX = aim.x;
+                this._bigAirAimY = aim.y;
+                this._bigAirAimZ = aim.z;
+                this._bigAirAimValid = true;
+                return;
+            }
+        }
+
+        // A touchdown has already supplied the exact contact surface through
+        // controller.groundY. Extend the current line a modest distance for a
+        // readable landing/runout target; no cinematic turn is added.
+        const distance = Math.min(32, Math.max(16, Math.hypot(c.velocity.x, c.velocity.z) * 0.8));
+        const dx = Math.sin(heading) * distance;
+        const dz = Math.cos(heading) * distance;
+        this._bigAirAimX = c.position.x + dx;
+        this._bigAirAimZ = c.position.z + dz;
+        this._bigAirAimY = this.terrain.heightAt(this._bigAirAimX, this._bigAirAimZ) + 0.55;
+        this._bigAirAimValid = Number.isFinite(this._bigAirAimY);
+    }
+
+    /**
      * The first-run prompts: one short line at a time, each dismissed
      * forever by the action it asks for. Summit Stack only — the classic is
      * the onboarding; every later event assumes a rider who has served once.
@@ -980,30 +1277,37 @@ export class GameDirector {
             this.run.event.id !== "summit-stack" ||
             this.run.state !== RunState.RUN) {
             this.ui.setTutor(null);
+            this.ui.setFinishBeacon?.(false);
             return;
         }
         const t = this.book.book.tutorial;
         const c = this.controller;
+        const prompts = ridePrompts(getInputFamily());
         if (!t.steer) {
-            if (Math.abs(c.carve) > 0.3) this.book.markTutorial("steer");
-            else this.ui.setTutor("steer with the mouse \u00b7 a / d to carve");
+            if (this._steerActionSeen) this.book.markTutorial("steer");
+            else this.ui.setTutor(`steer / carve · ${prompts.steer}`);
             return;
         }
         if (!t.jump) {
-            if (c.airborne && c.airTime > 0.2) this.book.markTutorial("jump");
-            else this.ui.setTutor("space to jump \u00b7 hold it off a lip");
+            if (this._jumpActionEdge) this.book.markTutorial("jump");
+            else this.ui.setTutor(`jump · ${prompts.jump} before the lip`);
+            return;
+        }
+        if (!t.landing) {
+            if (c.landed) this.book.markTutorial("landing");
+            else this.ui.setTutor("landing complete · settle the board before the next line");
             return;
         }
         if (!t.trick) {
             if (this.tracker.trickCount > 0) this.book.markTutorial("trick");
-            else this.ui.setTutor("q / e to spin in the air \u00b7 land square");
+            else this.ui.setTutor(`spin in the air · ${prompts.spin} · land square`);
             return;
         }
         if (!t.collect) {
             if (Object.keys(this.run.splits).length > 0) {
                 this.book.markTutorial("collect");
             } else {
-                this.ui.setTutor("ride through the order \u00b7 chips top right");
+                this.ui.setTutor(`ride through the order · chips top right · ${prompts.steer}`);
             }
             return;
         }
@@ -1011,8 +1315,10 @@ export class GameDirector {
             if (Object.keys(this.run.splits).length >=
                 this.run.event.required.length) {
                 this.ui.setTutor("full order \u00b7 the grill is at the bottom");
+                this.ui.setFinishBeacon?.(true);
                 // Dismisses with the run itself; the assembly marks it.
             } else {
+                this.ui.setFinishBeacon?.(false);
                 this.ui.setTutor(null);
             }
             return;
@@ -1067,13 +1373,34 @@ export class GameDirector {
         const rc = this.rocketChair;
         if (!rc) return;
         const th = rc.thrust;
-        if (th.ignited) audio.ignite();
-        if (th.shutdown) audio.shutdown();
+        if (th.ignited) {
+            audio.ignite();
+            if (S.hazardWarnings !== false) this.ui.setCaption("fuel", { level: th.level, text: "ROCKET IGNITION" });
+        }
+        if (th.shutdown) {
+            audio.shutdown();
+            if (S.hazardWarnings !== false) this.ui.setCaption("fuel", { level: th.level, text: "ROCKET SHUTDOWN" });
+        }
         audio.updateRocket(
             rc.active ? th.throttle : 0,
             this.controller.speed01,
             this.controller.grounded
         );
+    }
+
+    /**
+     * Feed the held procedural score without constructing a telemetry object.
+     * State priority makes a signature moment win over generic speed, while
+     * all four scalar lanes are still passed to the audio engine for shaping.
+     */
+    _updateRideMusic(speed01, trick01, avalanche01, bigAir01) {
+        let state = "run";
+        if (bigAir01 > 0.05) state = "big-air";
+        else if (avalanche01 > 0.08) state = "avalanche";
+        else if (trick01 > 0.05) state = "trick";
+        else if (speed01 > 0.72) state = "speed";
+        audio.setMusicState(state);
+        audio.updateMusic(speed01, trick01, avalanche01, bigAir01);
     }
 
     /** Upload this frame's lighting for anything the game layer drew. */
@@ -1123,7 +1450,10 @@ export class GameDirector {
                 : ASSEMBLY_TIME;
             this._assembly = this._assemblyTotal;
 
-            // Ahead of the rider, on the line they are already travelling.
+            // Ahead and just off the rider's shoulder, in camera space. The
+            // old centre-line placement hid the reward behind the rider and
+            // the run-out rise; this offset keeps both the hero and the burger
+            // in the same frame without changing the finish trigger.
             //
             // Standing it on the grill's counter was the obvious idea and the
             // wrong one: the rig orbits the rider, so framing something off to
@@ -1131,19 +1461,26 @@ export class GameDirector {
             // that swing puts it inside the arch. The committed frame from that
             // attempt is a flat brown rectangle — the inside of the banner.
             //
-            // Putting the reward where the camera is already pointed costs
-            // nothing and composes better anyway: the burger lands centre
-            // frame with the arch, the grill and the lodge behind it.
-            // Close enough to the rider that the run's own camera frames it.
-            _burgerPos.set(c.position.x, 0, c.position.z + 4.2);
+            // Putting the reward just off the camera's forward line composes
+            // better than swinging around the rider: the burger shares the
+            // frame with the arch, grill and lodge while the hero remains the
+            // visual anchor.
+            const side = this.rig.right;
+            const view = this.rig.forward;
+            _burgerPos.set(
+                c.position.x + side.x * 1.9 + view.x * 1.9,
+                0,
+                c.position.z + side.z * 1.9 + view.z * 1.9
+            );
             _burgerPos.y = this.terrain.heightAt(_burgerPos.x, _burgerPos.z) + 0.55;
             this.burger.root.position.copyFrom(_burgerPos);
             this._camEntry.set(this.rig.yaw, this.rig.pitch, this.rig.distanceTarget);
+            this._camEntryDistance = this.rig.distance;
             // Stage the reward: the ride camera stays the finish camera (two
             // committed attempts at a dedicated one photographed the inside
             // of the arch), but it can at least lean in — the burger was the
             // report's own "small in frame" limitation.
-            this.rig.distanceTarget = 4.4;
+            this.rig.distanceTarget = 4.8;
             this.burger.root.scaling.setAll(0.01);
             this.burger.setActive(true);
             this.ui.setHud(false);
@@ -1161,11 +1498,24 @@ export class GameDirector {
 
         this._assembly = Math.max(0, this._assembly - dt);
         const t = 1 - this._assembly / this._assemblyTotal;
-        const ease = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        // The order should read on the first presentation frame, not spend
+        // most of the ceremony as a one-pixel seed. A quadratic ease-out keeps
+        // the reveal gentle at the start and reaches a useful silhouette well
+        // before the repeatable ceremony ends.
+        const ease = 1 - (1 - t) * (1 - t);
 
         this.burger.root.scaling.setAll(Scalar.Lerp(0.01, 1, ease));
         this.burger.root.position.y = _burgerPos.y + ease * 0.5;
-        this.burger.root.rotation.y += dt * 0.8;
+        if (!S.reducedMotion) this.burger.root.rotation.y += dt * 0.8;
+
+        // A small, repeatable presentation lift gives the completed order a
+        // readable silhouette while reduced motion retains the player's entry
+        // pitch and avoids adding another camera movement.
+        if (!S.reducedMotion) {
+            this.rig.pitch = Scalar.Lerp(
+                this.rig.pitch, 0.24, 1 - Math.exp(-dt * 4.2)
+            );
+        }
 
         // Settle the yaw down the fall line, and touch nothing else.
         //
@@ -1200,12 +1550,25 @@ export class GameDirector {
     }
 
     _onRunState(next, prev) {
+        if (next === RunState.ORDER) {
+            audio.setMusicState("order", { immediate: true });
+            audio.updateMusic(0, 0, 0, 0);
+        }
         // The countdown is the first frame the player is looking at the
         // mountain rather than at a card, so every full-screen panel and its
         // scrim goes here, before the 3 appears rather than when the clock
         // starts.
         if (next === RunState.COUNTDOWN) {
+            // A retry/restart must not carry a high-speed, trick, avalanche,
+            // or Big Air phrase into the new gate. The first order's drop gets
+            // the normal crossfade; every later reset is immediate.
+            audio.setMusicState("countdown", { immediate: prev !== RunState.ORDER });
+            audio.updateMusic(0, 0, 0, 0);
             this.ui.hideScreens();
+            this.bigAirFlight.reset();
+            this.run.flightTelemetry = null;
+            this._bigAirAimCool = 0;
+            this._bigAirAimValid = false;
             // Full tank at every gate, however the rider got there — first
             // drop, retry from the results, or a restart out of the pause
             // menu. This is where "a run starts with a full tank" is actually
@@ -1250,11 +1613,14 @@ export class GameDirector {
             });
         }
         if (next === RunState.RUN) {
+            audio.setMusicState("run");
             this.ui.setHud(true);
             this.ui.setSubtitle(this.run.event.name);
             this.ui.setClock(0);
         }
         if (next === RunState.ASSEMBLY) {
+            audio.setMusicState("finish");
+            audio.updateMusic(0, 0, 0, 0);
             this.book.markTutorial("finish");
             this.ui.setTutor(null);
             // The wall does not follow the rider into the cinematic.
@@ -1268,22 +1634,51 @@ export class GameDirector {
             this.ui.setCombo(null);
         }
         if (next === RunState.RESULTS) {
+            audio.setMusicState("results");
+            audio.updateMusic(0, 0, 0, 0);
             if (this.run.result?.completed) audio.finish();
             this._refreshTitleMenu();
             // Hand the camera back the way it was found, or the next run starts
             // with the finish sequence's framing still applied.
+            this.rig.yaw = this._camEntry.x;
+            this.rig.pitch = this._camEntry.y;
             this.rig.distanceTarget = this._camEntry.z || this.rig.distanceTarget;
+            this.rig.distance = this._camEntryDistance;
+            this.rig.obstacleDistance = this.rig.distance;
             this.burger.setActive(false);
             this.ghost.clear();
             this.ui.showResults(this.run.result, this.book.event(this.run.event.id));
+            this._maybeShowCompletion();
         }
         if (next === RunState.ORDER || next === RunState.IDLE) {
+            if (next === RunState.IDLE) {
+                audio.setMusicState("menu", { immediate: true });
+                audio.updateMusic(0, 0, 0, 0);
+            }
             this.ui.setHud(false);
             this.ui.setCountdown(null);
         }
         if (prev === RunState.RESULTS && next === RunState.COUNTDOWN) {
             this.ui.resetCollected();
         }
+    }
+
+    /**
+     * The first completion of the six main deliveries earns the crown. The
+     * state itself is derived from records; only the seen bit is persisted so
+     * reloads do not replay a long ceremony. A 100% book has a distinct final
+     * badge and takes precedence when both milestones land together.
+     */
+    _maybeShowCompletion() {
+        const stats = completionStats(this.book.book);
+        const fullNew = stats.hundredPercent && !this.book.book.seenHundredPercent;
+        const tourNew = stats.tourComplete && !this.book.book.seenTourComplete;
+        if (!fullNew && !tourNew) return;
+        if (tourNew) this.book.book.seenTourComplete = true;
+        if (fullNew) this.book.book.seenHundredPercent = true;
+        this.book.save();
+        audio.setMusicState("tour-complete", { immediate: true });
+        this.ui.showTourComplete(stats, { hundredPercent: fullNew });
     }
 
     /**
@@ -1371,6 +1766,8 @@ export class GameDirector {
             get event() {
                 return director.run.event;
             },
+            /** Read-only score diagnostics for browser playthrough evidence. */
+            music: () => audio.getMusicDiagnostics(),
             selectMode: (m) => this.selectMode(m),
             start: (seed) => {
                 this.mode = Mode.BURGER_RUN;

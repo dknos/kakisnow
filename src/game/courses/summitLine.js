@@ -17,7 +17,8 @@
 
 export const SUMMIT_LINE = {
     id: "summit-line",
-    version: 1,
+    // v2 reserves player-error margin in deterministic ingredient routes.
+    version: 2,
     title: "Summit Line",
     subtitle: "The classic descent",
     difficulty: "black",

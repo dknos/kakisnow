@@ -9,11 +9,11 @@
  *
  * ---------------------------------------------------- where these numbers came from
  *
- * `rocket-chair-snowboard.glb` contains one unnamed mesh with one material:
- * 160,000 triangles of board, seat, booster and fins welded into a single
- * shell, under a node called `node_0`. Splitting it by loose parts yields 4,500
- * islands, none of which is "the seat" — so there is nothing in the file to
- * attach anything to, and reading it harder does not help.
+ * The promoted `rocket-chair-snowboard.glb` is a local Blender-generated
+ * runtime asset with 1,140 triangles across 11 authored primitives: board,
+ * seat, booster, fins, vents, and cargo tray. The generator creates explicit
+ * attachment nodes so the runtime contract below can be measured instead of
+ * inferred from an opaque historical supplied mesh.
  *
  * `tools/snow-burgers/measure-rocket-chair.py` therefore slices the mesh along
  * its length and profiles each slice for width, top and bottom. The result is

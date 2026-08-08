@@ -34,14 +34,21 @@ def main():
         modifier.type == "ARMATURE" and modifier.object == rig
         for modifier in mesh.modifiers
     )
+    assert mesh.parent is None
     assert bpy.data.actions.get("RockerBreath") is not None
-    assert GLB.exists() and GLB.stat().st_size > 500_000
+    # The clean palette-authored replacement is intentionally smaller than the
+    # former generated mesh. Structural checks are meaningful; a historical
+    # byte-size floor is not.
+    assert GLB.exists() and GLB.stat().st_size > 50_000
 
     max_influences = max(
         len(vertex.groups) for vertex in mesh.data.vertices
     )
     assert max_influences <= 4, max_influences
     assert all(len(vertex.groups) > 0 for vertex in mesh.data.vertices)
+    assert len(mesh.data.vertices) >= 3_000
+    assert len(mesh.data.polygons) >= 3_000
+    assert len(mesh.data.materials) == 1
 
     print({
         "blend": str(BLEND),

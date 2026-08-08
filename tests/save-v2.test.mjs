@@ -14,6 +14,9 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
+import { BurgerRun, RunState } from "../src/game/burgerRun.js";
+import { BIG_AIR_BASIN } from "../src/game/courses/bigAirBasin.js";
+import { BIG_AIR_STACK } from "../src/game/courses/eventRegistry.js";
 
 // ------------------------------------------------------------------ fixtures
 
@@ -215,6 +218,33 @@ test("no localStorage at all: fresh book, save() reports false, no throw", () =>
     }
 });
 
+test("save export/import is defensive and preserves a valid book on bad input", () => {
+    const first = fresh();
+    first.book.burgers = 4;
+    first.book.events["summit-stack"] = { completions: 1, bestTime: 42 };
+    first.save();
+    const backup = first.exportSave();
+    assert.match(backup, /"burgers": 4/);
+
+    const badJson = first.importSave("not-json");
+    assert.equal(badJson.ok, false);
+    assert.equal(first.book.burgers, 4);
+    const future = first.importSave(JSON.stringify({ version: SCHEMA_VERSION + 1 }));
+    assert.equal(future.ok, false);
+    assert.equal(first.book.burgers, 4);
+
+    const clean = fresh();
+    assert.deepEqual(clean.importSave(backup), { ok: true });
+    assert.equal(clean.book.burgers, 4);
+    clean.book.events["summit-stack"].bestGhost = {
+        version: 2, seed: 1, interval: .25, courseId: "summit-line",
+        courseVersion: 1, eventId: "summit-stack", eventVersion: 1,
+        vehicleId: "classic-snowboard", samples: [0, 1, 2],
+    };
+    clean.clearGhosts();
+    assert.equal(clean.book.events["summit-stack"].bestGhost, null);
+});
+
 // -------------------------------------------------------------- v2 round trip
 
 test("record() with meta stamps the run identity and it survives a reload", () => {
@@ -246,6 +276,239 @@ test("record() without meta falls back to the v1 identity", () => {
     assert.equal(e.courseVersion, 1);
     assert.equal(e.eventVersion, 1);
     assert.equal(e.bestVehicle, "classic-snowboard");
+});
+
+test("medal records upgrade independently of the time personal best", () => {
+    const b = fresh();
+    b.record("summit-stack", { ...wonRun(30, 1), medal: "bronze" }, null);
+    b.record("summit-stack", { ...wonRun(42, 2), medal: "gold" }, null);
+    assert.equal(b.book.events["summit-stack"].bestTime, 30);
+    assert.equal(b.book.events["summit-stack"].bestMedal, "gold");
+    b.record("summit-stack", { ...wonRun(25, 3), medal: "silver" }, null);
+    assert.equal(b.book.events["summit-stack"].bestTime, 25);
+    assert.equal(b.book.events["summit-stack"].bestMedal, "gold");
+});
+
+test("best trick is saved as an optional independent record", () => {
+    const b = fresh();
+    b.record("summit-stack", { ...wonRun(40, 1), bestTrick: { name: "Spin", score: 220 } }, null);
+    b.record("summit-stack", { ...wonRun(45, 2), bestTrick: { name: "Flip", score: 420 } }, null);
+    assert.deepEqual(b.book.events["summit-stack"].bestTrick, { name: "Flip", score: 420 });
+    b.record("summit-stack", { ...wonRun(20, 3), bestTrick: { name: "Tiny", score: 12 } }, null);
+    assert.deepEqual(b.book.events["summit-stack"].bestTrick, { name: "Flip", score: 420 });
+});
+
+test("Big Air personal bests persist per vehicle without a schema bump", () => {
+    const b = fresh();
+    const classic = {
+        ...wonRun(40, 7),
+        bigAirFlight: {
+            vehicle: "classic-snowboard", airtime: 2.5, distance: 49.2,
+            maxHeight: 18.6, maxClearance: 18.6, trick: "Mute", trickScore: 120,
+            landingGrade: "clean", recordKey: "spoofed",
+        },
+    };
+    const rocket = {
+        ...wonRun(39, 8),
+        bigAirFlight: {
+            vehicle: "rocket-chair", airtime: 2.4, distance: 61.1,
+            maxHeight: 20.4, maxClearance: 20.4, trick: null, trickScore: 0,
+            landingGrade: "perfect",
+        },
+    };
+
+    const first = b.record("big-air-basin-stack", classic, null, { vehicleId: "classic-snowboard" });
+    assert.equal(first.bigAir, true);
+    assert.equal(classic.bigAirBest.isNew, true);
+    assert.equal(classic.bigAirBest.previous, null);
+    assert.equal(classic.bigAirBest.current.distance, 49.2);
+
+    const second = b.record("big-air-basin-stack", rocket, null, { vehicleId: "rocket-chair" });
+    assert.equal(second.bigAir, true);
+    assert.equal(rocket.bigAirBest.vehicle, "rocket-chair");
+
+    const reload = new BurgerBook();
+    const flights = reload.book.events["big-air-basin-stack"].bestBigAirFlights;
+    assert.equal(flights["classic-snowboard"].distance, 49.2);
+    assert.equal(flights["rocket-chair"].distance, 61.1);
+    assert.equal(flights["classic-snowboard"].recordKey, "big-air-basin:classic-snowboard");
+});
+
+test("a shorter Big Air attempt keeps the old PB and exposes both results", () => {
+    const b = fresh();
+    b.record("big-air-basin-stack", {
+        ...wonRun(40, 7),
+        bigAirFlight: {
+            vehicle: "classic-snowboard", airtime: 2, distance: 52,
+            maxHeight: 18, maxClearance: 18, trick: null, trickScore: 0,
+            landingGrade: "clean",
+        },
+    });
+    const repeat = {
+        ...wonRun(39, 8),
+        bigAirFlight: {
+            vehicle: "classic-snowboard", airtime: 2, distance: 50,
+            maxHeight: 20, maxClearance: 20, trick: "Spin", trickScore: 400,
+            landingGrade: "sketchy",
+        },
+    };
+    const broke = b.record("big-air-basin-stack", repeat, null);
+    assert.equal(broke.bigAir, false);
+    assert.equal(repeat.bigAirBest.isNew, false);
+    assert.equal(repeat.bigAirBest.previous.distance, 52);
+    assert.equal(repeat.bigAirBest.current.distance, 52);
+    assert.equal(repeat.bigAirBest.candidate.distance, 50);
+});
+
+test("corrupt optional flight data is dropped without losing the v2 event", () => {
+    const raw = {
+        version: 2, burgers: 3, runs: 4, seenAssembly: true,
+        events: {
+            "big-air-basin-stack": {
+                bestTime: 44,
+                bestBigAirFlights: {
+                    "classic-snowboard": {
+                        vehicle: "classic-snowboard", distance: "far",
+                        airtime: NaN, maxHeight: 10, maxClearance: 10,
+                    },
+                    "rocket-chair": {
+                        vehicle: "rocket-chair", distance: 60, airtime: 2,
+                        maxHeight: 17, maxClearance: 17, trickScore: 0,
+                    },
+                    "hacker-vehicle": { vehicle: "hacker-vehicle", distance: 999 },
+                },
+            },
+            "summit-stack": { bestTime: 80 },
+        },
+    };
+    const b = fresh(JSON.stringify(raw)).book;
+    assert.equal(b.burgers, 3);
+    assert.equal(b.events["big-air-basin-stack"].bestTime, 44);
+    assert.deepEqual(Object.keys(b.events["big-air-basin-stack"].bestBigAirFlights), ["rocket-chair"]);
+    assert.equal(b.events["summit-stack"].bestBigAirFlights instanceof Object, true);
+});
+
+test("a keyed vehicle mismatch cannot cross-contaminate a flight PB", () => {
+    const raw = {
+        version: 2,
+        events: {
+            "big-air-basin-stack": {
+                bestBigAirFlights: {
+                    // Deliberately place a rocket payload under the classic key.
+                    "classic-snowboard": {
+                        vehicle: "rocket-chair", airtime: 2.4, distance: 900,
+                        maxHeight: 90, maxClearance: 90, trickScore: 0,
+                    },
+                    "rocket-chair": {
+                        vehicle: "rocket-chair", airtime: 2.4, distance: 60,
+                        maxHeight: 17, maxClearance: 17, trickScore: 0,
+                    },
+                },
+            },
+        },
+    };
+    const b = fresh(JSON.stringify(raw)).book;
+    assert.deepEqual(b.events["big-air-basin-stack"].bestBigAirFlights, {
+        "rocket-chair": {
+            vehicle: "rocket-chair", airtime: 2.4, distance: 60,
+            maxHeight: 17, maxClearance: 17, trick: null, trickScore: 0,
+            landingGrade: null, recordKey: "big-air-basin:rocket-chair",
+        },
+    });
+});
+
+function bigAirRunFixture(book) {
+    const controller = {
+        position: { x: 0, y: 0, z: 0, set(x, y, z) { this.x = x; this.y = y; this.z = z; } },
+        velocity: { x: 0, y: 0, z: 0, setAll(v) { this.x = v; this.y = v; this.z = v; } },
+        verticalVelocity: 0,
+        facing: 0,
+        grounded: true,
+        airborne: false,
+        airTime: 0,
+        carve: 0,
+        speed01: 0,
+        landed: false,
+        landingImpact: 0,
+        crashCount: 0,
+    };
+    return new BurgerRun({
+        controller,
+        field: { place() {}, reset() {}, clear() {} },
+        book,
+        terrain: { heightAt: () => 0, normalAt: (x, z, out) => out },
+        course: BIG_AIR_BASIN,
+        event: BIG_AIR_STACK,
+    });
+}
+
+test("BurgerRun completed Big Air assembly assigns PB records to its result", () => {
+    const b = fresh();
+    const run = bigAirRunFixture(b);
+    run.vehicleId = "classic-snowboard";
+    run.flightTelemetry = {
+        vehicle: "classic-snowboard", airtime: 2.5, distance: 49.2,
+        maxHeight: 18.6, maxClearance: 18.6, trick: null, trickScore: 0,
+        landingGrade: "clean", recordKey: "big-air-basin:classic-snowboard",
+    };
+    run.state = RunState.ASSEMBLY;
+    run.completeAssembly();
+    assert.equal(run.result.completed, true);
+    assert.equal(run.result.records.bigAir, true);
+    assert.equal(run.result.bigAirBest.isNew, true);
+    assert.equal(run.result.bigAirBest.current.distance, 49.2);
+});
+
+test("BurgerRun abandon cannot award a Big Air PB", () => {
+    const b = fresh();
+    const run = bigAirRunFixture(b);
+    run.vehicleId = "classic-snowboard";
+    run.flightTelemetry = {
+        vehicle: "classic-snowboard", airtime: 2.5, distance: 99,
+        maxHeight: 18.6, maxClearance: 18.6, trick: null, trickScore: 0,
+        landingGrade: "clean", recordKey: "big-air-basin:classic-snowboard",
+    };
+    run.state = RunState.RUN;
+    run.abandon();
+    assert.equal(run.result.completed, false);
+    assert.equal(run.result.records.bigAir, false);
+    assert.equal(run.result.bigAirBest, undefined);
+    assert.deepEqual(b.book.events["big-air-basin-stack"].bestBigAirFlights, {});
+});
+
+test("non-Big-Air records do not create a flight PB", () => {
+    const b = fresh();
+    const result = {
+        ...wonRun(42, 9),
+        // A malformed/cross-wired caller must not turn an ordinary event into
+        // a Big Air record merely by attaching telemetry-shaped data.
+        bigAirFlight: {
+            vehicle: "classic-snowboard", airtime: 2, distance: 99,
+            maxHeight: 20, maxClearance: 20, trick: null, trickScore: 0,
+            landingGrade: "clean",
+        },
+    };
+    const broke = b.record("summit-stack", result, null);
+    assert.equal(broke.bigAir, false);
+    assert.equal(result.bigAirBest, undefined);
+    assert.deepEqual(b.book.events["summit-stack"].bestBigAirFlights, {});
+});
+
+test("an incomplete Big Air attempt cannot award a flight PB", () => {
+    const b = fresh();
+    const result = {
+        ...wonRun(42, 9),
+        completed: false,
+        bigAirFlight: {
+            vehicle: "classic-snowboard", airtime: 2, distance: 99,
+            maxHeight: 20, maxClearance: 20, trick: null, trickScore: 0,
+            landingGrade: "clean",
+        },
+    };
+    const broke = b.record("big-air-basin-stack", result, null);
+    assert.equal(broke.bigAir, false);
+    assert.equal(result.bigAirBest, undefined);
+    assert.deepEqual(b.book.events["big-air-basin-stack"].bestBigAirFlights, {});
 });
 
 test("progression helpers are idempotent and persist across a reload", () => {

@@ -1,0 +1,222 @@
+{
+  "tool": "tools/snow-burgers/capture-showreel-windows.cjs",
+  "url": "http://127.0.0.1:5193",
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "browser": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+  "video": "snow-burgers-showreel.webm",
+  "audioStream": false,
+  "audioScope": "silent visual evidence only; not audio-mix evidence",
+  "rawDurationSeconds": 90.8,
+  "wallClockDurationSeconds": 90.565,
+  "trimStartSeconds": 6.289,
+  "transitionLeadSeconds": 0.75,
+  "transitionMarkers": {
+    "summitToWhiteout": {
+      "captureStartSeconds": 52.213,
+      "captureCutStartSeconds": 51.463,
+      "captureEndSeconds": 57.887,
+      "startCondition": "Whiteout navigation began",
+      "endCondition": "retained Whiteout countdown became visible"
+    },
+    "whiteoutToBigAir": {
+      "captureStartSeconds": 66.499,
+      "captureCutStartSeconds": 65.749,
+      "captureEndSeconds": 71.545,
+      "startCondition": "Big Air navigation began",
+      "endCondition": "#boot absent and #sb-order visibly stable"
+    }
+  },
+  "deadTimeCuts": [
+    {
+      "id": "summit-to-whiteout",
+      "start": 45.174,
+      "end": 51.598,
+      "reason": "Summit results -> Whiteout boot/title plate",
+      "captureStartSeconds": 52.213,
+      "captureCutStartSeconds": 51.463,
+      "captureEndSeconds": 57.887
+    },
+    {
+      "id": "whiteout-to-big-air",
+      "start": 59.46,
+      "end": 65.256,
+      "reason": "Whiteout run -> Big Air boot/title plate",
+      "captureStartSeconds": 66.499,
+      "captureCutStartSeconds": 65.749,
+      "captureEndSeconds": 71.545
+    }
+  ],
+  "deadTimeCutTimestampBasis": "post-lead-trim-pre-cut-source-seconds",
+  "measuredFinalDurationSeconds": 72.24,
+  "durationGate": {
+    "minSeconds": 60,
+    "maxSeconds": 90,
+    "pass": true
+  },
+  "segments": [
+    {
+      "id": "title",
+      "label": "Title / Burger Tour map",
+      "start": 0,
+      "staging": {
+        "kind": "live",
+        "note": "default boot; no state injection"
+      },
+      "end": 3,
+      "duration": 3,
+      "captureStartSeconds": 0.262,
+      "captureEndSeconds": 9.289,
+      "finalRanges": [
+        {
+          "start": 0,
+          "end": 3,
+          "duration": 3
+        }
+      ],
+      "timestampBasis": "final-file-relative-seconds"
+    },
+    {
+      "id": "order",
+      "label": "First order / event selection",
+      "start": 3,
+      "staging": {
+        "kind": "live",
+        "note": "clicked the real Summit Stack event button"
+      },
+      "end": 6.676,
+      "duration": 3.676,
+      "captureStartSeconds": 9.289,
+      "captureEndSeconds": 12.965,
+      "finalRanges": [
+        {
+          "start": 3,
+          "end": 6.676,
+          "duration": 3.676
+        }
+      ],
+      "timestampBasis": "final-file-relative-seconds"
+    },
+    {
+      "id": "first-run",
+      "label": "Carving, pickup, trick, landing, finish",
+      "start": 6.676,
+      "staging": {
+        "kind": "live-with-input-staging",
+        "note": "real Summit Stack run; in-page steering is the existing playthrough boundary; one Space jump plus Q/F trick input is sent near the first authored kicker"
+      },
+      "end": 45.174,
+      "duration": 38.498,
+      "captureStartSeconds": 12.965,
+      "captureEndSeconds": 52.213,
+      "finalRanges": [
+        {
+          "start": 6.676,
+          "end": 45.174,
+          "duration": 38.498
+        }
+      ],
+      "timestampBasis": "final-file-relative-seconds"
+    },
+    {
+      "id": "hazard",
+      "label": "Whiteout Ridge avalanche pressure",
+      "start": 45.174,
+      "staging": {
+        "kind": "staged-runtime-state",
+        "note": "real Whiteout Ridge renderer and avalanche system; after a real drop-in, wallZ is placed 18 m behind the rider so the authored warning/HUD/particle/audio response is legible in a short cut"
+      },
+      "end": 53.036,
+      "duration": 7.862,
+      "captureStartSeconds": 52.213,
+      "captureEndSeconds": 66.498,
+      "finalRanges": [
+        {
+          "start": 45.174,
+          "end": 53.036,
+          "duration": 7.862
+        }
+      ],
+      "timestampBasis": "final-file-relative-seconds"
+    },
+    {
+      "id": "big-air",
+      "label": "Big Air Basin signature flight / landing read",
+      "start": 53.036,
+      "staging": {
+        "kind": "staged-runtime-state",
+        "note": "real Big Air course physics and camera with the rocket chair visible and boost held; rider is placed on the existing in-run at z=260 with 26 m/s, matching the authored launch geometry; no flight telemetry or frame is synthesized"
+      },
+      "end": 63.054,
+      "duration": 10.018,
+      "captureStartSeconds": 66.498,
+      "captureEndSeconds": 81.563,
+      "finalRanges": [
+        {
+          "start": 53.036,
+          "end": 63.054,
+          "duration": 10.018
+        }
+      ],
+      "timestampBasis": "final-file-relative-seconds"
+    },
+    {
+      "id": "book",
+      "label": "Burger Book / records / 100% inventory",
+      "start": 63.054,
+      "staging": {
+        "kind": "staged-save-fixture",
+        "note": "a valid schema-v2 local save fixture fills the existing 12-event, 18-tape registries so the real Burger Book can show its postgame state; no new event or course is created"
+      },
+      "end": 67.845,
+      "duration": 4.791,
+      "captureStartSeconds": 81.563,
+      "captureEndSeconds": 86.354,
+      "finalRanges": [
+        {
+          "start": 63.054,
+          "end": 67.845,
+          "duration": 4.791
+        }
+      ],
+      "timestampBasis": "final-file-relative-seconds"
+    },
+    {
+      "id": "completion",
+      "label": "Tour Complete / 100% Served / continued play",
+      "start": 67.845,
+      "staging": {
+        "kind": "live-ui-from-staged-save",
+        "note": "the real completion screen is rendered from the valid full-book fixture; 100% is the registry-derived state shown by the existing UI"
+      },
+      "end": 71.868,
+      "duration": 4.023,
+      "captureStartSeconds": 86.354,
+      "captureEndSeconds": 90.377,
+      "finalRanges": [
+        {
+          "start": 67.845,
+          "end": 71.868,
+          "duration": 4.023
+        }
+      ],
+      "timestampBasis": "final-file-relative-seconds"
+    }
+  ],
+  "errors": [],
+  "webgpuValidation": [],
+  "failedRequests": [],
+  "tempProfileCleanup": "removed in the finally block after the manifest is written",
+  "notes": [
+    "The video is an actual Playwright recording of the WebGPU canvas and DOM UI.",
+    "Staged runtime writes are disclosed per segment; they are not generated frames.",
+    "Transition cuts come from capture-clock DOM markers; final segment timestamps are measured from the final WebM start.",
+    "Each cut starts 0.75 s before its navigation marker to cover Playwright/WebM timestamp lead; the marker and safety pre-roll are both recorded.",
+    "The Big Air order card remains visible for a brief intentional hold after its stable DOM marker.",
+    "The final duration and dimensions were checked with ffprobe after post-processing.",
+    "Playwright video capture contains no audio stream; audio acceptance is documented separately."
+  ],
+  "ok": true
+}

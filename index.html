@@ -3,8 +3,19 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-<title>Snow-Burgers</title>
+<meta name="application-name" content="Snow-Burgers" />
+<meta name="theme-color" content="#07111b" />
+<meta name="description" content="Shred downhill, stack giant ingredients, and serve the order in Snow-Burgers, powered by KAKISNOW Snow Technology." />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Snow-Burgers — Shred. Stack. Serve." />
+<meta property="og:description" content="A compact arcade snowboarding Burger Tour powered by KAKISNOW Snow Technology." />
+<meta property="og:image" content="https://dknos.github.io/kakisnow/assets/ui/snow-burgers/social-preview.webp" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="RockerKaki launches over a snowy ingredient route toward Burger Base Camp." />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="icon" href="%BASE_URL%favicon.svg" type="image/svg+xml" />
+<title>Snow-Burgers — Shred. Stack. Serve.</title>
 <style>
     :root {
         /* Cool-shadow palette pulled from the Horizon reference. */
@@ -183,6 +194,8 @@
         color: rgba(231, 242, 251, 0.86);
         text-shadow: 0 2px 18px rgba(3, 8, 15, 0.75);
         pointer-events: none;
+        transform: scale(var(--course-hud-scale, 1));
+        transform-origin: top left;
     }
 
     .course-line {
@@ -229,6 +242,15 @@
         letter-spacing: 0.08em;
         text-transform: uppercase;
     }
+    #course-hud.high-contrast { color: #fff; filter: contrast(1.25); }
+    #course-hud.reduced-motion *,
+    #course-hud.reduced-motion *::before,
+    #course-hud.reduced-motion *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
 
     @media (max-width: 680px) {
         #course-hud { top: max(18px, env(safe-area-inset-top)); }
@@ -244,7 +266,7 @@
 <body>
     <canvas id="view" tabindex="0"></canvas>
 
-    <div id="course-hud" aria-hidden="true">
+    <div id="course-hud" role="status" aria-label="Course progress">
         <div class="course-line">
             <span class="course-name" id="course-name">Summit line · black</span>
             <span id="course-distance">0 / 520 M</span>
@@ -266,8 +288,8 @@
 
     <div id="nogpu">
         <div>
-            <b>WebGPU is not available in this browser.</b><br />
-            Snow-Burgers requires a WebGPU-capable browser. Try Chrome 113+ on a desktop GPU.
+            <b>Snow-Burgers needs WebGPU to run KAKISNOW Snow Technology.</b><br />
+            Try a current desktop Chrome or Edge with hardware acceleration enabled, then reload this page.
         </div>
     </div>
 

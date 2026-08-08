@@ -1,0 +1,107 @@
+{
+  "tool": "tools/snow-burgers/playthrough-windows.cjs",
+  "url": "http://127.0.0.1:5193/?course=glacier-gorge&event=blue-plate&autopause=off",
+  "viewport": {
+    "width": 2560,
+    "height": 1440
+  },
+  "seeds": 1,
+  "vehicle": "classic-snowboard",
+  "runs": [
+    {
+      "seed": 1,
+      "vehicle": "classic-snowboard",
+      "ok": true,
+      "finalState": "results",
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "x": -5.51,
+          "y": -7.31,
+          "z": -49.3,
+          "zone": "cheese"
+        },
+        {
+          "ingredient": "patty",
+          "x": -17.15,
+          "y": -1.28,
+          "z": 206.31,
+          "zone": "patty"
+        },
+        {
+          "ingredient": "tomato",
+          "x": 10.28,
+          "y": -3.49,
+          "z": 373.82,
+          "zone": "tomato"
+        },
+        {
+          "ingredient": "lettuce",
+          "x": 4.5,
+          "y": -1.94,
+          "z": 473.7,
+          "zone": "lettuce"
+        }
+      ],
+      "collected": [
+        "cheese",
+        "patty",
+        "tomato",
+        "lettuce"
+      ],
+      "lastZ": 592.2,
+      "flightHud": {
+        "on": false,
+        "text": "Big Air flight\n    AIR · 0.00 S"
+      },
+      "flightHudSeen": null,
+      "airborneObserved": false,
+      "fuelAtFinish": 1,
+      "blocked": null,
+      "result": {
+        "completed": true,
+        "time": 39.15,
+        "medal": "gold",
+        "style": 25,
+        "integrity": 100,
+        "stars": 4,
+        "grade": "Summit Stack",
+        "splits": {
+          "cheese": 6.133200000047652,
+          "patty": 19.32970000004779,
+          "tomato": 28.00020000004812,
+          "lettuce": 33.196200000048236
+        },
+        "detail": {
+          "airTime": 0,
+          "airShare": 0,
+          "carve": 0.046,
+          "pace": 1,
+          "pipeTime": 0,
+          "routeRisk": 0.425,
+          "landings": 0,
+          "hardLandings": 0,
+          "worstLanding": 0,
+          "distance": 728.1
+        },
+        "bigAirFlight": null,
+        "rocket": 0,
+        "notMeasured": [
+          "rocket efficiency"
+        ]
+      }
+    }
+  ],
+  "screenshots": [
+    "00-title",
+    "001-pickup-1-cheese",
+    "001-pickup-2-patty",
+    "001-pickup-3-tomato",
+    "001-pickup-4-lettuce",
+    "001-assembly",
+    "001-results"
+  ],
+  "consoleErrors": [],
+  "webgpuValidation": [],
+  "ok": true
+}

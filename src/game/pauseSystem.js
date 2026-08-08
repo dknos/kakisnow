@@ -44,6 +44,7 @@
  */
 
 import { input } from "../core/input.js";
+import { gamepadInputFamily, noteInputFamily } from "../core/inputFamily.js";
 import { audio } from "../audio/audio.js";
 import { Mode } from "./modes.js";
 import { RunState } from "./burgerRun.js";
@@ -191,12 +192,14 @@ export class PauseSystem {
             const pad = pads[i];
             const down = !!(pad && pad.connected && pad.buttons[PAD_START]?.pressed);
             if (down && !this._padStart[i]) {
+                noteInputFamily(gamepadInputFamily(pad));
                 if (this.active) this.resume();
                 else if (this._canPause()) this.pause("user");
             }
             this._padStart[i] = down;
 
-            // Menus on the pad: d-pad walks, south presses, east backs out.
+            // Menus on the pad: d-pad walks, left/right adjust a focused
+            // settings range, south presses, east backs out.
             // Edge-detected against the same per-pad state family as Start.
             if (!pad || !pad.connected) continue;
             const edges = this._padNav[i] ?? (this._padNav[i] = {});
@@ -208,15 +211,25 @@ export class PauseSystem {
             };
             const up = read(12, "up");
             const dn = read(13, "down");
+            const left = read(14, "left");
+            const right = read(15, "right");
             const south = read(0, "south");
             const east = read(1, "east");
+            if (up || dn || left || right || south || east) {
+                noteInputFamily(gamepadInputFamily(pad));
+            }
             if (!this.ui.anyScreenVisible()) continue;
             if (up) this.ui.menuMove(-1);
             if (dn) this.ui.menuMove(1);
+            if (left) this.ui.menuAdjust(-1);
+            if (right) this.ui.menuAdjust(1);
             if (south) this.ui.menuActivate();
             if (east) {
-                if (this.ui.el.settings.classList.contains("on")) {
-                    this._onAction("settings-back");
+                if (this.ui.menuBack?.()) {
+                    // The UI owns screen-specific cancel/back routing,
+                    // including Burger Book, How to Ride, confirmations, and
+                    // title credits. This keeps east/back usable even when
+                    // focus is on a tab or record row.
                 } else if (this.active) {
                     this.resume();
                 }

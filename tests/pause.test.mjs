@@ -17,6 +17,11 @@ import { canPauseState, suppressGameplayInput } from "../src/game/pauseSystem.js
 import { Mode } from "../src/game/modes.js";
 import { input } from "../src/core/input.js";
 import { sanitize, SETTINGS_VERSION } from "../src/core/playerSettings.js";
+import {
+    adjustRangeValue, bigAirPbSummary, nextMenuIndex,
+    rectNeedsNearestScroll, resultIdentity,
+} from "../src/ui/snowBurgersUi.js";
+import { shouldShowHint } from "../src/ui/hintVisibility.js";
 
 // ------------------------------------------------------------------ fixtures
 
@@ -147,6 +152,16 @@ test("canPauseState pauses gameplay and refuses menus", () => {
     assert.equal(canPauseState(Mode.TITLE, RunState.IDLE), false);
 });
 
+test("legacy control hint is restricted to active lab riding", () => {
+    assert.equal(shouldShowHint(Mode.FREE_RIDE, false), true);
+    assert.equal(shouldShowHint(Mode.ROCKET_TEST, false), true);
+    assert.equal(shouldShowHint(Mode.TITLE, false), false);
+    assert.equal(shouldShowHint(Mode.BURGER_RUN, false), false);
+    // A visible pause/settings/order/results screen always wins, even in a lab.
+    assert.equal(shouldShowHint(Mode.FREE_RIDE, true), false);
+    assert.equal(shouldShowHint(Mode.ROCKET_TEST, true), false);
+});
+
 test("suppressGameplayInput zeroes everything that can move the world", () => {
     input.moveX = 1; input.moveZ = -1; input.moving = true;
     input.surf = true; input.sprint = true; input.boost = 1;
@@ -220,4 +235,80 @@ test("sanitize rejects bad envelopes and bad values without throwing", () => {
         }),
         {}
     );
+});
+
+// ---------------------------------------------------------- controller menus
+
+test("settings menu navigation includes range values and wraps safely", () => {
+    assert.equal(nextMenuIndex(4, -1, 1), 0);
+    assert.equal(nextMenuIndex(4, -1, -1), 3);
+    assert.equal(nextMenuIndex(4, 3, 1), 0);
+    assert.equal(nextMenuIndex(4, 0, -1), 3);
+    assert.equal(nextMenuIndex(0, -1, 1), -1);
+});
+
+test("settings focus scroll check only moves controls outside the visible card", () => {
+    const viewport = { top: 100, bottom: 500 };
+    assert.equal(rectNeedsNearestScroll({ top: 180, bottom: 220 }, viewport, 10), false);
+    assert.equal(rectNeedsNearestScroll({ top: 92, bottom: 132 }, viewport, 10), true);
+    assert.equal(rectNeedsNearestScroll({ top: 470, bottom: 510 }, viewport, 10), true);
+});
+
+test("results lead with the registered event identity, not its burger grade", () => {
+    assert.equal(
+        resultIdentity({ event: "big-air-basin-stack", grade: "Summit Stack" }),
+        "The Big Air Stack",
+    );
+    assert.equal(
+        resultIdentity({ event: "summit-stack", eventName: "Custom Event", grade: "Summit Stack" }),
+        "Custom Event",
+    );
+});
+
+test("Big Air first flight PB exposes a warm-callout payload", () => {
+    const summary = bigAirPbSummary({
+        bigAirFlight: { vehicle: "classic-snowboard", distance: 64.2 },
+        bigAirBest: {
+            vehicle: "classic-snowboard", isNew: true, previous: null,
+            current: { vehicle: "classic-snowboard", distance: 64.2 },
+            candidate: { vehicle: "classic-snowboard", distance: 64.2 },
+        },
+        records: { bigAir: true },
+    });
+    assert.deepEqual(summary, {
+        label: "NEW FLIGHT PB", isNew: true, distance: 64.2,
+        vehicle: "classic-snowboard", delta: null,
+    });
+});
+
+test("Big Air repeat keeps the saved PB and reports the current delta", () => {
+    const summary = bigAirPbSummary({
+        bigAirFlight: { vehicle: "rocket-chair", distance: 58.4 },
+        bigAirBest: {
+            vehicle: "rocket-chair", isNew: false,
+            previous: { vehicle: "rocket-chair", distance: 61.1 },
+            current: { vehicle: "rocket-chair", distance: 61.1 },
+            candidate: { vehicle: "rocket-chair", distance: 58.4 },
+        },
+        records: { bigAir: false },
+    });
+    assert.deepEqual(summary, {
+        label: "FLIGHT PB", isNew: false, distance: 61.1,
+        vehicle: "rocket-chair", delta: -2.7,
+    });
+});
+
+test("non-Big-Air results do not grow a flight PB callout", () => {
+    assert.equal(bigAirPbSummary({
+        event: "summit-stack", completed: true,
+        records: { bigAir: true },
+    }), null);
+});
+
+test("controller range adjustment honors step, bounds, and decimal precision", () => {
+    assert.equal(adjustRangeValue("0.50", "0", "1", "0.01", 1), 0.51);
+    assert.equal(adjustRangeValue("0.50", "0", "1", "0.01", -1), 0.49);
+    assert.equal(adjustRangeValue("1", "0", "1", "0.01", 1), 1);
+    assert.equal(adjustRangeValue("0.2", "0.2", "3", "0.05", -1), 0.2);
+    assert.equal(adjustRangeValue("1.45", "0", "1.5", "0.05", 1), 1.5);
 });

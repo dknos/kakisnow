@@ -17,7 +17,8 @@
 
 export const MIDNIGHT_RESORT = {
     id: "midnight-resort",
-    version: 1,
+    // v2 reserves player-error margin in deterministic ingredient routes.
+    version: 2,
     title: "Midnight Resort",
     subtitle: "The night shift",
     difficulty: "black",

@@ -94,10 +94,14 @@ const REQUIRED = arg("--required", "cheese,patty,tomato,lettuce").split(",");
  * `MAX_LATERAL_RATIO` and the finish gate are not exported by the placement
  * module — but even if they were, importing them would only prove the module
  * agrees with itself. Written out, this file is an independent statement of
- * what the brief asks for, and a seed sweep that starts failing after someone
- * loosens the module's ratio is the tool working.
+ * what the brief asks for. The runtime selector uses 0.66; this independent
+ * validator allows 0.70, so the selected route must retain at least 0.04 of
+ * harness reserve and 0.14 inside the measured 0.84 physical carve ceiling.
+ * A seed sweep that starts failing after someone loosens the selector is the
+ * tool working.
  */
-const MAX_LATERAL_RATIO = 0.84;
+const MAX_LATERAL_RATIO = 0.70;
+const PHYSICAL_LATERAL_CEILING = 0.84;
 /** Slack on the boundary case only; see the surface-check note in the header. */
 const LATERAL_EPSILON = 1e-9;
 const HEIGHT_TOLERANCE = 1e-6;
@@ -407,7 +411,7 @@ let context = null;
   const failures = seedResults.filter(r => !r.ok);
   const passing = seedResults.filter(r => r.ok);
   const route = {
-    // How close the sweep came to the module's own 64-attempt ceiling. A figure
+    // How close the sweep came to the module's own 256-attempt ceiling. A figure
     // that creeps upwards is the geometry becoming infeasible, and it says so
     // well before any seed actually fails.
     maxAttempts: Math.max(...seedResults.map(r => r.attempts || 0)),
@@ -428,6 +432,8 @@ let context = null;
     ingredients: REQUIRED,
     limits: {
       maxLateralRatio: MAX_LATERAL_RATIO,
+      physicalLateralCeiling: PHYSICAL_LATERAL_CEILING,
+      requiredSelectionReserve: 0.04,
       heightTolerance: HEIGHT_TOLERANCE,
     },
     heightfield,
@@ -472,8 +478,9 @@ let context = null;
   console.error(
     `route     ${passing.length}/${seedCount} seeds complete · ` +
     `worst |Δy| ${shown(route.maxHeightError)} m · ` +
-    `tightest lateral ${shown(route.tightestLateral)} of ${MAX_LATERAL_RATIO} · ` +
-    `most attempts ${route.maxAttempts} of the module's 64`,
+    `tightest lateral ${shown(route.tightestLateral)} of ${MAX_LATERAL_RATIO} validation ` +
+    `(physical ceiling ${PHYSICAL_LATERAL_CEILING}) · ` +
+    `most attempts ${route.maxAttempts} of the module's 256`,
   );
   for (const f of failures.slice(0, 10)) {
     console.error(`  FAIL seed ${f.seed}: ${f.reason}`);

@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector.js";
 
 import {
-    ZONES, JUMPS, PIPES, BASE_CAMP_Z, candidatesFor, selectRoute, protectedSpans, rng,
+    ZONES, JUMPS, PIPES, BASE_CAMP_Z, PHYSICAL_MAX_LATERAL_RATIO,
+    ROUTE_MAX_LATERAL_RATIO, candidatesFor, selectRoute, protectedSpans, rng,
 } from "../src/game/ingredientPlacement.js";
 import { INGREDIENTS, INGREDIENT_IDS } from "../src/game/ingredients.js";
 import { BIG_AIR_BASIN } from "../src/game/courses/bigAirBasin.js";
@@ -216,7 +217,7 @@ test("100 consecutive seeds all produce a completable route", () => {
             const dz = b.z - a.z;
             assert.ok(dz > 0, `seed ${seed} requires riding uphill`);
             assert.ok(
-                Math.abs(b.x - a.x) <= dz * 0.84 + 1e-9,
+                Math.abs(b.x - a.x) <= dz * ROUTE_MAX_LATERAL_RATIO + 1e-9,
                 `seed ${seed} needs an impossible lateral shift`
             );
         }
@@ -229,6 +230,15 @@ test("100 consecutive seeds all produce a completable route", () => {
     assert.deepEqual(failures, [], `${failures.length} of 100 seeds failed`);
 });
 
+test("route selection keeps a deliberate margin inside the physical carve ceiling", () => {
+    assert.equal(PHYSICAL_MAX_LATERAL_RATIO, 0.84);
+    assert.equal(ROUTE_MAX_LATERAL_RATIO, 0.66);
+    assert.ok(
+        PHYSICAL_MAX_LATERAL_RATIO - ROUTE_MAX_LATERAL_RATIO >= 0.15,
+        "route selector lost its player-error safety reserve",
+    );
+});
+
 test("a five-ingredient order including the onion also completes", () => {
     // The onion's zone overlaps the patty's along z, so it is ordered after it
     // and the route check has to tolerate a near-zero downhill gap being
@@ -238,7 +248,7 @@ test("a five-ingredient order including the onion also completes", () => {
     for (let seed = 1; seed <= 100; seed++) {
         if (selectRoute(ids, field, seed).ok) ok++;
     }
-    assert.ok(ok >= 90, `only ${ok} of 100 five-ingredient seeds completed`);
+    assert.equal(ok, 100, `only ${ok} of 100 five-ingredient seeds completed`);
 });
 
 test("the seeded generator is stable across calls", () => {

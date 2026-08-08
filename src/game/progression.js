@@ -1,3 +1,122 @@
+import { COURSES } from "./courses/index.js";
+
+/** The six deliveries that make the Burger Tour's first ending. */
+export const MAIN_TOUR_DELIVERY_IDS = Object.freeze([
+    "summit-stack",
+    "timber-melt",
+    "blue-plate",
+    "night-shift",
+    "avalanche-special",
+    "big-air-basin-stack",
+]);
+
+function registryEventIds() {
+    return Object.values(COURSES).flatMap((course) => course.events ?? []);
+}
+
+function registryTapeEntries() {
+    return Object.values(COURSES).flatMap((course) =>
+        (course.secrets ?? []).map((tape) => ({ course, tape }))
+    );
+}
+
+/**
+ * Registry-derived collection and ending state. This is intentionally a pure
+ * read: records remain the save truth, while the UI gets its totals from the
+ * same course/event/tape registries that build the mountain.
+ */
+export function completionStats(book = {}) {
+    const events = book.events ?? {};
+    const eventIds = registryEventIds();
+    const tapes = registryTapeEntries();
+    const completedEventIds = eventIds.filter((id) =>
+        (events[id]?.completions ?? 0) > 0
+    );
+    const medalEventIds = eventIds.filter((id) =>
+        typeof events[id]?.bestMedal === "string" && events[id].bestMedal.length > 0
+    );
+    const foundTapes = tapes.filter(({ course, tape }) =>
+        (book.secrets?.[course.id] ?? []).includes(tape.id)
+    );
+    const mainCompleted = MAIN_TOUR_DELIVERY_IDS.filter((id) =>
+        (events[id]?.completions ?? 0) > 0
+    );
+    const tourComplete = mainCompleted.length === MAIN_TOUR_DELIVERY_IDS.length;
+    const hundredPercent = completedEventIds.length === eventIds.length &&
+        medalEventIds.length === eventIds.length &&
+        foundTapes.length === tapes.length;
+    const totalStars = Object.values(events).reduce((sum, event) =>
+        sum + (Number.isFinite(event?.bestStars) ? Math.max(0, event.bestStars) : 0), 0);
+    const unlockedCourses = Object.values(tourState(book))
+        .filter((state) => state.unlocked).length;
+    // 100% is the complete set of event completions, medals, and tapes. The
+    // denominator is registry-derived, so adding a registered event or tape
+    // cannot leave a stale hand-written percentage in the book.
+    const completionUnits = eventIds.length * 2 + tapes.length;
+    const completionPercent = completionUnits
+        ? Math.floor(((completedEventIds.length + medalEventIds.length + foundTapes.length) /
+            completionUnits) * 100)
+        : 0;
+    return {
+        courseTotal: Object.keys(COURSES).length,
+        eventTotal: eventIds.length,
+        tapeTotal: tapes.length,
+        completedEvents: completedEventIds.length,
+        medalEvents: medalEventIds.length,
+        foundTapes: foundTapes.length,
+        mainCompleted: mainCompleted.length,
+        mainTotal: MAIN_TOUR_DELIVERY_IDS.length,
+        tourComplete,
+        hundredPercent,
+        completedEventIds,
+        medalEventIds,
+        mainCompletedIds: mainCompleted,
+        unlockedCourses,
+        totalStars,
+        burgersServed: Number.isFinite(book.burgers) ? Math.max(0, book.burgers) : 0,
+        runs: Number.isFinite(book.runs) ? Math.max(0, book.runs) : 0,
+        completionPercent: Math.min(100, completionPercent),
+    };
+}
+
+/**
+ * A compact view-model for Burger Book pages. It deliberately contains only
+ * registry rows and saved measurements so screens cannot drift into a second
+ * hand-maintained event list.
+ */
+export function burgerBookPages(book = {}) {
+    const events = book.events ?? {};
+    return Object.values(COURSES).map((course) => ({
+        id: course.id,
+        title: course.title,
+        subtitle: course.subtitle,
+        unlocked: !!tourState(book)[course.id]?.unlocked,
+        events: (course.events ?? []).map((id) => {
+            const saved = events[id] ?? {};
+            return {
+                id,
+                completions: Number.isFinite(saved.completions) ? saved.completions : 0,
+                medal: typeof saved.bestMedal === "string" ? saved.bestMedal : null,
+                bestTime: Number.isFinite(saved.bestTime) ? saved.bestTime : null,
+                bestVehicle: typeof saved.bestVehicle === "string" ? saved.bestVehicle : null,
+                style: Number.isFinite(saved.bestStyle) ? saved.bestStyle : 0,
+                integrity: Number.isFinite(saved.bestIntegrity) ? saved.bestIntegrity : 0,
+                trick: saved.bestTrick && typeof saved.bestTrick === "object" &&
+                    Number.isFinite(saved.bestTrick.score)
+                    ? { name: saved.bestTrick.name, score: saved.bestTrick.score }
+                    : null,
+                rocket: Number.isFinite(saved.bestRocket) ? saved.bestRocket : 0,
+                ghost: !!saved.bestGhost,
+                bigAir: saved.bestBigAirFlights && Object.keys(saved.bestBigAirFlights).length > 0,
+            };
+        }),
+        tapes: (course.secrets ?? []).map((tape) => ({
+            id: tape.id,
+            found: (book.secrets?.[course.id] ?? []).includes(tape.id),
+        })),
+    }));
+}
+
 /**
  * The Burger Tour — which mountains a book has earned.
  *

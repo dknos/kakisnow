@@ -1,0 +1,122 @@
+{
+  "tool": "tools/snow-burgers/playthrough-windows.cjs",
+  "url": "http://127.0.0.1:5193/?course=big-air-basin&event=big-air-basin-stack&autopause=off",
+  "viewport": {
+    "width": 2560,
+    "height": 1440
+  },
+  "seeds": 1,
+  "vehicle": "classic-snowboard",
+  "runs": [
+    {
+      "seed": 1,
+      "vehicle": "classic-snowboard",
+      "ok": true,
+      "finalState": "results",
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "x": -2.96,
+          "y": -4.59,
+          "z": -216.53,
+          "zone": "cheese"
+        },
+        {
+          "ingredient": "patty",
+          "x": -3.64,
+          "y": -4.5,
+          "z": -73.69,
+          "zone": "patty"
+        },
+        {
+          "ingredient": "tomato",
+          "x": 6.55,
+          "y": 1.01,
+          "z": 103.27,
+          "zone": "tomato"
+        },
+        {
+          "ingredient": "lettuce",
+          "x": 19.98,
+          "y": -60.69,
+          "z": 465.04,
+          "zone": "lettuce"
+        }
+      ],
+      "collected": [
+        "cheese",
+        "patty",
+        "tomato",
+        "lettuce"
+      ],
+      "lastZ": 564,
+      "flightHud": {
+        "on": false,
+        "text": "Big Air flight\n    AIR 2.53 S · 49.3 M · PEAK 18.6 M"
+      },
+      "flightHudSeen": {
+        "on": true,
+        "text": "Big Air flight\n    AIR 2.53 S · 49.3 M · PEAK 18.6 M"
+      },
+      "airborneObserved": false,
+      "fuelAtFinish": 1,
+      "blocked": null,
+      "result": {
+        "completed": true,
+        "time": 45.42,
+        "medal": "gold",
+        "style": 47,
+        "integrity": 75,
+        "stars": 4,
+        "grade": "Summit Stack",
+        "splits": {
+          "cheese": 5.254299999952308,
+          "patty": 12.601899999976128,
+          "tomato": 21.744099999964405,
+          "lettuce": 40.34719999998894
+        },
+        "detail": {
+          "airTime": 4.47,
+          "airShare": 0.098,
+          "carve": 0.025,
+          "pace": 1,
+          "pipeTime": 20.2,
+          "routeRisk": 0.375,
+          "landings": 7,
+          "hardLandings": 2,
+          "worstLanding": 1.5,
+          "distance": 860.1
+        },
+        "bigAirFlight": {
+          "vehicle": "classic-snowboard",
+          "airtime": 2.53,
+          "distance": 49.3,
+          "maxHeight": 2.1,
+          "maxClearance": 18.6,
+          "trick": null,
+          "trickScore": 0,
+          "landingGrade": "sketchy",
+          "recordKey": "big-air-basin:classic-snowboard"
+        },
+        "rocket": 0,
+        "notMeasured": [
+          "rocket efficiency"
+        ]
+      }
+    }
+  ],
+  "screenshots": [
+    "00-title",
+    "001-pickup-1-cheese",
+    "001-airborne-context",
+    "001-pickup-3-patty",
+    "001-pickup-4-tomato",
+    "001-big-air-flight",
+    "001-pickup-6-lettuce",
+    "001-assembly",
+    "001-results"
+  ],
+  "consoleErrors": [],
+  "webgpuValidation": [],
+  "ok": true
+}

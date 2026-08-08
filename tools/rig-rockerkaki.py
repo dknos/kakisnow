@@ -1,22 +1,34 @@
 """Author the reproducible RockerKaki armature and runtime GLB.
 
-The Tencent-generated source is a single, highly disconnected surface. Blender
-heat weights are unstable on that topology, so the weights below are deliberate
-spatial fields with named transition bands. Running this file in Blender 5.1+
-rebuilds both the editable .blend and the shipped rigged GLB.
+The source is produced locally by ``tools/generate-rockerkaki.py`` as one
+palette-textured mesh.  The weights below remain deliberate spatial fields so
+the runtime contract is stable across disconnected authored primitives and the
+compact glTF skin never exceeds four influences. Running this file in Blender
+5.1+ rebuilds both the editable .blend and the shipped rigged GLB.
 """
 
 from pathlib import Path
+from hashlib import sha256
+import json
 import math
+import sys
 
 import bpy
 from mathutils import Vector
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from canonicalize_glb import canonicalize_glb
 
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "public/assets/models/rockerkaki.glb"
 BLEND = ROOT / "art/rockerkaki-rig.blend"
 OUTPUT = ROOT / "public/assets/models/rockerkaki-rigged.glb"
+RECORD = ROOT / "art/generated-assets/rockerkaki/GENERATION_RECORD.json"
+
+
+def digest(path):
+    return sha256(path.read_bytes()).hexdigest()
 
 
 def clamp01(value):
@@ -148,7 +160,11 @@ def main():
     modifier = mesh.modifiers.new(name="KakiRig", type="ARMATURE")
     modifier.object = rig
     modifier.use_deform_preserve_volume = True
-    mesh.parent = rig
+    # Keep the skinned mesh and armature as sibling scene roots. The armature
+    # modifier and skin bind matrices are the deformation contract; parenting
+    # the mesh under the armature adds no useful transform here and triggers
+    # Khronos NODE_SKINNED_MESH_NON_ROOT portability warnings.
+    mesh.parent = None
 
     # A tiny authored action makes the GLB self-demonstrating in Blender and
     # other glTF viewers. Runtime poses are controller-driven and use these names.
@@ -190,10 +206,6 @@ def main():
     mesh.select_set(True)
     bpy.context.view_layer.objects.active = rig
 
-    properties = {
-        item.identifier
-        for item in bpy.ops.export_scene.gltf.get_rna_type().properties
-    }
     kwargs = {
         "filepath": str(OUTPUT),
         "export_format": "GLB",
@@ -204,12 +216,40 @@ def main():
         "export_apply": False,
         "export_yup": True,
     }
+    properties = {
+        item.identifier
+        for item in bpy.ops.export_scene.gltf.get_rna_type().properties
+    }
     if "export_def_bones" in properties:
         kwargs["export_def_bones"] = True
-    if "export_draco_mesh_compression_enable" in properties:
-        kwargs["export_draco_mesh_compression_enable"] = True
-        kwargs["export_draco_mesh_compression_level"] = 6
+    # Do not enable Blender's non-byte-deterministic Draco encoder here. The
+    # clean procedural source is compact and the reproducible hash is more
+    # valuable than a few hundred kilobytes saved at first boot.
     bpy.ops.export_scene.gltf(**kwargs)
+    canonicalize_glb(OUTPUT)
+
+    record = json.loads(RECORD.read_text()) if RECORD.exists() else {
+        "schemaVersion": 1,
+        "asset": "RockerKaki",
+        "status": "clean-local-procedural-source",
+        "outputs": {},
+    }
+    record["outputs"]["rigBlend"] = {
+        "path": "art/rockerkaki-rig.blend",
+        "bytes": BLEND.stat().st_size,
+        "sha256": digest(BLEND),
+    }
+    record["outputs"]["riggedGlb"] = {
+        "path": "public/assets/models/rockerkaki-rigged.glb",
+        "bytes": OUTPUT.stat().st_size,
+        "sha256": digest(OUTPUT),
+        "sourcePath": "public/assets/models/rockerkaki.glb",
+        "sourceSha256": digest(SOURCE),
+    }
+    RECORD.parent.mkdir(parents=True, exist_ok=True)
+    RECORD.write_bytes(
+        (json.dumps(record, indent=2, sort_keys=True) + "\n").encode("utf-8")
+    )
 
     print(
         "KAKI_RIG",
@@ -220,6 +260,8 @@ def main():
             "vertices": len(mesh.data.vertices),
             "bones": [bone.name for bone in rig.data.bones],
             "action": action.name,
+            "sourceSha256": digest(SOURCE),
+            "outputSha256": digest(OUTPUT),
         },
     )
 

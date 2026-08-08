@@ -327,7 +327,9 @@ export class PostChain {
             e.setFloat("vignette", 0.22);
             e.setFloat(
                 "speedStreak",
-                S.windStreaks ? this.speedStreak * S.streakStrength : 0
+                S.windStreaks && !S.reducedMotion
+                    ? this.speedStreak * S.streakStrength
+                    : 0
             );
             e.setFloat("bloomAmount", S.bloom ? S.bloomStrength : 0);
             e.setFloat("shaftAmount", S.showLightShafts ? 1 : 0);

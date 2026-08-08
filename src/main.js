@@ -31,6 +31,7 @@ import { SpellSystem } from "./spells/spellSystem.js";
 import { Overlay } from "./ui/overlay.js";
 import { CourseHud } from "./ui/courseHud.js";
 import { GameDirector, Mode } from "./game/gameDirector.js";
+import { bootIntent } from "./game/bootIntent.js";
 import { COURSES, DEFAULT_COURSE_ID, setActiveCourse } from "./game/courses/index.js";
 import { EVENTS, getEvent } from "./game/courses/eventRegistry.js";
 import { RocketChair } from "./vehicles/rocketChair.js";
@@ -40,7 +41,7 @@ import { ShadowSystem } from "./render/shadows.js";
 import { Terrain } from "./terrain/terrain.js";
 import { DepthPass } from "./render/depthPass.js";
 import { PostChain } from "./post/postChain.js";
-import { whenReady } from "./core/gpuUtil.js";
+import { whenReady, withTimeout } from "./core/gpuUtil.js";
 import * as loading from "./core/loading.js";
 
 // ------------------------------------------------------- module-scope scratch
@@ -65,7 +66,11 @@ async function boot() {
     });
 
     try {
-        await engine.initAsync();
+        await withTimeout(
+            engine.initAsync(),
+            15000,
+            "WebGPU device initialisation failed",
+        );
     } catch (err) {
         console.error(err);
         loading.fail("WebGPU device initialisation failed.");
@@ -161,6 +166,16 @@ async function boot() {
     await loading.phase("placing character", 0.62);
 
     const character = new CharacterController(terrain);
+    // Big Air's headline table is the one authored launch in the game whose
+    // identity must survive a mild carve. The assist is data-driven from that
+    // existing ski-jump span and is absent on every other course, preserving
+    // the ordinary natural-takeoff feel everywhere else.
+    if (course.id === "big-air-basin") {
+        character.setTakeoffAssist({
+            jump: course.terrain.skiJumps?.[0] ?? null,
+            laneHalf: course.terrain.laneHalf,
+        });
+    }
     character.position.set(0, 0, 0);
     character.position.y = terrain.heightAt(0, 0);
 
@@ -277,6 +292,7 @@ async function boot() {
         scene, sky, shadows, depthPass, terrain,
         controller: character, rig, spray, rocketChair,
         course, event: eventDef,
+        setHintVisible: loading.setHintVisible,
     });
     await game.load();
 
@@ -294,6 +310,15 @@ async function boot() {
 
     const overlay = new Overlay({ rig, character });
     const courseHud = new CourseHud(character, course);
+    const applyCourseHudAccessibility = () => {
+        if (!courseHud.el) return;
+        const scale = Math.max(0.8, Math.min(1.6, Number(S.hudScale) || 1));
+        courseHud.el.style.setProperty("--course-hud-scale", String(scale));
+        courseHud.el.classList.toggle("high-contrast", !!S.highContrast);
+        courseHud.el.classList.toggle("reduced-motion", !!S.reducedMotion);
+    };
+    applyCourseHudAccessibility();
+    onChange(["hudScale", "highContrast", "reducedMotion"], applyCourseHudAccessibility);
     initInput(canvas, { onToggleOverlay: () => overlay.toggle() });
     initTouch(canvas);
     onChange("touchControls", () => setTouchVisible(shouldShowTouch()));
@@ -380,7 +405,7 @@ async function boot() {
         const dt = (S.freezeTime || pause.active) ? 0 : dtMs / 1000;
         time += dt;
 
-        pollInput();
+        pollInput(dt);
         // In the poll-to-controller window, like everything that overrides
         // input: the gamepad Start edge is polled here, and a paused frame
         // zeroes the struct so held keys steer nothing and nothing pressed
@@ -492,10 +517,15 @@ async function boot() {
     gameAudio.setBusVolume("ui", S.uiVolume);
     gameAudio.setEnabled(S.audio !== false);
 
-    const requestedMode = bootParams.get("mode");
+    const intent = bootIntent({
+        requestedMode: bootParams.get("mode"),
+        eventParam,
+        eventRegistry: EVENTS,
+        courseId: course.id,
+    });
     game.selectMode(
-        requestedMode === "free-ride" ? Mode.FREE_RIDE
-            : requestedMode === "burger-run" ? Mode.BURGER_RUN
+        intent === "free-ride" ? Mode.FREE_RIDE
+            : intent === "burger-run" ? Mode.BURGER_RUN
             : Mode.TITLE
     );
 

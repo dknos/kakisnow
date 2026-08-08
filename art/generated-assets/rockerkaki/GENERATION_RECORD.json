@@ -1,0 +1,59 @@
+{
+  "asset": "RockerKaki",
+  "blenderVersion": "5.1.1",
+  "command": "blender --background --factory-startup --python tools/generate-rockerkaki.py",
+  "externalGeometryInputs": [],
+  "externalTextureInputs": [],
+  "generatedDate": "2026-08-08",
+  "generator": "Blender primitives and repository Python source",
+  "geometry": {
+    "materials": 1,
+    "meshObjects": 1,
+    "paletteColours": 16,
+    "triangles": 12928,
+    "vertices": 6558
+  },
+  "identityNotes": [
+    "large chibi head",
+    "violet and white hair",
+    "small horns",
+    "dark violet alpine outfit",
+    "seated boots",
+    "electric guitar"
+  ],
+  "networkInputs": [],
+  "outputs": {
+    "palette": {
+      "bytes": 248,
+      "path": "art/generated-assets/rockerkaki/rockerkaki-palette.png",
+      "sha256": "83a80a58ac2f0e34af5537ec6cd577cb5191fda14938eebec5748b0807fd63d7"
+    },
+    "rigBlend": {
+      "bytes": 396689,
+      "path": "art/rockerkaki-rig.blend",
+      "sha256": "0cd42b7c301ccf756447b1db9b269259ccd02da9c075b005c00ffec07deb2d08"
+    },
+    "riggedGlb": {
+      "bytes": 555636,
+      "path": "public/assets/models/rockerkaki-rigged.glb",
+      "sha256": "c300cb1a1b581ac07d7f0319a4c0902340ee4d64520294a1ec4ac82fcb658007",
+      "sourcePath": "public/assets/models/rockerkaki.glb",
+      "sourceSha256": "c3a4c7325e86db85f43a8bc06694cc4621cec7a1acfb7ea8dbcb6dc01424b602"
+    },
+    "sourceBlend": {
+      "bytes": 340075,
+      "path": "art/rockerkaki-source.blend",
+      "sha256": "10a73d6a01a10fbd82132ca1605fe478aeb7c526bed2328522fd7314567b086d"
+    },
+    "sourceGlb": {
+      "bytes": 366316,
+      "path": "public/assets/models/rockerkaki.glb",
+      "sha256": "c3a4c7325e86db85f43a8bc06694cc4621cec7a1acfb7ea8dbcb6dc01424b602"
+    }
+  },
+  "rigCommand": "blender --background --factory-startup --python tools/rig-rockerkaki.py",
+  "schemaVersion": 1,
+  "sourceScript": "tools/generate-rockerkaki.py",
+  "status": "clean-local-procedural-source",
+  "validationCommand": "blender --background --factory-startup --python tools/validate-rockerkaki-rig.py"
+}

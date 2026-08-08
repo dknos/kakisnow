@@ -12,6 +12,11 @@ const root = /** @type {HTMLElement} */ (document.getElementById("boot"));
 const hint = /** @type {HTMLElement} */ (document.getElementById("hint"));
 
 let progress = 0;
+// The loading screen owns the handoff, but not the gameplay mode. The game
+// director requests the legacy control line explicitly once this handoff is
+// complete; keeping the request here avoids a boot timer racing a mode change.
+let handoffReady = false;
+let hintRequested = false;
 
 /** Yield to the compositor so the loading screen repaints. */
 export function nextFrame() {
@@ -34,14 +39,29 @@ export async function done() {
     // Let the bar visibly land before the fade starts.
     await new Promise((r) => setTimeout(r, 360));
     root?.classList.add("gone");
-    hint?.classList.add("show");
-    setTimeout(() => {
-        root?.remove();
-        hint?.classList.remove("show");
-    }, 6000);
+    // The title/order screen is selected as soon as this promise resolves.
+    // Keep that product UI out of the DOM handoff until the opaque boot layer
+    // has actually finished fading; otherwise a direct event link briefly
+    // reads as two wordmarks and two hierarchies occupying the same frame.
+    await new Promise((r) => setTimeout(r, 620));
+    root?.remove();
+    handoffReady = true;
+    hint?.classList.toggle("show", hintRequested);
+}
+
+/**
+ * Explicitly show the old control hint for the two unscored lab modes.
+ * Requests made during boot are remembered and applied once the authored
+ * loading handoff completes; there is no independent hide timer.
+ */
+export function setHintVisible(visible) {
+    hintRequested = Boolean(visible);
+    if (handoffReady) hint?.classList.toggle("show", hintRequested);
 }
 
 export function fail(message) {
+    hintRequested = false;
+    hint?.classList.remove("show");
     root?.remove();
     const el = document.getElementById("nogpu");
     if (el) {

@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "generatedBy": "tools/smoke-browser.mjs",
+  "url": "http://127.0.0.1:5192",
+  "timeoutMs": 60000,
+  "scope": "boot/presentation smoke; not hardware or frame-budget certification",
+  "status": "ready",
+  "browser": {
+    "executablePath": "/home/nemoclaw/bin/chromium",
+    "headless": true
+  },
+  "state": {
+    "ready": true,
+    "product": "KAKISNOW",
+    "hasNavigatorGpu": true,
+    "unavailableVisible": false,
+    "unavailableText": "Snow-Burgers needs WebGPU to run KAKISNOW Snow Technology. Try a current desktop Chrome or Edge with hardware acceleration enabled, then reload this page.",
+    "bootVisible": false,
+    "title": "Snow-Burgers — Shred. Stack. Serve."
+  },
+  "consoleErrors": [],
+  "pageErrors": [],
+  "requestFailures": [],
+  "httpFailures": [],
+  "expectedStartupFailures": [],
+  "blockingFailures": [],
+  "runnerError": null,
+  "screenshot": "reports/final-gauntlet/final-runtime/browser-smoke/boot.png"
+}

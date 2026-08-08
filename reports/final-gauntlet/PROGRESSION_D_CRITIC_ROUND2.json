@@ -1,0 +1,98 @@
+{
+  "failed": [],
+  "errors": [],
+  "gpu": [],
+  "book1280": {
+    "stats": [
+      "6/6Mountains open",
+      "12Burgers served",
+      "24Total stars",
+      "100%Completion",
+      "12/12Events served",
+      "12/12Medals earned",
+      "18/18Recipe tapes",
+      "12Runs logged"
+    ],
+    "progress": "TOUR COMPLETE · Every event medalled. The book is full.",
+    "tabs": 6,
+    "events": 3,
+    "tapes": 3
+  },
+  "book3440": {
+    "viewport": [
+      3440,
+      1440
+    ],
+    "wrap": {
+      "x": 1130,
+      "width": 1180,
+      "height": 993.21875
+    },
+    "font": "32px",
+    "overflow": false
+  },
+  "cross": {
+    "url": "http://127.0.0.1:5173/?course=pinecone-pass&event=timber-melt&mode=burger-run",
+    "screen": "sb-order",
+    "mode": "burger-run",
+    "course": "pinecone-pass",
+    "event": "timber-melt",
+    "order": "The Timber Melt"
+  },
+  "same": {
+    "screen": "sb-order",
+    "mode": "burger-run",
+    "course": "pinecone-pass",
+    "event": "timber-melt"
+  },
+  "tourBefore": {
+    "screen": "sb-finale",
+    "title": "Tour Complete",
+    "seen": true,
+    "music": "tour-complete"
+  },
+  "tourAfter": {
+    "screen": "sb-title",
+    "seen": true
+  },
+  "hundred": {
+    "title": "100% Served",
+    "seen": true,
+    "music": "tour-complete"
+  },
+  "credits": {
+    "screen": "sb-credits",
+    "music": "credits",
+    "text": "SNOW-BURGERS · RELEASE NOTES\nCREDITS\nPROJECT\nSnow-Burgers · SHRED. STACK. SERVE.\nTECHNOLOGY\nKAKISNOW Snow Technology · custom WebGPU snow, terrain, deformation, lighting, atmosphere, and post stack.\nEXTERNAL WORK\nRuntime asset sources, licenses, attribution, and modifications are listed in THIRD_PARTY_NOTICES.txt.\nOPEN SOURCE\nBrowser dependencies and their license notices are enumerated in the shipped release documentation.\nAI DISCLOSURE\nSome promotional 2D art is AI-assisted. Source prompts, edits, hashes, and the release decision are recorded in the asset ledger.\nSPECIAL THANKS\nTo every rider who took the long line for one more tape.\nBack to title\nBurger Book"
+  },
+  "confirmUi": {
+    "native": "function",
+    "buttons": [
+      "Clear ghosts",
+      "Cancel"
+    ],
+    "focus": "Clear ghosts"
+  },
+  "cancelClear": {
+    "screen": "sb-book",
+    "burgers": 12,
+    "medal": "gold",
+    "ghost": true
+  },
+  "cleared": {
+    "burgers": 12,
+    "medal": "gold",
+    "ghost": false
+  },
+  "resetCancel": {
+    "screen": "sb-book",
+    "burgers": 12,
+    "medal": "gold"
+  },
+  "resetYes": {
+    "screen": "sb-title",
+    "burgers": 0,
+    "events": 0,
+    "stored": null
+  }
+}

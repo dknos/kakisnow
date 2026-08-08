@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "generatedBy": "tools/smoke-browser.mjs",
+  "url": "http://127.0.0.1:5193",
+  "timeoutMs": 60000,
+  "scope": "boot/presentation smoke; not hardware or frame-budget certification",
+  "status": "webgpu-unavailable",
+  "browser": {
+    "executablePath": "/home/nemoclaw/bin/chromium",
+    "headless": true
+  },
+  "state": {
+    "ready": false,
+    "product": null,
+    "hasNavigatorGpu": true,
+    "unavailableVisible": true,
+    "unavailableText": "WebGPU device initialisation failed. Try a current desktop Chrome or Edge with hardware acceleration enabled, then reload this page.",
+    "bootVisible": false,
+    "bootPhase": "",
+    "bootProgress": "",
+    "title": "Snow-Burgers — Shred. Stack. Serve."
+  },
+  "consoleErrors": [
+    "BJS - [09:30:44]: A fatal error occurred during WebGPU creation/initialization.",
+    "Could not retrieve a WebGPU adapter (adapter is null or undefined)."
+  ],
+  "pageErrors": [],
+  "requestFailures": [],
+  "httpFailures": [],
+  "expectedStartupFailures": [
+    "BJS - [09:30:44]: A fatal error occurred during WebGPU creation/initialization.",
+    "Could not retrieve a WebGPU adapter (adapter is null or undefined)."
+  ],
+  "blockingFailures": [],
+  "runnerError": null,
+  "screenshot": "reports/final-gauntlet/rockerkaki-clean/final-browser-smoke/boot.png"
+}

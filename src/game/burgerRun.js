@@ -120,6 +120,8 @@ export class BurgerRun {
          * @type {null|{total:number, best:{name:string,score:number}|null, count:number}}
          */
         this.trickTelemetry = null;
+        /** Big Air's controller-authoritative signature-flight record. */
+        this.flightTelemetry = null;
         /** Controller crash count at the gate, so a run counts only its own. */
         this._crashBase = 0;
 
@@ -458,6 +460,10 @@ export class BurgerRun {
                 worstLanding: +this._worstLanding.toFixed(2),
                 distance: +this._distance.toFixed(1),
             },
+            // Big Air owns one additional, course-specific flight record. It
+            // is null for every other event so generic results never imply a
+            // metric the simulation did not measure.
+            bigAirFlight: this.flightTelemetry ? { ...this.flightTelemetry } : null,
             // Named so the results screen can say what it did not measure
             // rather than print a zero and let it read as a bad score. The
             // trick system exists now, so tricks are a number, not an excuse.
@@ -501,6 +507,7 @@ export class BurgerRun {
         this._distance = 0;
         this._ghost = [];
         this._ghostAcc = 0;
+        this.flightTelemetry = null;
     }
 
     /**

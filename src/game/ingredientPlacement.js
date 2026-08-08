@@ -110,14 +110,17 @@ const MAX_LOCAL_RELIEF = 0.55;
 const MIN_SEPARATION = 22;
 
 /**
- * The tightest lateral shift a rider can make between two pickups.
+ * Lateral route limits.
  *
  * At the controller's `SURF_MAX` of 19.5 m/s and `SURF_TURN` of 2.35 rad/s a
  * carve turns inside about 8.3 m, so a heading change of 40° is comfortable and
- * anything under it is reachable without braking. Expressed as a ratio of the
- * along-course gap, which is what the check actually has.
+ * anything under it is physically reachable without braking. The selector is
+ * intentionally stricter: 0.66 is about 33.4°, leaving roughly 6.6° of heading
+ * reserve for imperfect anticipation, analogue noise, and pickup visibility.
+ * Both are expressed as lateral shift / along-course gap.
  */
-const MAX_LATERAL_RATIO = 0.84;
+export const PHYSICAL_MAX_LATERAL_RATIO = 0.84;
+export const ROUTE_MAX_LATERAL_RATIO = 0.66;
 
 // ------------------------------------------------------------------ determinism
 
@@ -423,7 +426,11 @@ export function selectRoute(ids, field, seed, course = SUMMIT_LINE) {
     }
 
     const next = rng(seed);
-    const MAX_ATTEMPTS = 64;
+    // Five-ingredient finals include a deliberate off-line onion detour. The
+    // stricter release safety budget rejects more random combinations than the
+    // old physical-limit check, so give the tiny fixed pools enough attempts
+    // to find their safe combination without weakening that budget.
+    const MAX_ATTEMPTS = 256;
 
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         const chosen = pools.map((pool) => pool[(next() * pool.length) | 0]);
@@ -455,7 +462,7 @@ function routeProblem(chosen, course) {
         if (dz < MIN_SEPARATION) {
             return `${a.zone} → ${b.zone} only ${dz.toFixed(1)} m apart`;
         }
-        if (Math.abs(b.x - a.x) > dz * MAX_LATERAL_RATIO) {
+        if (Math.abs(b.x - a.x) > dz * ROUTE_MAX_LATERAL_RATIO) {
             return (
                 `${a.zone} → ${b.zone} needs ${Math.abs(b.x - a.x).toFixed(1)} m ` +
                 `of lateral shift in ${dz.toFixed(1)} m of run`

@@ -31,7 +31,9 @@ import { S } from "../core/settings.js";
 import { input } from "../core/input.js";
 import { ShadedAsset } from "../render/shadedAsset.js";
 import { ROCKET_CHAIR } from "./vehicleProfiles.js";
-import { RocketThrust, FUEL_PER_CLEAN_LANDING } from "./rocketThrust.js";
+import {
+    RocketThrust, refillForCleanLanding,
+} from "./rocketThrust.js";
 
 const _v = new Vector3();
 const _nozzle = new Vector3();
@@ -246,10 +248,10 @@ export class RocketChair {
         // A landing that was actually flown, rather than a bump. Clean landings
         // paying a little fuel back is what makes reading terrain worth more
         // than holding the throttle down.
-        if (this.controller.landed && this.controller.landingImpact < 1.05
-            && this.controller.airTime > 0.35) {
-            this.thrust.refill(FUEL_PER_CLEAN_LANDING);
-        }
+        // `CharacterController` resets airTime at touchdown by design. The
+        // vehicle consumes the one-frame landing latch instead, before the
+        // next controller update clears it, and pays back fuel exactly once.
+        refillForCleanLanding(this.thrust, this.controller);
     }
 
     /**
