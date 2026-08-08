@@ -16,7 +16,8 @@
 
 export const WHITEOUT_RIDGE = {
     id: "whiteout-ridge",
-    version: 1,
+    // v2 reserves player-error margin in deterministic ingredient routes.
+    version: 2,
     title: "Whiteout Ridge",
     subtitle: "The avalanche special",
     difficulty: "double-black",

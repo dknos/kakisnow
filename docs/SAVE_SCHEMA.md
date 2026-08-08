@@ -21,6 +21,12 @@ vehicle id all have to match the active run. A ghost from a different course,
 event, vehicle or terrain revision is ignored rather than shown as a false
 comparison.
 
+The v1.0 release candidate advances all six course identity versions from 1
+to 2 because the deterministic ingredient-route safety budget changed. Saved
+progress, records, burgers, medals, tapes, and stored ghost bytes are preserved;
+version-1 ghosts simply do not race against a version-2 pickup line. Recording
+a new matching personal best replaces that event's stale comparison normally.
+
 ## `snow-burgers.settings` — schema 1
 
 The settings envelope is `{ "version": 1, "values": { ... } }`. The

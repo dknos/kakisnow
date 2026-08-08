@@ -133,7 +133,7 @@ test("the Summit definition still describes the shipped course", () => {
         [[292, 370], [410, 450]]);
     assert.equal(SUMMIT_LINE.finishZ, 520);
     assert.equal(SUMMIT_LINE.baseCampZ, 548);
-    assert.equal(SUMMIT_LINE.version, 1);
+    assert.equal(SUMMIT_LINE.version, 2);
 });
 
 // -------------------------------------------------------------- the encoding
