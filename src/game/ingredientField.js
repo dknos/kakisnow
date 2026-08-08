@@ -38,6 +38,9 @@ import { CreateBox } from "@babylonjs/core/Meshes/Builders/boxBuilder.js";
 
 import { ShadedAsset } from "../render/shadedAsset.js";
 import { INGREDIENTS } from "./ingredients.js";
+import { shouldShowIngredientGuide } from "./ingredientGuide.js";
+import { S } from "../core/settings.js";
+import { accessibilityCuesEnabled } from "../ui/accessibilityFeedback.js";
 
 /**
  * The pickup site: a groomed pad and four route stakes.
@@ -189,6 +192,28 @@ export class IngredientField {
             site.adopt(stake, { colour, roughness: 0.55 });
         }
 
+        // Optional high-contrast route beacon: a faceted pole plus a small
+        // crossbar gives the site a silhouette/pattern that survives colour
+        // vision differences and whiteout fog. It is built once with the site
+        // and merely enabled/disabled at runtime, so the run path allocates
+        // nothing. The ordinary stakes remain the quiet default.
+        const guide = CreateCylinder(
+            "site_" + id + "_guide",
+            { diameter: 0.18, height: STAKE_HEIGHT * 1.9, tessellation: 6 },
+            this.scene
+        );
+        guide.parent = site.root;
+        guide.position.y = STAKE_HEIGHT * 0.92 - 0.1;
+        site.adopt(guide, { colour: new Color3(0.98, 0.98, 1), roughness: 0.4 });
+        const flag = CreateBox("site_" + id + "_guide_flag", {
+            width: 0.72, depth: 0.08, height: 0.12,
+        }, this.scene);
+        flag.parent = guide;
+        flag.position.set(0.28, STAKE_HEIGHT * 0.72, 0);
+        site.adopt(flag, { colour: new Color3(0.98, 0.98, 1), roughness: 0.4 });
+        site.routeGuide = guide;
+        site.routeFlag = flag;
+
         site.available = true;
         site.setActive(false);
         return site;
@@ -234,6 +259,8 @@ export class IngredientField {
             const site = this.sites.get(p.ingredient);
             if (site) {
                 site.setActive(true);
+                site.routeGuide?.setEnabled(accessibilityCuesEnabled(S));
+                site.routeFlag?.setEnabled(accessibilityCuesEnabled(S));
                 // The pad sits on the snow, not on the ingredient's lift.
                 site.root.position.set(p.x, p.y, p.z);
                 site.root.rotation.y = p.approach;
@@ -266,6 +293,10 @@ export class IngredientField {
             item.asset.root.position.set(
                 item.anchor.x, item.anchor.y + item.def.lift, item.anchor.z
             );
+            const site = this.sites.get(item.id);
+            const showGuide = shouldShowIngredientGuide(item, accessibilityCuesEnabled(S));
+            site?.routeGuide?.setEnabled(showGuide);
+            site?.routeFlag?.setEnabled(showGuide);
         }
         this._hasPrev = false;
     }
@@ -412,7 +443,11 @@ export class IngredientField {
             // The site stays lit after the ingredient is gone: it is still
             // standing there, and a pad that goes black on pickup is worse
             // than no pad.
-            this.sites.get(item.id)?.sync(cameraPos);
+            const site = this.sites.get(item.id);
+            const showGuide = shouldShowIngredientGuide(item, accessibilityCuesEnabled(S));
+            site?.routeGuide?.setEnabled(showGuide);
+            site?.routeFlag?.setEnabled(showGuide);
+            site?.sync(cameraPos);
         }
     }
 

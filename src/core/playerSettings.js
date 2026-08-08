@@ -34,6 +34,12 @@ const PLAYER_KEYS = {
     invertY: (v) => typeof v === "boolean",
     shakeScale: (v) => Number.isFinite(v) && v >= 0 && v <= 1.5,
     reducedMotion: (v) => typeof v === "boolean",
+    hudScale: (v) => Number.isFinite(v) && v >= 0.8 && v <= 1.6,
+    highContrast: (v) => typeof v === "boolean",
+    routeAssist: (v) => typeof v === "boolean",
+    ingredientBeacon: (v) => typeof v === "boolean",
+    hazardWarnings: (v) => typeof v === "boolean",
+    ghostOpacity: (v) => Number.isFinite(v) && v >= 0.25 && v <= 1,
     showGhost: (v) => typeof v === "boolean",
     forgivingLanding: (v) => typeof v === "boolean",
     touchControls: (v) => v === "auto" || v === "on" || v === "off",
@@ -121,4 +127,21 @@ export function initPlayerSettings() {
         }
     }
     onChange(Object.keys(PLAYER_KEYS), save);
+}
+
+/** Restore player-facing settings while leaving renderer/debug tuning alone. */
+export function resetPlayerSettings() {
+    const defaults = {
+        audio: true, masterVolume: 1, musicVolume: 1, sfxVolume: 1,
+        ambienceVolume: 1, uiVolume: 1, mouseSensitivity: 1, invertY: false,
+        shakeScale: 1, reducedMotion: false, hudScale: 1, highContrast: false,
+        routeAssist: false, ingredientBeacon: false, hazardWarnings: true,
+        ghostOpacity: 0.72, showGhost: true, forgivingLanding: false,
+        touchControls: "auto", preset: "ultra",
+    };
+    for (const [k, v] of Object.entries(defaults)) {
+        if (k === "preset") applyPreset(v);
+        else set(k, v);
+    }
+    try { storage()?.removeItem(KEY); } catch { /* unavailable storage is safe */ }
 }

@@ -5,8 +5,13 @@
  * Mouse look uses pointer lock, which frees the right button for snow-surf.
  */
 
-import { touch, endTouchFrame } from "./touchInput.js";
+import { touch, endTouchFrame, releaseAllTouchSources } from "./touchInput.js";
 import { S } from "./settings.js";
+import { initPlayerBindings, getBindingCodes, isBindingDown } from "./playerBindings.js";
+import {
+    INPUT_FAMILIES, noteInputFamily, getInputFamily, gamepadInputFamily,
+    advanceInputFamily,
+} from "./inputFamily.js";
 
 export const input = {
     // Movement axes, camera-relative, already normalised to a unit disc.
@@ -48,6 +53,7 @@ export const input = {
     recoverPressed: false,
 
     locked: false,
+    family: INPUT_FAMILIES.KEYBOARD_MOUSE,
 };
 
 const keys = Object.create(null);
@@ -108,6 +114,7 @@ let onToggleOverlay = null;
  * @param {{ onToggleOverlay?: () => void }} [hooks]
  */
 export function initInput(canvas, hooks) {
+    initPlayerBindings();
     onToggleOverlay = hooks?.onToggleOverlay ?? null;
 
     canvas.addEventListener("click", () => {
@@ -117,16 +124,15 @@ export function initInput(canvas, hooks) {
     document.addEventListener("pointerlockchange", () => {
         input.locked = document.pointerLockElement === canvas;
         if (!input.locked) {
-            // Drop held state so the character doesn't run off while unfocused.
-            for (const k in keys) keys[k] = false;
-            mouseSurf = false;
-            input.surf = false;
-            input.spellHeld2 = false;
+            releaseAllInputSources();
         }
     });
 
     document.addEventListener("mousemove", (e) => {
         if (!input.locked) return;
+        if (Math.abs(e.movementX) + Math.abs(e.movementY) > 2) {
+            noteInputFamily(INPUT_FAMILIES.KEYBOARD_MOUSE);
+        }
         const scale = LOOK_SCALE * S.mouseSensitivity;
         input.lookX += e.movementX * scale;
         input.lookY += e.movementY * scale * (S.invertY ? -1 : 1);
@@ -161,15 +167,17 @@ export function initInput(canvas, hooks) {
             return;
         }
         if (e.repeat) return;
+        noteInputFamily(INPUT_FAMILIES.KEYBOARD_MOUSE);
         keys[e.code] = true;
 
-        if (e.code === "Space") {
+        if (getBindingCodes("jump").includes(e.code)) {
             e.preventDefault();
             input.jumpPressed = true;
         }
-        if (e.code === "KeyR") input.recoverPressed = true;
+        if (getBindingCodes("recover").includes(e.code)) input.recoverPressed = true;
 
-        const n = SPELL_KEYS[e.code];
+        const n = [1, 2, 3, 4, 5].find((spell) =>
+            getBindingCodes(`spell${spell}`).includes(e.code));
         if (n) {
             input.spellPressed = n;
             if (n === 2) input.spellHeld2 = true;
@@ -178,23 +186,30 @@ export function initInput(canvas, hooks) {
 
     window.addEventListener("keyup", (e) => {
         keys[e.code] = false;
-        if (SPELL_KEYS[e.code] === 2) input.spellHeld2 = false;
+        if (getBindingCodes("spell2").includes(e.code)) input.spellHeld2 = false;
     });
 
-    window.addEventListener("blur", () => {
-        for (const k in keys) keys[k] = false;
-        input.surf = false;
-        input.spellHeld2 = false;
+    window.addEventListener("blur", releaseAllInputSources);
+    document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState !== "visible") releaseAllInputSources();
     });
+    document.addEventListener("pointercancel", releaseAllInputSources);
 }
 
-const SPELL_KEYS = {
-    Digit1: 1,
-    Digit2: 2,
-    Digit3: 3,
-    Digit4: 4,
-    Digit5: 5,
-};
+/** Release keyboard, pad, mouse, and touch intent after any focus loss. */
+export function releaseAllInputSources() {
+    for (const k in keys) keys[k] = false;
+    mouseSurf = false;
+    ownSurfHeld = false;
+    input.moveX = 0; input.moveZ = 0; input.moving = false;
+    input.lookX = 0; input.lookY = 0; input.zoomDelta = 0;
+    input.surf = false; input.sprint = false; input.boost = 0;
+    input.jumpPressed = false; input.spellPressed = 0; input.spellHeld2 = false;
+    input.spin = 0; input.trickMod = false; input.recoverPressed = false;
+    for (let i = 0; i < _padSouth.length; i++) _padSouth[i] = false;
+    for (let i = 0; i < _padEast.length; i++) _padEast[i] = false;
+    releaseAllTouchSources();
+}
 
 /**
  * Apply a radial stick deadzone without allocating.
@@ -294,10 +309,10 @@ function connectedGamepads() {
 export function pollInput(dt = DEFAULT_POLL_DT) {
     let x = 0;
     let z = 0;
-    if (keys.KeyW || keys.ArrowUp) z += 1;
-    if (keys.KeyS || keys.ArrowDown) z -= 1;
-    if (keys.KeyD || keys.ArrowRight) x += 1;
-    if (keys.KeyA || keys.ArrowLeft) x -= 1;
+    if (isBindingDown("steerForward", (code) => !!keys[code])) z += 1;
+    if (isBindingDown("steerBack", (code) => !!keys[code])) z -= 1;
+    if (isBindingDown("steerRight", (code) => !!keys[code])) x += 1;
+    if (isBindingDown("steerLeft", (code) => !!keys[code])) x -= 1;
 
     // Clamp to a unit disc so diagonals aren't faster.
     const len = Math.sqrt(x * x + z * z);
@@ -330,6 +345,10 @@ export function pollInput(dt = DEFAULT_POLL_DT) {
             continue;
         }
         const sample = sampleGamepad(pad);
+        if (sample.moveStrength > 0.22 || sample.lookStrength > 0.22 || sample.jump ||
+            sample.recover || sample.boost > 0.12 || sample.trickMod || sample.spin) {
+            noteInputFamily(gamepadInputFamily(pad));
+        }
         if (sample.moveStrength >= padMoveStrength) {
             padMoveStrength = sample.moveStrength;
             padMoveX = sample.moveX;
@@ -355,6 +374,9 @@ export function pollInput(dt = DEFAULT_POLL_DT) {
     // established keyboard vector remains authoritative. Comparing strength
     // keeps a half-deflected pad from stealing a deliberate full keyboard
     // direction, while ties prefer the pad's analog intent.
+    if (touch.x || touch.y || touch.jump || touch.ride || touch.boost || touch.trick) {
+        noteInputFamily(INPUT_FAMILIES.TOUCH);
+    }
     if (touch.x || touch.y) {
         x = touch.x;
         z = touch.y;
@@ -366,9 +388,9 @@ export function pollInput(dt = DEFAULT_POLL_DT) {
     input.moveX = x;
     input.moveZ = z;
     input.moving = Math.hypot(x, z) > 0.001;
-    input.sprint = !!(keys.ShiftLeft || keys.ShiftRight);
+    input.sprint = isBindingDown("rocketBoost", (code) => !!keys[code]);
     input.boost = Math.max(
-        keys.ShiftLeft || keys.ShiftRight ? 1 : 0,
+        input.sprint ? 1 : 0,
         padBoost,
         touch.boost,
     );
@@ -377,9 +399,9 @@ export function pollInput(dt = DEFAULT_POLL_DT) {
     // into tweaks (the controller reads moveX/moveZ under trickMod). Gamepad:
     // bumpers spin, west button is the modifier, east recovers.
     let spin = 0;
-    if (keys.KeyQ) spin -= 1;
-    if (keys.KeyE) spin += 1;
-    let trickMod = !!keys.KeyF || touch.trick;
+    if (isBindingDown("spinLeft", (code) => !!keys[code])) spin -= 1;
+    if (isBindingDown("spinRight", (code) => !!keys[code])) spin += 1;
+    let trickMod = isBindingDown("trickModifier", (code) => !!keys[code]) || touch.trick;
     spin += padSpin;
     trickMod = trickMod || padTrickMod;
     input.spin = Math.max(-1, Math.min(1, spin));
@@ -394,6 +416,7 @@ export function pollInput(dt = DEFAULT_POLL_DT) {
     if (touch.jump) input.jumpPressed = true;
     input.lookX += touch.lookX;
     input.lookY += touch.lookY;
+    input.family = advanceInputFamily(Date.now());
 
     // A held right stick is a rate, not a per-frame delta. Scaling by the
     // simulation's dt keeps one second of look identical at 30/60/120 Hz,

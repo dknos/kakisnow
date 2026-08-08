@@ -306,6 +306,15 @@ async function boot() {
 
     const overlay = new Overlay({ rig, character });
     const courseHud = new CourseHud(character, course);
+    const applyCourseHudAccessibility = () => {
+        if (!courseHud.el) return;
+        const scale = Math.max(0.8, Math.min(1.6, Number(S.hudScale) || 1));
+        courseHud.el.style.setProperty("--course-hud-scale", String(scale));
+        courseHud.el.classList.toggle("high-contrast", !!S.highContrast);
+        courseHud.el.classList.toggle("reduced-motion", !!S.reducedMotion);
+    };
+    applyCourseHudAccessibility();
+    onChange(["hudScale", "highContrast", "reducedMotion"], applyCourseHudAccessibility);
     initInput(canvas, { onToggleOverlay: () => overlay.toggle() });
     initTouch(canvas);
     onChange("touchControls", () => setTouchVisible(shouldShowTouch()));

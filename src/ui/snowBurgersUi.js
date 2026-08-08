@@ -29,11 +29,22 @@ import { INGREDIENTS } from "../game/ingredients.js";
 import { RunState } from "../game/burgerRun.js";
 import { getEvent } from "../game/courses/eventRegistry.js";
 import { COURSES } from "../game/courses/index.js";
-import { S, set as setSetting, applyPreset } from "../core/settings.js";
+import { S, set as setSetting, applyPreset, onChange } from "../core/settings.js";
+import {
+    getInputFamily, onInputFamilyChange, activateInputFamily,
+    pointerInputFamily,
+} from "../core/inputFamily.js";
+import {
+    BINDING_LABELS, getBindings, setBinding,
+} from "../core/playerBindings.js";
+import { ridePrompts } from "./inputPrompts.js";
+import { feedbackText } from "./accessibilityFeedback.js";
 import { completionStats, burgerBookPages } from "../game/progression.js";
 import { recipeTapeContent, recipeTapeTitle } from "../game/recipeTapeContent.js";
+import packageInfo from "../../package.json" with { type: "json" };
 
 const ICONS = (import.meta.env?.BASE_URL ?? "/") + "assets/ui/snow-burgers/";
+export const PRODUCT_VERSION = packageInfo.version;
 
 const CSS = `
 #sb-ui, #sb-ui * { box-sizing: border-box; }
@@ -54,7 +65,13 @@ const CSS = `
     --warm-dim: rgba(255, 157, 63, 0.55);
     --line: rgba(233, 244, 251, 0.17);
     --muted: rgba(233, 244, 251, 0.62);
+    --sb-hud-scale: 1;
 }
+#sb-ui.reduced-motion *, #sb-ui.reduced-motion *::before, #sb-ui.reduced-motion *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+}
+#sb-ui.high-contrast { --line: rgba(255,255,255,.38); --muted: rgba(255,255,255,.88); }
 #sb-ui .sb-screen {
     position: absolute; inset: 0;
     display: none; place-items: center;
@@ -290,6 +307,8 @@ const CSS = `
 /* --------------------------------------------------------------- run HUD */
 #sb-hud {
     position: absolute; inset: 0; display: none; pointer-events: none;
+    transform: scale(var(--sb-hud-scale)); transform-origin: top left;
+    width: calc(100% / var(--sb-hud-scale)); height: calc(100% / var(--sb-hud-scale));
 }
 #sb-hud.on { display: block; }
 .sb-hud-order {
@@ -447,6 +466,20 @@ const CSS = `
 }
 #sb-avalanche.on { opacity: 1; }
 #sb-avalanche.close { color: #e2553a; }
+#sb-avalanche::before { content: "[AVALANCHE] "; color: var(--warm); }
+.sb-slot.done { outline: 1px solid var(--warm); outline-offset: 3px; }
+.sb-slot.done::before { content: "[OK]"; display: block; color: var(--warm); font: 600 8px/1 ui-monospace,monospace; }
+.sb-slot.beacon { outline: 1px dashed var(--ice); outline-offset: 4px; }
+.sb-caption {
+    position: absolute; left: 50%; bottom: 42px; transform: translateX(-50%);
+    max-width: min(90vw, 680px); padding: 7px 12px; text-align: center;
+    color: var(--snow); background: rgba(3,8,15,.72); border: 1px solid var(--line);
+    font: 600 10px/1.35 ui-monospace,monospace; letter-spacing: .12em;
+    text-transform: uppercase; opacity: 0; transition: opacity 160ms ease;
+}
+.sb-caption.on { opacity: 1; }
+#sb-finish-beacon { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); opacity:0; color:var(--warm); border:1px solid var(--warm); padding:6px 10px; font:600 10px/1 ui-monospace,monospace; letter-spacing:.16em; text-transform:uppercase; text-shadow:0 2px 14px #03080f; pointer-events:none; }
+#sb-finish-beacon.on { opacity:1; }
 
 .sb-hud-alert {
     position: absolute; left: 50%; bottom: 84px; transform: translateX(-50%);
@@ -523,6 +556,10 @@ const CSS = `
     width: 11px; height: 11px; background: var(--warm);
     border: 0; border-radius: 0;
 }
+.sb-binding-row { display:grid; grid-template-columns: 148px 1fr; gap:14px; align-items:center; }
+.sb-binding-key { appearance:none; border:1px solid rgba(233,244,251,.18); background:rgba(233,244,251,.04); color:var(--snow); padding:7px 9px; text-align:left; cursor:pointer; font:500 10px/1.2 ui-monospace,monospace; }
+.sb-binding-key.capturing { border-color:var(--warm); color:var(--warm); }
+.sb-binding-error { grid-column:1 / -1; color:#ff9b78; font:500 9px/1.3 ui-monospace,monospace; }
 .sb-seg { display: flex; gap: 2px; }
 .sb-seg button {
     appearance: none; border: 0; cursor: pointer;
@@ -778,6 +815,8 @@ export class SnowBurgersUi {
             fuelFill: this.root.querySelector("#sb-fuel-fill"),
             flight: this.root.querySelector("#sb-hud-flight"),
             flightValue: this.root.querySelector("#sb-hud-flight-value"),
+            caption: this.root.querySelector("#sb-caption"),
+            finishBeacon: this.root.querySelector("#sb-finish-beacon"),
             alertMain: this.root.querySelector("#sb-alert-main"),
             alertSub: this.root.querySelector("#sb-alert-sub"),
             chips: this.root.querySelector("#sb-order-chips"),
@@ -793,6 +832,7 @@ export class SnowBurgersUi {
             eventVehicle: this.root.querySelector("#sb-event-vehicle"),
             eventMedal: this.root.querySelector("#sb-event-medal"),
             orderCount: this.root.querySelector("#sb-order-count"),
+            orderPrompt: this.root.querySelector("#sb-order-prompt"),
             results: this.root.querySelector("#sb-results"),
             resultBody: this.root.querySelector("#sb-result-body"),
             book: this.root.querySelector("#sb-book"),
@@ -824,10 +864,61 @@ export class SnowBurgersUi {
         this.onPauseAction = null;
 
         this._bind();
+        this._syncAccessibility();
+        onChange(["hudScale", "highContrast", "reducedMotion"], () => this._syncAccessibility());
+        this._inputFamilyOff = onInputFamilyChange(() => {
+            this._syncAccessibility();
+            this._refreshInputPrompts();
+        });
+        this.root.addEventListener("pointerdown", (e) => {
+            // A menu tap is meaningful input even without a touch-stick poll;
+            // this keeps the order/how-to glyphs honest on button-only touch.
+            activateInputFamily(pointerInputFamily(e.pointerType));
+        });
         this._lastClock = -1;
         this._lastFuel = -1;
         /** @type {Record<string, HTMLElement>} */
         this._slotEls = {};
+    }
+
+    _syncAccessibility() {
+        this.root.style.setProperty("--sb-hud-scale", String(Math.max(0.8, Math.min(1.6, Number(S.hudScale) || 1))));
+        this.root.classList.toggle("high-contrast", !!S.highContrast);
+        this.root.classList.toggle("reduced-motion", !!S.reducedMotion);
+        this.root.dataset.inputFamily = getInputFamily();
+        for (const [id, el] of Object.entries(this._slotEls ?? {})) {
+            if (!el.classList.contains("done")) el.classList.toggle("beacon", !!S.ingredientBeacon || !!S.highContrast);
+        }
+    }
+
+    _refreshInputPrompts() {
+        if (this.el.howto.classList.contains("on")) this._setHowToPromptText();
+        if (this.el.order.classList.contains("on") && this._orderEvent) {
+            this._setOrderPromptText(this._orderEvent);
+        }
+    }
+
+    _setHowToPromptText() {
+        const prompts = ridePrompts(getInputFamily());
+        const copy = {
+            steer: `Steer with ${prompts.steer}. Ease into an edge to hold a clean line.`,
+            jump: `Jump with ${prompts.jump}. Buffer before a lip and release to settle.`,
+            spin: `Spin with ${prompts.spin}. Anticipate the landing.`,
+            trick: `Hold ${prompts.trick} while airborne. Steer to tweak the grab line.`,
+            recover: `Recover with ${prompts.recover} to return to the last safe spot.`,
+            rocket: `Boost with ${prompts.rocket}. Fuel refills at ingredients; save it for climbs.`,
+        };
+        for (const [key, text] of Object.entries(copy)) {
+            const span = this.el.howto.querySelector(`[data-howto="${key}"] span`);
+            if (span) span.textContent = text;
+        }
+    }
+
+    _setOrderPromptText(event) {
+        const prompts = ridePrompts(getInputFamily());
+        const count = event.required.length;
+        this.el.orderPrompt.innerHTML = `Collect <b id="sb-order-count">${count} ingredient${count === 1 ? "" : "s"}</b> on the mountain · steer ${prompts.steer} · jump ${prompts.jump}. Serve at the grill.`;
+        this.el.orderCount = this.el.orderPrompt.querySelector("#sb-order-count");
     }
 
     _markup() {
@@ -861,7 +952,7 @@ export class SnowBurgersUi {
       </aside>
     </div>
   </div>
-  <div class="sb-credit">Powered by KAKISNOW Snow Technology</div>
+  <div class="sb-credit">Snow-Burgers v${PRODUCT_VERSION} · Powered by KAKISNOW Snow Technology</div>
 </div>
 
 <div class="sb-screen" id="sb-order">
@@ -874,7 +965,7 @@ export class SnowBurgersUi {
       <div class="sb-order-fact"><span>Vehicle</span><strong id="sb-event-vehicle">Classic board</strong></div>
       <div class="sb-order-fact"><span>Medal target</span><strong id="sb-event-medal">Gold · 0:34</strong></div>
     </div>
-    <div class="sb-order-instruction">Collect <b id="sb-order-count">four ingredients</b> on the mountain. Serve at the grill.</div>
+    <div class="sb-order-instruction" id="sb-order-prompt">Collect <b id="sb-order-count">four ingredients</b> on the mountain. Serve at the grill.</div>
     <div class="sb-chips" id="sb-order-chips"></div>
     <div class="sb-actions">
       <button class="sb-item" data-action="drop-in">Drop in</button>
@@ -890,7 +981,7 @@ export class SnowBurgersUi {
     <div class="sb-hud-split" id="sb-hud-split">The Summit Stack</div>
   </div>
   <div class="sb-hud-order" id="sb-hud-slots"></div>
-  <div class="sb-hud-fuel" id="sb-hud-fuel">
+  <div class="sb-hud-fuel" id="sb-hud-fuel" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" aria-label="Rocket fuel 100 percent">
     <div class="sb-fuel-label">Rocket fuel</div>
     <div class="sb-fuel-track"><i id="sb-fuel-fill"></i></div>
   </div>
@@ -903,6 +994,8 @@ export class SnowBurgersUi {
     <div class="sb-alert-sub" id="sb-alert-sub"></div>
   </div>
   <div id="sb-avalanche"></div>
+  <div id="sb-finish-beacon" aria-label="Burger grill ahead">[GRILL] FINISH</div>
+  <div class="sb-caption" id="sb-caption" role="status" aria-live="assertive"></div>
   <div id="sb-grade"></div>
   <div id="sb-trick">
     <div class="sb-trick-name" id="sb-trick-name"></div>
@@ -926,11 +1019,12 @@ export class SnowBurgersUi {
     <div class="sb-book-kicker">Snow-Burgers · release notes</div>
     <h1>Credits</h1>
     <div class="sb-credits-list">
-      <div><strong>Project</strong>Snow-Burgers · SHRED. STACK. SERVE.</div>
+      <div><strong>Project</strong>Snow-Burgers v${PRODUCT_VERSION} · SHRED. STACK. SERVE.</div>
       <div><strong>Technology</strong>KAKISNOW Snow Technology · custom WebGPU snow, terrain, deformation, lighting, atmosphere, and post stack.</div>
       <div><strong>External work</strong>Runtime asset sources, licenses, attribution, and modifications are listed in <code>THIRD_PARTY_NOTICES.txt</code>.</div>
       <div><strong>Open source</strong>Browser dependencies and their license notices are enumerated in the shipped release documentation.</div>
       <div><strong>AI disclosure</strong>Some promotional 2D art is AI-assisted. Source prompts, edits, hashes, and the release decision are recorded in the asset ledger.</div>
+      <div><strong>Privacy</strong>No accounts, ads, analytics, or telemetry. Settings, records, ghosts, and progress stay in this browser unless you choose Export Save.</div>
       <div><strong>Special thanks</strong>To every rider who took the long line for one more tape.</div>
     </div>
     <div class="sb-actions"><button class="sb-item sb-primary" data-action="title">Back to title</button><button class="sb-item" data-action="book">Burger Book</button></div>
@@ -946,13 +1040,13 @@ export class SnowBurgersUi {
     <div class="sb-book-kicker">Rider reference</div>
     <h1>How to Ride</h1>
     <div class="sb-howto-grid">
-      <div class="sb-howto-row"><strong>Steer / carve</strong><span>Left stick or A/D. Ease into an edge to hold a clean line.</span></div>
-      <div class="sb-howto-row"><strong>Jump</strong><span>Space / gamepad south (A). Buffer before a lip and release to settle.</span></div>
-      <div class="sb-howto-row"><strong>Spin / flip</strong><span>Q/E or gamepad bumpers spin. Hold the trick modifier and steer to flip.</span></div>
-      <div class="sb-howto-row"><strong>Grab / tweak</strong><span>F / gamepad west (X) while airborne. Left/right tweaks the grab line.</span></div>
+      <div class="sb-howto-row" data-howto="steer"><strong>Steer / carve</strong><span>Left stick or A/D. Ease into an edge to hold a clean line.</span></div>
+      <div class="sb-howto-row" data-howto="jump"><strong>Jump</strong><span>Space / gamepad south (A). Buffer before a lip and release to settle.</span></div>
+      <div class="sb-howto-row" data-howto="spin"><strong>Spin / flip</strong><span>Q/E or gamepad bumpers spin. Hold the trick modifier and steer to flip.</span></div>
+      <div class="sb-howto-row" data-howto="trick"><strong>Grab / tweak</strong><span>F / gamepad west (X) while airborne. Left/right tweaks the grab line.</span></div>
       <div class="sb-howto-row"><strong>Grind</strong><span>Approach a rail with the board level; Space / south pops off.</span></div>
-      <div class="sb-howto-row"><strong>Recover</strong><span>R / gamepad east (B) returns to the last safe spot and costs a little time.</span></div>
-      <div class="sb-howto-row"><strong>Rocket chair</strong><span>Left Shift / right trigger. Fuel refills at ingredients; save it for climbs.</span></div>
+      <div class="sb-howto-row" data-howto="recover"><strong>Recover</strong><span>R / gamepad east (B) returns to the last safe spot and costs a little time.</span></div>
+      <div class="sb-howto-row" data-howto="rocket"><strong>Rocket chair</strong><span>Left Shift / right trigger. Fuel refills at ingredients; save it for climbs.</span></div>
       <div class="sb-howto-row"><strong>Spells / event icons</strong><span>1–5 trigger mountain flourishes. The order card names every event target.</span></div>
     </div>
     <div class="sb-actions"><button class="sb-item sb-primary" data-action="book">Back to Burger Book</button><button class="sb-item" data-action="title">Title</button></div>
@@ -1003,6 +1097,18 @@ export class SnowBurgersUi {
         return [...root.querySelectorAll("button, input[type=range]")]
             .filter((item) => !item.classList.contains("sb-locked") &&
                 item.offsetParent !== null);
+    }
+
+    /** Activate the family-appropriate back/cancel action for a controller. */
+    menuBack() {
+        const root = this._visibleMenuRoot();
+        if (!root) return false;
+        const target = menuBackTarget(root.id);
+        if (!target) return false;
+        const button = root.querySelector(`[${target.attr}="${target.value}"]`);
+        if (!button) return false;
+        button.click();
+        return true;
     }
 
     /** Move focus through the visible menu. @param {1|-1} dir */
@@ -1073,6 +1179,31 @@ export class SnowBurgersUi {
         // a menu that is up owns them — preventDefault keeps the rider
         // behind the title card from twitching in time with the cursor.
         window.addEventListener("keydown", (e) => {
+            if (this._bindingCapture) {
+                e.preventDefault();
+                const action = this._bindingCapture;
+                const target = this.root.querySelector(`[data-binding-action="${action}"]`);
+                if (e.code === "Escape") {
+                    this._bindingCapture = null;
+                    this._buildSettingsRows();
+                    target?.focus();
+                    return;
+                }
+                const result = setBinding(action, e.code);
+                if (!result.ok) {
+                    if (target) {
+                        target.textContent = result.error;
+                        target.classList.add("capturing");
+                        setTimeout(() => this._buildSettingsRows(), 1200);
+                    }
+                    this._bindingCapture = null;
+                    return;
+                }
+                this._bindingCapture = null;
+                this._buildSettingsRows();
+                this.root.querySelector(`[data-binding-action="${action}"]`)?.focus();
+                return;
+            }
             if (!this.anyScreenVisible()) return;
             if (e.code === "ArrowUp") {
                 e.preventDefault();
@@ -1139,8 +1270,14 @@ export class SnowBurgersUi {
                 case "save-import": this._startSaveImport(); break;
                 case "clear-ghosts": this.hooks.onSaveAction?.("clear-ghosts"); break;
                 case "reset-progress": this.hooks.onSaveAction?.("reset"); break;
+                case "reset-bindings": this.hooks.onSaveAction?.("reset-bindings"); break;
+                case "reset-settings": this.hooks.onSaveAction?.("reset-settings"); break;
                 case "confirm-yes": this.hooks.onSaveAction?.("confirm", this._confirmAction); break;
-                case "confirm-no": this.showBurgerBook(this._bookInput, this._bookCourseId); break;
+                case "confirm-no":
+                    if (this._confirmFrom === "pause") this.showPauseSettings();
+                    else if (this._confirmFrom === "title") this.showTitleSettings();
+                    else this.showBurgerBook(this._bookInput, this._bookCourseId);
+                    break;
                 default: break;
             }
         });
@@ -1331,8 +1468,19 @@ export class SnowBurgersUi {
     showSaveConfirm(action) {
         this._confirmAction = action;
         this._bookCourseId = this._bookPages?.[this._bookPage ?? 0]?.id ?? null;
+        this._confirmFrom = ["reset-settings", "reset-bindings"].includes(action)
+            ? (this._settingsFrom ?? "title") : "book";
         const reset = action === "reset";
-        this.el.confirmBody.innerHTML = `<div class="sb-book-kicker">Save desk · confirm</div><h1>${reset ? "Reset Burger Book?" : "Clear ghosts?"}</h1><p class="sb-confirm-detail">${reset ? "This removes served orders, medals, tapes, records, and completion rewards. It cannot be undone." : "This removes personal-best ghost lines only. Records, medals, tapes, and burgers stay."}</p><div class="sb-actions" style="justify-content:center"><button class="sb-item sb-primary" data-action="confirm-yes">${reset ? "Reset progress" : "Clear ghosts"}</button><button class="sb-item" data-action="confirm-no">Cancel</button></div>`;
+        const settings = action === "reset-settings";
+        const bindings = action === "reset-bindings";
+        const title = bindings ? "Reset keyboard bindings?" : settings ? "Reset player settings?" : reset ? "Reset Burger Book?" : "Clear ghosts?";
+        const detail = settings
+            ? "This restores accessibility, audio, and HUD options. Keyboard bindings and Burger Tour progress stay."
+            : bindings ? "This restores keyboard controls only. Burger Tour progress and accessibility settings stay."
+            : reset ? "This removes served orders, medals, tapes, records, and completion rewards. It cannot be undone."
+                : "This removes personal-best ghost lines only. Records, medals, tapes, and burgers stay.";
+        const yes = bindings ? "Reset bindings" : settings ? "Reset settings" : reset ? "Reset progress" : "Clear ghosts";
+        this.el.confirmBody.innerHTML = `<div class="sb-book-kicker">Player desk · confirm</div><h1>${title}</h1><p class="sb-confirm-detail">${detail}</p><div class="sb-actions" style="justify-content:center"><button class="sb-item sb-primary" data-action="confirm-yes">${yes}</button><button class="sb-item" data-action="confirm-no">Cancel</button></div>`;
         this._show("confirm");
         this.menuButtons()[0]?.focus({ preventScroll: true });
     }
@@ -1354,6 +1502,7 @@ export class SnowBurgersUi {
     }
 
     showHowToRide() {
+        this._setHowToPromptText();
         this._show("howto");
         this.menuButtons()[0]?.focus({ preventScroll: true });
     }
@@ -1384,12 +1533,14 @@ export class SnowBurgersUi {
      * @param {object[]} placements route, for the zone names on the card
      */
     showOrder(event, placements) {
+        this._orderEvent = event;
         this.root.querySelector("#sb-event-name").textContent = event.name;
         this.root.querySelector("#sb-event-tag").textContent = event.tagline;
         this.el.eventRule.textContent = describeEventRule(event);
         this.el.eventVehicle.textContent = describeVehicle(event);
         this.el.eventMedal.textContent = `Gold · ${formatTime(event.gold)}`;
         this.el.orderCount.textContent = `${event.required.length} ingredient${event.required.length === 1 ? "" : "s"}`;
+        this._setOrderPromptText(event);
         const zoneOf = Object.fromEntries(
             placements.map((p) => [p.ingredient, p.zoneName ?? ""])
         );
@@ -1409,7 +1560,7 @@ export class SnowBurgersUi {
     setOrderSlots(required) {
         this.el.slots.innerHTML = required.map((id) => {
             const def = INGREDIENTS[id];
-            return `<div class="sb-slot" data-id="${id}">
+            return `<div class="sb-slot" data-id="${id}" role="status" aria-label="${def.label} not collected">
                 <img src="${ICONS}${id}.webp" alt="${def.label}" />
                 <span>${def.label}</span></div>`;
         }).join("");
@@ -1420,12 +1571,16 @@ export class SnowBurgersUi {
     }
 
     markCollected(id) {
-        this._slotEls[id]?.classList.add("done");
+        const slot = this._slotEls[id];
+        slot?.classList.add("done");
+        slot?.classList.remove("beacon");
+        if (slot) slot.setAttribute("aria-label", `${INGREDIENTS[id]?.label ?? id} collected`);
         this.el.chips.querySelector(`.sb-chip[data-id="${id}"]`)?.classList.add("done");
     }
 
     resetCollected() {
         for (const el of Object.values(this._slotEls)) el.classList.remove("done");
+        for (const el of Object.values(this._slotEls)) el.classList.toggle("beacon", !!S.ingredientBeacon || !!S.highContrast);
         for (const el of this.el.chips.querySelectorAll(".sb-chip")) {
             el.classList.remove("done");
         }
@@ -1439,6 +1594,8 @@ export class SnowBurgersUi {
             this.el.grade.classList.remove("on");
             this.el.combo.classList.remove("on");
             this.el.notice.classList.remove("on");
+            this.el.caption?.classList.remove("on");
+            this.el.finishBeacon?.classList.remove("on");
             this.el.tutor.classList.remove("on");
             this.el.avalanche.classList.remove("on");
             this.el.flight?.classList.remove("on");
@@ -1482,7 +1639,10 @@ export class SnowBurgersUi {
      */
     setFuel(level, fitted) {
         this.el.fuel.classList.toggle("on", !!fitted);
-        if (!fitted) return;
+        if (!fitted) {
+            this.el.fuel.setAttribute("aria-label", "Rocket fuel unavailable");
+            return;
+        }
         const v = Math.max(0, Math.min(1, level));
         // Only touch the DOM when the bar actually moves a visible amount.
         const step = Math.round(v * 84);
@@ -1490,6 +1650,8 @@ export class SnowBurgersUi {
         this._lastFuel = step;
         this.el.fuelFill.style.transform = `scaleX(${v.toFixed(3)})`;
         this.el.fuel.classList.toggle("low", v < 0.25);
+        this.el.fuel.setAttribute("aria-label", `Rocket fuel ${Math.round(v * 100)} percent${v < 0.25 ? ", low fuel" : ""}`);
+        this.el.fuel.setAttribute("aria-valuenow", String(Math.round(v * 100)));
     }
 
     /**
@@ -1541,6 +1703,8 @@ export class SnowBurgersUi {
             return;
         }
         el.textContent = grade;
+        el.setAttribute("role", "status");
+        el.setAttribute("aria-label", `Landing grade ${grade}`);
         el.className = "on " + grade;
         el.id = "sb-grade";
         clearTimeout(this._gradeTimer);
@@ -1577,6 +1741,8 @@ export class SnowBurgersUi {
         if (shown !== this._lastAva) {
             this._lastAva = shown;
             el.textContent = `avalanche \u2212${shown} m`;
+            el.setAttribute("role", "status");
+            el.setAttribute("aria-label", `Avalanche ${shown} metres behind`);
         }
         el.classList.add("on");
         el.classList.toggle("close", distance < 25);
@@ -1602,6 +1768,19 @@ export class SnowBurgersUi {
         this._noticeTimer = setTimeout(
             () => this.el.notice.classList.remove("on"), 1500
         );
+    }
+
+    /** Visible, non-audio warning that remains available while muted. */
+    setCaption(kind, value = {}, duration = 1500) {
+        if (!this.el.caption) return;
+        this.el.caption.textContent = feedbackText(kind, value);
+        this.el.caption.classList.add("on");
+        clearTimeout(this._captionTimer);
+        this._captionTimer = setTimeout(() => this.el.caption.classList.remove("on"), duration);
+    }
+
+    setFinishBeacon(on) {
+        this.el.finishBeacon?.classList.toggle("on", !!on && (!!S.routeAssist || !!S.highContrast));
     }
 
     /** @param {null|{main:string, sub?:string}} alert */
@@ -1673,7 +1852,7 @@ export class SnowBurgersUi {
         this._settingsFrom = "title";
         this._buildSettingsRows();
         this.el.settings.classList.add("on");
-        this._show(null);
+        this._show("settings");
         const first = this.menuButtons()[0];
         if (first) this._focusMenuItem(first);
     }
@@ -1685,6 +1864,11 @@ export class SnowBurgersUi {
         this.el.settings.classList.remove("on");
         this.hooks.onScreenVisibilityChange?.();
         return from;
+    }
+
+    showSettingsAfterReset() {
+        if (this._settingsFrom === "pause") this.showPauseSettings();
+        else this.showTitleSettings();
     }
 
     _buildSettingsRows() {
@@ -1708,7 +1892,12 @@ export class SnowBurgersUi {
                 <div class="sb-v"></div>
             </div>`;
         }).join("");
-        this.el.setRows.innerHTML = rows;
+        const bindingRows = Object.keys(BINDING_LABELS).map((action) => {
+            const codes = getBindings()[action] ?? [];
+            const text = codes.map((code) => code.replace(/^Key/, "").replace(/^Arrow/, "")).join(" / ");
+            return `<div class="sb-binding-row"><div class="sb-k">${BINDING_LABELS[action]}</div><button class="sb-binding-key" data-binding-action="${action}" aria-label="Remap ${BINDING_LABELS[action]}">${text}</button></div>`;
+        }).join("");
+        this.el.setRows.innerHTML = rows + `<div class="sb-section-label">Keyboard bindings</div>${bindingRows}<div class="sb-actions"><button class="sb-item" data-action="reset-bindings">Reset keyboard bindings</button><button class="sb-item" data-action="reset-settings">Reset settings</button></div>`;
 
         if (!this._settingsBound) {
             this._settingsBound = true;
@@ -1722,6 +1911,14 @@ export class SnowBurgersUi {
                 if (label) label.textContent = def.fmt(v);
             });
             this.el.setRows.addEventListener("click", (e) => {
+                const binding = e.target.closest("button[data-binding-action]");
+                if (binding) {
+                    this._bindingCapture = binding.dataset.bindingAction;
+                    binding.textContent = "Press a key · Escape cancels";
+                    binding.classList.add("capturing");
+                    binding.focus();
+                    return;
+                }
                 const btn = e.target.closest("button[data-opt]");
                 if (!btn) return;
                 const def = PLAYER_SETTINGS[+btn.dataset.si];
@@ -1798,17 +1995,41 @@ Seed ${result.seed}${result.notMeasured.length
         this._show("results");
         this.setHud(false);
         // Let the bars animate from zero rather than appear filled.
-        requestAnimationFrame(() => {
+        const fillResultBars = () => {
             for (const i of this.el.resultBody.querySelectorAll(".sb-bar i")) {
                 i.style.width = i.dataset.w;
             }
-        });
+        };
+        // Reduced motion is a persisted player setting, so it must win over
+        // the usual result flourish even when the OS preference is unchanged.
+        if (S.reducedMotion) fillResultBars();
+        else requestAnimationFrame(fillResultBars);
     }
 
     dispose() {
+        this._inputFamilyOff?.();
         this.root.remove();
         this._style.remove();
     }
+}
+
+/**
+ * Controller east/back targets. Kept pure so navigation cannot silently lose
+ * a screen when DOM focus happens to be on a tab or record row.
+ */
+export function menuBackTarget(screenId) {
+    const id = String(screenId ?? "").replace(/^sb-/, "");
+    return ({
+        pause: { attr: "data-pause", value: "resume" },
+        settings: { attr: "data-pause", value: "settings-back" },
+        order: { attr: "data-action", value: "menu" },
+        results: { attr: "data-action", value: "menu" },
+        book: { attr: "data-action", value: "title" },
+        howto: { attr: "data-action", value: "book" },
+        credits: { attr: "data-action", value: "title" },
+        finale: { attr: "data-action", value: "finale-skip" },
+        confirm: { attr: "data-action", value: "confirm-no" },
+    })[id] ?? null;
 }
 
 /** Keep registry copy and UI copy in plain language, so the title and order
@@ -2022,6 +2243,10 @@ const PLAYER_SETTINGS = [
         min: 0, max: 1, step: 0.01, fmt: (v) => Math.round(v * 100) + "%",
     },
     {
+        k: "uiVolume", label: "Interface", type: "range",
+        min: 0, max: 1, step: 0.01, fmt: (v) => Math.round(v * 100) + "%",
+    },
+    {
         k: "mouseSensitivity", label: "Mouse sensitivity", type: "range",
         min: 0.2, max: 3, step: 0.05, fmt: (v) => v.toFixed(2) + "×",
     },
@@ -2031,7 +2256,19 @@ const PLAYER_SETTINGS = [
         min: 0, max: 1.5, step: 0.05, fmt: (v) => Math.round(v * 100) + "%",
     },
     { k: "reducedMotion", label: "Reduced motion", type: "toggle" },
+    {
+        k: "hudScale", label: "HUD scale", type: "range",
+        min: 0.8, max: 1.6, step: 0.05, fmt: (v) => Math.round(v * 100) + "%",
+    },
+    { k: "highContrast", label: "High contrast cues", type: "toggle" },
+    { k: "routeAssist", label: "Route assist", type: "toggle" },
+    { k: "ingredientBeacon", label: "Ingredient beacon", type: "toggle" },
+    { k: "hazardWarnings", label: "Hazard captions", type: "toggle" },
     { k: "showGhost", label: "Race your ghost", type: "toggle" },
+    {
+        k: "ghostOpacity", label: "Ghost strength", type: "range",
+        min: 0.25, max: 1, step: 0.05, fmt: (v) => Math.round(v * 100) + "%",
+    },
     { k: "forgivingLanding", label: "Forgiving landings", type: "toggle" },
     { k: "touchControls", label: "Touch controls", type: "seg", opts: ["auto", "on", "off"] },
 ];

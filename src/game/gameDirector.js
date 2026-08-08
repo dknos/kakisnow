@@ -55,6 +55,10 @@ import { Snowcats } from "./snowcats.js";
 import { Avalanche } from "./avalanche.js";
 import { RecipeTapes } from "./secrets.js";
 import { tourState, completionStats } from "./progression.js";
+import { resetPlayerSettings } from "../core/playerSettings.js";
+import { resetBindings } from "../core/playerBindings.js";
+import { getInputFamily } from "../core/inputFamily.js";
+import { ridePrompts } from "../ui/inputPrompts.js";
 
 import { Mode } from "./modes.js";
 import { shouldShowHint } from "../ui/hintVisibility.js";
@@ -238,6 +242,10 @@ export class GameDirector {
         this._nearId = 0;
         this._nearDz = 0;
         this._nearCool = 0;
+        this._captionCool = 0;
+        this._snowcatCaption = false;
+        this._fuelCaption = false;
+        this._manualJumpEdge = false;
         /** Controller-authoritative metrics for Big Air's signature flight. */
         this.bigAirFlight = new BigAirFlightTelemetry({
             lipZ: this.course.terrain?.skiJumps?.[0]?.lipZ,
@@ -275,6 +283,9 @@ export class GameDirector {
         this.field.onCollect = (id) => {
             this.run.noteCollected(id);
             this.ui.markCollected(id);
+            if (S.hazardWarnings !== false) {
+                this.ui.setCaption("ingredient", { label: INGREDIENTS[id]?.label ?? id });
+            }
             audio.pickup(id);
             // The order and the engine are the same decision: the detour that
             // costs time also buys back the boost that wins it.
@@ -383,6 +394,14 @@ export class GameDirector {
             this.ui.showSaveConfirm("reset");
             return;
         }
+        if (action === "reset-settings") {
+            this.ui.showSaveConfirm("reset-settings");
+            return;
+        }
+        if (action === "reset-bindings") {
+            this.ui.showSaveConfirm("reset-bindings");
+            return;
+        }
         if (action === "confirm") {
             if (payload === "clear-ghosts") {
                 this.book.clearGhosts();
@@ -391,6 +410,12 @@ export class GameDirector {
                 this.book.reset();
                 this._refreshTitleMenu();
                 this.selectMode(Mode.TITLE);
+            } else if (payload === "reset-settings") {
+                resetPlayerSettings();
+                this.ui.showSettingsAfterReset?.();
+            } else if (payload === "reset-bindings") {
+                resetBindings();
+                this.ui.showSettingsAfterReset?.();
             }
             return;
         }
@@ -833,6 +858,11 @@ export class GameDirector {
      * @param {number} dt
      */
     update(dt) {
+        // Snapshot the one-frame jump edge before physics consumes it. Natural
+        // terrain airtime must not dismiss the first-run jump lesson.
+        this._jumpActionEdge = !!input.jumpPressed;
+        this._steerActionSeen = Math.abs(input.moveX) > 0.3;
+        this._captionCool = Math.max(0, this._captionCool - Math.max(0, dt));
         // Surface truth applies in every mode — visual ice that behaved like
         // powder in the lab would make the lab a liar.
         const c = this.controller;
@@ -844,6 +874,15 @@ export class GameDirector {
             this.mode === Mode.FREE_RIDE ? 0 : dt, c.position
         );
         if (this.mode !== Mode.FREE_RIDE) audio.snowcatUpdate(catProx);
+        if (this.mode !== Mode.FREE_RIDE && S.hazardWarnings !== false) {
+            if (catProx > 0.68 && !this._snowcatCaption && this._captionCool <= 0) {
+                this._snowcatCaption = true;
+                this._captionCool = 1.2;
+                this.ui.setCaption("snowcat", { distance: (1 - catProx) * 60 });
+            } else if (catProx < 0.42) {
+                this._snowcatCaption = false;
+            }
+        }
         // Tapes collect everywhere the board rides — the labs included; a
         // secret that only counts during a scored run is homework.
         this.tapes.update(c.position);
@@ -905,6 +944,10 @@ export class GameDirector {
                 );
                 if (ava) {
                     this.ui.setAvalanche(ava.distance);
+                    if (S.hazardWarnings !== false && ava.distance < 25 && this._captionCool <= 0) {
+                        this._captionCool = 1.2;
+                        this.ui.setCaption("avalanche", { distance: ava.distance });
+                    }
                     avalancheMusic = Math.max(0, 1 - ava.distance / 70);
                     audio.avalancheUpdate(avalancheMusic);
                     if (ava.caught && !this.controller.crashed) {
@@ -926,6 +969,15 @@ export class GameDirector {
                     this.rocketChair?.thrust.level ?? 0,
                     !!this.rocketChair?.active
                 );
+                const fuelLevel = this.rocketChair?.thrust.level ?? 1;
+                if (this.rocketChair?.active && S.hazardWarnings !== false &&
+                    fuelLevel < 0.25 && !this._fuelCaption && this._captionCool <= 0) {
+                    this._fuelCaption = true;
+                    this._captionCool = 1.2;
+                    this.ui.setCaption("fuel", { level: fuelLevel });
+                } else if (fuelLevel >= 0.3) {
+                    this._fuelCaption = false;
+                }
                 this._updateAlert();
                 break;
             }
@@ -990,6 +1042,7 @@ export class GameDirector {
                 : null;
             if (flight) this.run.flightTelemetry = flight;
             this.ui.flashGrade(grade);
+            if (S.hazardWarnings !== false) this.ui.setCaption("landing", { grade });
             audio.land(grade, Math.min(1, c.landingImpact / 1.5));
             // A perfect landing stamps the snow: one compact ring of powder
             // out of the shared pool, gone in half a second.
@@ -1057,6 +1110,7 @@ export class GameDirector {
             audio.crash();
             this.tracker.loseCombo("crash");
             this.ui.setCombo(null);
+            if (S.hazardWarnings !== false) this.ui.setCaption("crash");
         } else if (!c.crashed) {
             this._crashHandled = false;
         }
@@ -1223,30 +1277,37 @@ export class GameDirector {
             this.run.event.id !== "summit-stack" ||
             this.run.state !== RunState.RUN) {
             this.ui.setTutor(null);
+            this.ui.setFinishBeacon?.(false);
             return;
         }
         const t = this.book.book.tutorial;
         const c = this.controller;
+        const prompts = ridePrompts(getInputFamily());
         if (!t.steer) {
-            if (Math.abs(c.carve) > 0.3) this.book.markTutorial("steer");
-            else this.ui.setTutor("steer with the mouse \u00b7 a / d to carve");
+            if (this._steerActionSeen) this.book.markTutorial("steer");
+            else this.ui.setTutor(`steer / carve · ${prompts.steer}`);
             return;
         }
         if (!t.jump) {
-            if (c.airborne && c.airTime > 0.2) this.book.markTutorial("jump");
-            else this.ui.setTutor("space to jump \u00b7 hold it off a lip");
+            if (this._jumpActionEdge) this.book.markTutorial("jump");
+            else this.ui.setTutor(`jump · ${prompts.jump} before the lip`);
+            return;
+        }
+        if (!t.landing) {
+            if (c.landed) this.book.markTutorial("landing");
+            else this.ui.setTutor("landing complete · settle the board before the next line");
             return;
         }
         if (!t.trick) {
             if (this.tracker.trickCount > 0) this.book.markTutorial("trick");
-            else this.ui.setTutor("q / e to spin in the air \u00b7 land square");
+            else this.ui.setTutor(`spin in the air · ${prompts.spin} · land square`);
             return;
         }
         if (!t.collect) {
             if (Object.keys(this.run.splits).length > 0) {
                 this.book.markTutorial("collect");
             } else {
-                this.ui.setTutor("ride through the order \u00b7 chips top right");
+                this.ui.setTutor(`ride through the order · chips top right · ${prompts.steer}`);
             }
             return;
         }
@@ -1254,8 +1315,10 @@ export class GameDirector {
             if (Object.keys(this.run.splits).length >=
                 this.run.event.required.length) {
                 this.ui.setTutor("full order \u00b7 the grill is at the bottom");
+                this.ui.setFinishBeacon?.(true);
                 // Dismisses with the run itself; the assembly marks it.
             } else {
+                this.ui.setFinishBeacon?.(false);
                 this.ui.setTutor(null);
             }
             return;
@@ -1310,8 +1373,14 @@ export class GameDirector {
         const rc = this.rocketChair;
         if (!rc) return;
         const th = rc.thrust;
-        if (th.ignited) audio.ignite();
-        if (th.shutdown) audio.shutdown();
+        if (th.ignited) {
+            audio.ignite();
+            if (S.hazardWarnings !== false) this.ui.setCaption("fuel", { level: th.level, text: "ROCKET IGNITION" });
+        }
+        if (th.shutdown) {
+            audio.shutdown();
+            if (S.hazardWarnings !== false) this.ui.setCaption("fuel", { level: th.level, text: "ROCKET SHUTDOWN" });
+        }
         audio.updateRocket(
             rc.active ? th.throttle : 0,
             this.controller.speed01,

@@ -24,6 +24,7 @@
  */
 
 import { S } from "./settings.js";
+import { INPUT_FAMILIES, activateInputFamily } from "./inputFamily.js";
 
 /** Merged by `pollInput`. Nothing else writes it. */
 export const touch = {
@@ -45,6 +46,18 @@ export const touch = {
 
 const STICK_RADIUS = 62;
 const LOOK_SCALE = 0.0042;
+
+function capturePointer(element, pointerId) {
+    if (!element || !Number.isFinite(pointerId) ||
+        typeof element.setPointerCapture !== "function") return;
+    try { element.setPointerCapture(pointerId); } catch { /* synthetic/late pointer */ }
+}
+
+function ownsPointer(element, pointerId) {
+    if (!element || !Number.isFinite(pointerId) ||
+        typeof element.hasPointerCapture !== "function") return false;
+    try { return element.hasPointerCapture(pointerId); } catch { return false; }
+}
 
 const CSS = `
 #sb-touch { position: fixed; inset: 0; z-index: 55; pointer-events: none;
@@ -162,8 +175,9 @@ export function initTouch(canvas) {
     for (const key of root.querySelectorAll(".key")) {
         key.addEventListener("pointerdown", (e) => {
             e.preventDefault();
+            if (e.pointerType !== "mouse") activateInputFamily(INPUT_FAMILIES.TOUCH);
             key.classList.add("held");
-            key.setPointerCapture?.(e.pointerId);
+            capturePointer(key, e.pointerId);
             if (key.dataset.hold === "ride") touch.ride = true;
             if (key.dataset.hold === "boost") touch.boost = 1;
             if (key.dataset.hold === "trick") touch.trick = true;
@@ -181,7 +195,7 @@ export function initTouch(canvas) {
         key.addEventListener("pointerleave", (e) => {
             // Only give up the button if the finger actually lifted; a thumb
             // rolling across a 82 px target still means "held".
-            if (!key.hasPointerCapture?.(e.pointerId)) release(e);
+            if (!ownsPointer(key, e.pointerId)) release(e);
         });
     }
 
@@ -189,13 +203,15 @@ export function initTouch(canvas) {
     // but it is a tap, not a hold — one intent per press.
     root.querySelector(".pause").addEventListener("pointerdown", (e) => {
         e.preventDefault();
+        if (e.pointerType !== "mouse") activateInputFamily(INPUT_FAMILIES.TOUCH);
         onPauseTap?.();
     });
 
     // The stick.
     padEl.addEventListener("pointerdown", (e) => {
         e.preventDefault();
-        padEl.setPointerCapture(e.pointerId);
+        if (e.pointerType !== "mouse") activateInputFamily(INPUT_FAMILIES.TOUCH);
+        capturePointer(padEl, e.pointerId);
         padEl.classList.add("held");
         pointers.set(e.pointerId, { kind: "stick" });
         updateStick(e);
@@ -218,6 +234,7 @@ export function initTouch(canvas) {
     // Look: anything on the canvas that is not the stick or a button.
     canvas.addEventListener("pointerdown", (e) => {
         if (e.pointerType === "mouse") return;
+        activateInputFamily(INPUT_FAMILIES.TOUCH);
         pointers.set(e.pointerId, { kind: "look", x: e.clientX, y: e.clientY });
     });
     canvas.addEventListener("pointermove", (e) => {
@@ -263,6 +280,23 @@ export function setTouchVisible(on) {
         touch.x = 0; touch.y = 0; touch.ride = false; touch.boost = 0;
         touch.trick = false;
     }
+}
+
+/** Cancel every pointer and held touch source (blur/visibility safe path). */
+export function releaseAllTouchSources() {
+    pointers.clear();
+    touch.active = false;
+    touch.x = 0;
+    touch.y = 0;
+    touch.ride = false;
+    touch.boost = 0;
+    touch.trick = false;
+    touch.jump = false;
+    touch.lookX = 0;
+    touch.lookY = 0;
+    padEl?.classList.remove("held");
+    nubEl?.style.removeProperty("transform");
+    root?.querySelectorAll(".key.held").forEach((el) => el.classList.remove("held"));
 }
 
 /** Called by the input layer at the end of a frame. */

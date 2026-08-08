@@ -34,6 +34,8 @@ import { CreateCylinder } from "@babylonjs/core/Meshes/Builders/cylinderBuilder.
 
 import { ShadedAsset } from "../render/shadedAsset.js";
 import { ghostMatches } from "./burgerBook.js";
+import { ghostVisibility } from "./ghostVisibility.js";
+import { S } from "../core/settings.js";
 
 /**
  * Fallback only. A v2 ghost carries its own `interval` and playback always
@@ -164,6 +166,12 @@ export class GhostPlayback {
 
     sync(cameraPos) {
         if (this.asset.active) this.asset.sync(cameraPos);
+        const visibility = ghostVisibility(S);
+        // TransformNode.visibility is not inherited by its mesh children in
+        // Babylon's render list. Apply the persisted strength to each actual
+        // mesh so the setting changes rendered pixels, not just scene state.
+        for (const mesh of this.asset.meshes) mesh.visibility = visibility;
+        if (this.asset.root) this.asset.root.visibility = 1;
     }
 
     get beautyMaterials() {

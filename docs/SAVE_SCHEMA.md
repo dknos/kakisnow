@@ -1,71 +1,70 @@
 # Save schema
 
-Two localStorage keys, deliberately separate: records are precious, sliders
-are not, and `BurgerBook.record()` rewrites its whole JSON (ghost included)
-on every finished run — settings must not ride along.
+<!-- snow-burgers-release-counts courses=6 events=12 tapes=18 -->
 
-## `snow-burgers.book` — records. Version 2.
+Snow-Burgers uses two independent `localStorage` records. A failed settings
+write must not overwrite a completed burger book, and a completed run must not
+rewrite renderer/debug tuning.
 
-```jsonc
-{
-  "version": 2,
-  "burgers": 12,                  // total completed orders
-  "runs": 31,                     // total attempts, finished or not
-  "seenAssembly": true,           // unlocks Space-to-skip on the cinematic
-  "unlockedCourses": ["summit-line"],
-  "secrets": { "summit-line": ["tape-1"] },      // recipe tapes found, per course
-  "tutorial": { "steer": true },                 // prompts already completed
-  "lastSelected": { "courseId": "summit-line", "eventId": "summit-stack" },
-  "events": {
-    "summit-stack": {
-      "completions": 12,
-      "bestTime": 33.4,           // seconds; null until first completion
-      "bestStyle": 61, "bestIntegrity": 92, "bestRocket": 0, "bestStars": 4,
-      "bestMedal": "gold",        // "gold" | "silver" | "bronze" | null
-      "bestSeed": 7,
-      "courseId": "summit-line",  // identity of the run that set bestTime
-      "courseVersion": 1,
-      "eventVersion": 1,
-      "bestVehicle": "classic-snowboard",
-      "bestGhost": {
-        "version": 2,
-        "seed": 7,
-        "interval": 0.25,         // seconds per sample — data, not a constant
-        "courseId": "summit-line", "courseVersion": 1,
-        "eventId": "summit-stack", "eventVersion": 1,
-        "vehicleId": "classic-snowboard",
-        "samples": [x0, y0, z0, x1, y1, z1, ...]
-      }
-    }
-  }
-}
-```
+## `snow-burgers.book` — schema 2
 
-**Ghost compatibility** is `ghostMatches(stored, expect)` in `burgerBook.js`:
-every identity field must match — seed, courseId, courseVersion, eventId,
-eventVersion, vehicleId. A course definition that deliberately changes its
-terrain bumps `version` in the same commit, which retires old ghosts against
-the new mountain instead of letting them clip through it. A rocket ghost never
-races a classic board.
+The record is a JSON object with `version: 2`, `burgers`, `runs`,
+`seenAssembly`, `seenTourComplete`, `seenHundredPercent`, `unlockedCourses`,
+`secrets`, `tutorial`, `lastSelected` and an `events` object keyed by the
+registered event id. Each event record stores completions, best time/style/
+integrity/rocket/trick/stars/medal, seed, course/event identity versions,
+vehicle identity and an optional matching best ghost. Big Air may additionally
+store independent classic-board and rocket-chair flight records.
 
-**Migration** is a ladder in `migrate()`: v1 saves upgrade in place (records
-kept; v1 ghosts gain `interval: 0.25` and the summit identity, because v1
-could only have been summit on the classic board). Unknown or future versions
-fall back to a fresh book rather than guessing. Every read is defensive; a
-corrupt ghost is dropped without rejecting the save around it.
+Ghost identity is strict: seed, course id/version, event id/version and
+vehicle id all have to match the active run. A ghost from a different course,
+event, vehicle or terrain revision is ignored rather than shown as a false
+comparison.
 
-## `snow-burgers.settings` — player settings. Version 1.
+## `snow-burgers.settings` — schema 1
 
-```jsonc
-{ "version": 1, "values": {
-  "audio": true, "masterVolume": 1, "mouseSensitivity": 1, "invertY": false,
-  "shakeScale": 1, "reducedMotion": false, "touchControls": "auto",
-  "preset": "ultra"
-} }
-```
+The settings envelope is `{ "version": 1, "values": { ... } }`. The
+player-facing whitelist currently includes `audio`, master/music/effects/
+ambience/UI volume, mouse sensitivity, `invertY`, `shakeScale`,
+`reducedMotion`, `hudScale`, `highContrast`, `routeAssist`,
+`ingredientBeacon`, `hazardWarnings`, `ghostOpacity`, `showGhost`,
+`forgivingLanding`, `touchControls` and the quality `preset`. Invalid values
+and unknown keys are dropped on load. HUD scale is bounded to `0.8`–`1.6`,
+ghost strength to `0.25`–`1`, and the other numeric values have their own
+finite ranges in `src/core/playerSettings.js`.
 
-Whitelist-validated on load (`sanitize()` in `playerSettings.js`); unknown
-keys and out-of-range values are dropped. Values hydrate through `set()` so
-every `onChange` listener fires. The F1 overlay's renderer tuning is
-deliberately NOT persisted — a debugging session must not permanently change
-the game.
+## `snow-burgers.bindings` — schema 1
+
+Keyboard remapping is stored separately as
+`{ "version": 1, "values": { "jump": ["Space"], ... } }`. It contains only
+the fifteen player actions in `src/core/playerBindings.js`; a successful
+capture replaces one action's primary key and persists asynchronously. The
+sanitizer drops unknown/invalid keys, reserved menu/browser/debug keys and
+colliding assignments while restoring a usable default map. Standard gamepad
+and touch bindings are not serialized or remappable.
+
+## Migration and failure behavior
+
+- A valid schema-1 book is lifted to schema 2 with the known v1 Summit/classic
+  identity and ghost interval.
+- Unknown/future book versions become a fresh book; they are not guessed into
+  the current schema.
+- Invalid JSON or malformed optional ghosts do not take down the game. A bad
+  ghost is discarded while the surrounding valid records remain usable.
+- Storage unavailable or quota failure keeps the run playable and reports a
+  warning; it does not fabricate a successful save.
+
+`BurgerBook.exportSave()`, `BurgerBook.importSave(serialized)`,
+`BurgerBook.clearGhosts()` and `BurgerBook.reset()` are defensive code APIs
+used by the runtime and the player-facing Burger Book desk. `Export save`
+downloads a JSON file; `Import save` opens a local JSON file and leaves the
+current book untouched when parsing, migration, version or storage validation
+fails. A future-version save receives a readable error rather than being
+guessed into the current schema. `Clear ghosts` and `Reset progress` have
+separate keyboard/controller-navigable confirmations; reset progress does not
+clear settings or bindings. The export contains the Burger Book only, not
+settings or keyboard bindings.
+
+Totals shown by progression and the Burger Book derive from the six-course,
+twelve-event and eighteen-tape registries. They are not hand-maintained save
+fields.

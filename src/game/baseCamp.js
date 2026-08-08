@@ -32,6 +32,8 @@ import { CreateBox } from "@babylonjs/core/Meshes/Builders/boxBuilder.js";
 import { CreateCylinder } from "@babylonjs/core/Meshes/Builders/cylinderBuilder.js";
 
 import { ShadedAsset } from "../render/shadedAsset.js";
+import { S } from "../core/settings.js";
+import { accessibilityCuesEnabled } from "../ui/accessibilityFeedback.js";
 
 
 /** The brand's one warm value, matching the interface. */
@@ -77,6 +79,7 @@ export class BurgerBaseCamp {
         });
         /** Where the assembly sequence should stand the finished burger. */
         this.grillPosition = new Vector3(0, 0, 0);
+        this.finishGuide = [];
         /**
          * The lodge, imported rather than built.
          *
@@ -175,6 +178,16 @@ export class BurgerBaseCamp {
         // A stripe across the snow at the gate, so the line is a line.
         this._boxAt("finishStripe", 0, g(0, this.campZ) + 0.03, this.campZ,
             ARCH_HALF * 2, 0.06, 0.7, WARM, 0.45);
+
+        // Optional silhouette beacon: two stacked chevrons above the run-out
+        // make the grill/finish line readable in whiteout without adding HUD
+        // clutter. Meshes are built once and toggled, never allocated in play.
+        const cueZ = this.campZ + 7;
+        const cueY = g(0, cueZ);
+        this.finishGuide.push(this._boxAt("finishGuidePole", 0, cueY + 3.2, cueZ, 0.18, 6.4, 0.18, WARM, 0.4));
+        this.finishGuide.push(this._boxAt("finishGuideBarA", 0, cueY + 5.4, cueZ - 0.12, 5.0, 0.16, 0.22, SNOW, 0.35));
+        this.finishGuide.push(this._boxAt("finishGuideBarB", 0, cueY + 4.1, cueZ - 0.12, 3.4, 0.16, 0.22, SNOW, 0.35));
+        for (const mesh of this.finishGuide) mesh.setEnabled(false);
 
         this.asset.available = this.asset.meshes.length > 0;
         this.asset.setActive(false);
@@ -303,6 +316,8 @@ export class BurgerBaseCamp {
         this.hut.setActive(active);
         this.hutB.setActive(active);
         this.village.setActive(active);
+        const guide = active && accessibilityCuesEnabled(S);
+        for (const mesh of this.finishGuide) mesh.setEnabled(guide);
     }
 
     sync(cameraPos) {
@@ -310,6 +325,8 @@ export class BurgerBaseCamp {
         this.hut.sync(cameraPos);
         this.hutB.sync(cameraPos);
         this.village.sync(cameraPos);
+        const guide = accessibilityCuesEnabled(S);
+        for (const mesh of this.finishGuide) mesh.setEnabled(this.asset.active && guide);
     }
 
     get beautyMaterials() {

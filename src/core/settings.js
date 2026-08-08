@@ -154,6 +154,16 @@ export const S = {
     shakeScale: 1.0,
     /** Accessibility: kills shake and speed streaks outright. */
     reducedMotion: false,
+    /** Accessibility: scales the Snow-Burgers HUD without changing world UI. */
+    hudScale: 1.0,
+    /** Accessibility: persistent shape/text route and pickup cues. */
+    highContrast: false,
+    /** Accessibility: additional route/ingredient/hazard beacons. */
+    routeAssist: false,
+    ingredientBeacon: false,
+    hazardWarnings: true,
+    /** Ghost marker opacity, separate from the show/hide toggle. */
+    ghostOpacity: 0.72,
     /** Race the stored best as a marker on matching runs. */
     showGhost: true,
     /** Accessibility: widens every landing-grade window by half again. */
