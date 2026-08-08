@@ -1,0 +1,166 @@
+{
+  "generatedBy": "tools/snow-burgers/validate-assets.mjs",
+  "validatorVersion": "2.0.0-dev.3.10",
+  "runtimeDecodableExtensions": [
+    "EXT_texture_webp",
+    "KHR_draco_mesh_compression",
+    "KHR_materials_emissive_strength",
+    "KHR_materials_ior",
+    "KHR_materials_specular",
+    "KHR_materials_unlit",
+    "KHR_mesh_quantization",
+    "KHR_texture_transform"
+  ],
+  "totalRuntimeBytes": 369768,
+  "preferredTotalBytes": 11534336,
+  "hardCeilingBytes": 15728640,
+  "assets": [
+    {
+      "key": "cheese",
+      "file": "ingredient-cheese.glb",
+      "bytes": 4732,
+      "budgetBytes": 1310720,
+      "overBudget": false,
+      "validator": {
+        "errors": 0,
+        "warnings": 0,
+        "infos": 0,
+        "hints": 0,
+        "messages": []
+      },
+      "extensionsUsed": [],
+      "undecodableByRuntime": [],
+      "drawCallCount": 2,
+      "totalTriangleCount": 45,
+      "totalVertexCount": 105,
+      "maxUVTileCount": null,
+      "ok": true
+    },
+    {
+      "key": "patty",
+      "file": "ingredient-patty.glb",
+      "bytes": 33248,
+      "budgetBytes": 1310720,
+      "overBudget": false,
+      "validator": {
+        "errors": 0,
+        "warnings": 0,
+        "infos": 3,
+        "hints": 0,
+        "messages": []
+      },
+      "extensionsUsed": [],
+      "undecodableByRuntime": [],
+      "drawCallCount": 4,
+      "totalTriangleCount": 516,
+      "totalVertexCount": 938,
+      "maxUVTileCount": null,
+      "ok": true
+    },
+    {
+      "key": "tomato",
+      "file": "ingredient-tomato.glb",
+      "bytes": 45104,
+      "budgetBytes": 1310720,
+      "overBudget": false,
+      "validator": {
+        "errors": 0,
+        "warnings": 0,
+        "infos": 6,
+        "hints": 0,
+        "messages": []
+      },
+      "extensionsUsed": [],
+      "undecodableByRuntime": [],
+      "drawCallCount": 7,
+      "totalTriangleCount": 544,
+      "totalVertexCount": 1104,
+      "maxUVTileCount": null,
+      "ok": true
+    },
+    {
+      "key": "lettuce",
+      "file": "ingredient-lettuce.glb",
+      "bytes": 24984,
+      "budgetBytes": 1310720,
+      "overBudget": false,
+      "validator": {
+        "errors": 0,
+        "warnings": 0,
+        "infos": 0,
+        "hints": 0,
+        "messages": []
+      },
+      "extensionsUsed": [],
+      "undecodableByRuntime": [],
+      "drawCallCount": 3,
+      "totalTriangleCount": 528,
+      "totalVertexCount": 798,
+      "maxUVTileCount": null,
+      "ok": true
+    },
+    {
+      "key": "onion",
+      "file": "ingredient-onion.glb",
+      "bytes": 31304,
+      "budgetBytes": 1310720,
+      "overBudget": false,
+      "validator": {
+        "errors": 0,
+        "warnings": 0,
+        "infos": 3,
+        "hints": 0,
+        "messages": []
+      },
+      "extensionsUsed": [],
+      "undecodableByRuntime": [],
+      "drawCallCount": 3,
+      "totalTriangleCount": 504,
+      "totalVertexCount": 852,
+      "maxUVTileCount": null,
+      "ok": true
+    },
+    {
+      "key": "burger",
+      "file": "burger-complete.glb",
+      "bytes": 146504,
+      "budgetBytes": 2621440,
+      "overBudget": false,
+      "validator": {
+        "errors": 0,
+        "warnings": 0,
+        "infos": 0,
+        "hints": 0,
+        "messages": []
+      },
+      "extensionsUsed": [],
+      "undecodableByRuntime": [],
+      "drawCallCount": 7,
+      "totalTriangleCount": 2628,
+      "totalVertexCount": 37100,
+      "maxUVTileCount": null,
+      "ok": true
+    },
+    {
+      "key": "rocket",
+      "file": "rocket-chair-snowboard.glb",
+      "bytes": 83892,
+      "budgetBytes": 4194304,
+      "overBudget": false,
+      "validator": {
+        "errors": 0,
+        "warnings": 0,
+        "infos": 11,
+        "hints": 0,
+        "messages": []
+      },
+      "extensionsUsed": [],
+      "undecodableByRuntime": [],
+      "drawCallCount": 11,
+      "totalTriangleCount": 1140,
+      "totalVertexCount": 2192,
+      "maxUVTileCount": null,
+      "ok": true
+    }
+  ]
+}

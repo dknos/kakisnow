@@ -1,0 +1,535 @@
+{
+  "generatedBy": "tools/snow-burgers/validate-original-assets.mjs",
+  "generatedDate": "2026-08-07",
+  "validationScope": "candidate-source",
+  "candidateDirectory": "art/generated-assets/snow-burgers",
+  "validatedDirectory": "art/generated-assets/snow-burgers",
+  "sourceGenerator": "tools/snow-burgers/generate-original-assets.py",
+  "provenanceStatus": "local-generated-candidate-source-conditional-output-basis",
+  "unresolvedReplaced": 13,
+  "unresolvedRemainingInCandidateSet": 0,
+  "rightsConclusion": "The local generator imported no model, texture, or network input. OpenAI Terms of Use (https://openai.com/policies/terms-of-use/) describe user ownership of Output as between OpenAI and user, subject to input rights and non-uniqueness; Service Terms (https://openai.com/policies/service-terms/) warn code-generation output may be subject to third-party licenses. This report does not assert copyrightability, exclusivity, or blanket commercial clearance.",
+  "runtimePromotion": null,
+  "totalBytes": 2010952,
+  "assets": [
+    {
+      "file": "ingredient-cheese.glb",
+      "role": "ingredient",
+      "path": "art/generated-assets/snow-burgers/ingredient-cheese.glb",
+      "origin": "local Blender procedural geometry; no imported model, texture, or network input",
+      "provenance": "owner-directed AI-assisted Codex session; generator source is retained; no external model, texture, or network input",
+      "license": "Conditional output basis recorded in ASSET_LEDGER.md; no copyrightability, exclusivity, or blanket commercial-clearance conclusion",
+      "generatedBy": "tools/snow-burgers/generate-original-assets.py",
+      "generatedDate": "2026-08-07",
+      "bytes": 4732,
+      "sha256": "922fd39cdef8a7f89daed00c490b984033da780fb4e058f163916457820e7f34",
+      "validator": {
+        "errors": 0,
+        "warnings": 0,
+        "infos": 0,
+        "hints": 0,
+        "messages": []
+      },
+      "extensionsUsed": [],
+      "drawCallCount": 2,
+      "primitiveCount": 2,
+      "materialCount": 2,
+      "totalTriangleCount": 45,
+      "totalVertexCount": 105,
+      "animationsCount": 0,
+      "skinsCount": 0,
+      "ok": true
+    },
+    {
+      "file": "ingredient-patty.glb",
+      "role": "ingredient",
+      "path": "art/generated-assets/snow-burgers/ingredient-patty.glb",
+      "origin": "local Blender procedural geometry; no imported model, texture, or network input",
+      "provenance": "owner-directed AI-assisted Codex session; generator source is retained; no external model, texture, or network input",
+      "license": "Conditional output basis recorded in ASSET_LEDGER.md; no copyrightability, exclusivity, or blanket commercial-clearance conclusion",
+      "generatedBy": "tools/snow-burgers/generate-original-assets.py",
+      "generatedDate": "2026-08-07",
+      "bytes": 33248,
+      "sha256": "4cf0e095afe99be10877050744a8b3a6f68ea51604c0dd9fa696fd0bab1be4f3",
+      "validator": {
+        "errors": 0,
+        "warnings": 0,
+        "infos": 3,
+        "hints": 0,
+        "messages": []
+      },
+      "extensionsUsed": [],
+      "drawCallCount": 4,
+      "primitiveCount": 4,
+      "materialCount": 2,
+      "totalTriangleCount": 516,
+      "totalVertexCount": 938,
+      "animationsCount": 0,
+      "skinsCount": 0,
+      "ok": true
+    },
+    {
+      "file": "ingredient-tomato.glb",
+      "role": "ingredient",
+      "path": "art/generated-assets/snow-burgers/ingredient-tomato.glb",
+      "origin": "local Blender procedural geometry; no imported model, texture, or network input",
+      "provenance": "owner-directed AI-assisted Codex session; generator source is retained; no external model, texture, or network input",
+      "license": "Conditional output basis recorded in ASSET_LEDGER.md; no copyrightability, exclusivity, or blanket commercial-clearance conclusion",
+      "generatedBy": "tools/snow-burgers/generate-original-assets.py",
+      "generatedDate": "2026-08-07",
+      "bytes": 45104,
+      "sha256": "214e9f04a0b202c8d1caa087eff423cd7f368c2ebd4586fbfd9a55ea5df729a7",
+      "validator": {
+        "errors": 0,
+        "warnings": 0,
+        "infos": 6,
+        "hints": 0,
+        "messages": []
+      },
+      "extensionsUsed": [],
+      "drawCallCount": 7,
+      "primitiveCount": 7,
+      "materialCount": 4,
+      "totalTriangleCount": 544,
+      "totalVertexCount": 1104,
+      "animationsCount": 0,
+      "skinsCount": 0,
+      "ok": true
+    },
+    {
+      "file": "ingredient-lettuce.glb",
+      "role": "ingredient",
+      "path": "art/generated-assets/snow-burgers/ingredient-lettuce.glb",
+      "origin": "local Blender procedural geometry; no imported model, texture, or network input",
+      "provenance": "owner-directed AI-assisted Codex session; generator source is retained; no external model, texture, or network input",
+      "license": "Conditional output basis recorded in ASSET_LEDGER.md; no copyrightability, exclusivity, or blanket commercial-clearance conclusion",
+      "generatedBy": "tools/snow-burgers/generate-original-assets.py",
+      "generatedDate": "2026-08-07",
+      "bytes": 24984,
+      "sha256": "4afc9e8a5d9b7e371027cbed6fa8c93cc440882c041d803c8ffadff9633529dd",
+      "validator": {
+        "errors": 0,
+        "warnings": 0,
+        "infos": 0,
+        "hints": 0,
+        "messages": []
+      },
+      "extensionsUsed": [],
+      "drawCallCount": 3,
+      "primitiveCount": 3,
+      "materialCount": 2,
+      "totalTriangleCount": 528,
+      "totalVertexCount": 798,
+      "animationsCount": 0,
+      "skinsCount": 0,
+      "ok": true
+    },
+    {
+      "file": "ingredient-onion.glb",
+      "role": "ingredient",
+      "path": "art/generated-assets/snow-burgers/ingredient-onion.glb",
+      "origin": "local Blender procedural geometry; no imported model, texture, or network input",
+      "provenance": "owner-directed AI-assisted Codex session; generator source is retained; no external model, texture, or network input",
+      "license": "Conditional output basis recorded in ASSET_LEDGER.md; no copyrightability, exclusivity, or blanket commercial-clearance conclusion",
+      "generatedBy": "tools/snow-burgers/generate-original-assets.py",
+      "generatedDate": "2026-08-07",
+      "bytes": 31304,
+      "sha256": "64d95a71c067768d4908b5adecdfade954691bd939da71d910dbad3d84b5dc57",
+      "validator": {
+        "errors": 0,
+        "warnings": 0,
+        "infos": 3,
+        "hints": 0,
+        "messages": []
+      },
+      "extensionsUsed": [],
+      "drawCallCount": 3,
+      "primitiveCount": 3,
+      "materialCount": 1,
+      "totalTriangleCount": 504,
+      "totalVertexCount": 852,
+      "animationsCount": 0,
+      "skinsCount": 0,
+      "ok": true
+    },
+    {
+      "file": "burger-complete.glb",
+      "role": "reward",
+      "path": "art/generated-assets/snow-burgers/burger-complete.glb",
+      "origin": "local Blender procedural geometry; no imported model, texture, or network input",
+      "provenance": "owner-directed AI-assisted Codex session; generator source is retained; no external model, texture, or network input",
+      "license": "Conditional output basis recorded in ASSET_LEDGER.md; no copyrightability, exclusivity, or blanket commercial-clearance conclusion",
+      "generatedBy": "tools/snow-burgers/generate-original-assets.py",
+      "generatedDate": "2026-08-07",
+      "bytes": 146504,
+      "sha256": "09153f6dd812cb64fb2f4df7f6afafd00c6a040f436d7e250e7062dde96d7916",
+      "validator": {
+        "errors": 0,
+        "warnings": 0,
+        "infos": 0,
+        "hints": 0,
+        "messages": []
+      },
+      "extensionsUsed": [],
+      "drawCallCount": 7,
+      "primitiveCount": 7,
+      "materialCount": 7,
+      "totalTriangleCount": 2628,
+      "totalVertexCount": 37100,
+      "animationsCount": 0,
+      "skinsCount": 0,
+      "ok": true
+    },
+    {
+      "file": "rocket-chair-snowboard.glb",
+      "role": "vehicle",
+      "path": "art/generated-assets/snow-burgers/rocket-chair-snowboard.glb",
+      "origin": "local Blender procedural geometry; no imported model, texture, or network input",
+      "provenance": "owner-directed AI-assisted Codex session; generator source is retained; no external model, texture, or network input",
+      "license": "Conditional output basis recorded in ASSET_LEDGER.md; no copyrightability, exclusivity, or blanket commercial-clearance conclusion",
+      "generatedBy": "tools/snow-burgers/generate-original-assets.py",
+      "generatedDate": "2026-08-07",
+      "bytes": 83892,
+      "sha256": "4e785130663ec63c650713abfa99703edfb989798196f82a92488561bfe85b0c",
+      "validator": {
+        "errors": 0,
+        "warnings": 0,
+        "infos": 11,
+        "hints": 0,
+        "messages": []
+      },
+      "extensionsUsed": [],
+      "drawCallCount": 11,
+      "primitiveCount": 11,
+      "materialCount": 5,
+      "totalTriangleCount": 1140,
+      "totalVertexCount": 2192,
+      "animationsCount": 0,
+      "skinsCount": 0,
+      "ok": true,
+      "vehicleContract": {
+        "profile": {
+          "id": "rocket-chair",
+          "length": 2.524,
+          "contactY": 0.0295,
+          "seatAnchor": [
+            0,
+            0.39,
+            0.18
+          ],
+          "backrestTop": [
+            0,
+            0.725,
+            -0.1
+          ],
+          "cameraTarget": [
+            0,
+            0.56,
+            -0.06
+          ],
+          "cargoTrayAnchor": [
+            0,
+            0.42,
+            -0.32
+          ],
+          "frontContact": [
+            0,
+            0.0295,
+            0.9
+          ],
+          "rearContact": [
+            0,
+            0.03,
+            -0.73
+          ],
+          "leftEdgeContact": [
+            -0.215,
+            0.07,
+            0.08
+          ],
+          "rightEdgeContact": [
+            0.215,
+            0.07,
+            0.08
+          ],
+          "mainNozzle": [
+            0,
+            0.226,
+            -1.285
+          ],
+          "leftVent": [
+            -0.105,
+            0.223,
+            -1.01
+          ],
+          "rightVent": [
+            0.105,
+            0.223,
+            -1.01
+          ],
+          "exhaustDirection": [
+            0,
+            0,
+            -1
+          ]
+        },
+        "measured": {
+          "vertexCount": 2192,
+          "bboxMin": [
+            -0.3345013340887845,
+            -0.16000001938641623,
+            -1.2619999647140503
+          ],
+          "bboxMax": [
+            0.3345013340887845,
+            0.7250000089406967,
+            1.2619999647140503
+          ],
+          "length": 2.5239999294281006,
+          "width": 0.669002668177569,
+          "frontContact": {
+            "count": 48,
+            "min": -0.16000001938641623,
+            "max": 0.3800000746250413
+          },
+          "rearContact": {
+            "count": 216,
+            "min": 0.01000000536441803,
+            "max": 0.32999999821186066
+          },
+          "deck": {
+            "count": 216,
+            "min": 0.02499999850988388,
+            "max": 0.11500000208616257
+          },
+          "deckMinX": -0.2800000011920929,
+          "deckMaxX": 0.2800000011920929,
+          "seatRegion": {
+            "count": 216,
+            "min": 0.3100000023841858,
+            "max": 0.49000000953674316
+          },
+          "backrestRegion": {
+            "count": 216,
+            "min": 0.24500001966953278,
+            "max": 0.7250000089406967
+          },
+          "backrestTop": 0.7250000089406967,
+          "seatAnchorOrigin": [
+            0,
+            0.4000000059604645,
+            0.1899999976158142
+          ],
+          "cargoTrayOrigin": [
+            0,
+            0.41999998688697815,
+            -0.3199999928474426
+          ],
+          "leftVentOrigin": [
+            -0.10499999672174454,
+            0.22300000488758087,
+            -1.0099999904632568
+          ],
+          "rightVentOrigin": [
+            0.10499999672174454,
+            0.22300000488758087,
+            -1.0099999904632568
+          ],
+          "anchorErrors": {
+            "seat": 0.014142138152543088,
+            "cargoTray": 1.4936881157602082e-8,
+            "leftVent": 1.1206465809475772e-8,
+            "rightVent": 1.1206465809475772e-8
+          }
+        },
+        "checks": {
+          "nonEmpty": true,
+          "runtimeAnchorContract": true,
+          "length": true,
+          "width": true,
+          "frontContact": true,
+          "rearContact": true,
+          "seatAnchor": true,
+          "backrestTop": true,
+          "cameraTarget": true,
+          "cargoTrayAnchor": true,
+          "leftEdgeContact": true,
+          "rightEdgeContact": true,
+          "nozzleClearance": true,
+          "leftVentAnchor": true,
+          "rightVentAnchor": true,
+          "exhaustDirection": true
+        },
+        "ok": true
+      }
+    },
+    {
+      "file": "dressing-firs.glb",
+      "role": "dressing",
+      "path": "art/generated-assets/snow-burgers/dressing-firs.glb",
+      "origin": "local Blender procedural geometry; no imported model, texture, or network input",
+      "provenance": "owner-directed AI-assisted Codex session; generator source is retained; no external model, texture, or network input",
+      "license": "Conditional output basis recorded in ASSET_LEDGER.md; no copyrightability, exclusivity, or blanket commercial-clearance conclusion",
+      "generatedBy": "tools/snow-burgers/generate-original-assets.py",
+      "generatedDate": "2026-08-07",
+      "bytes": 92872,
+      "sha256": "4bc715a32b3e0b5aa1bdb15112693b8c3c0ebd4b042e15c8fcf39be3ee83c5c5",
+      "validator": {
+        "errors": 0,
+        "warnings": 0,
+        "infos": 3,
+        "hints": 0,
+        "messages": []
+      },
+      "extensionsUsed": [],
+      "drawCallCount": 17,
+      "primitiveCount": 17,
+      "materialCount": 3,
+      "totalTriangleCount": 1580,
+      "totalVertexCount": 2760,
+      "animationsCount": 0,
+      "skinsCount": 0,
+      "ok": true
+    },
+    {
+      "file": "dressing-pine.glb",
+      "role": "dressing",
+      "path": "art/generated-assets/snow-burgers/dressing-pine.glb",
+      "origin": "local Blender procedural geometry; no imported model, texture, or network input",
+      "provenance": "owner-directed AI-assisted Codex session; generator source is retained; no external model, texture, or network input",
+      "license": "Conditional output basis recorded in ASSET_LEDGER.md; no copyrightability, exclusivity, or blanket commercial-clearance conclusion",
+      "generatedBy": "tools/snow-burgers/generate-original-assets.py",
+      "generatedDate": "2026-08-07",
+      "bytes": 34544,
+      "sha256": "6b46cfd353c069e5c00803604e5b466a89580f7167a1dd62e96541a11e988ec0",
+      "validator": {
+        "errors": 0,
+        "warnings": 0,
+        "infos": 1,
+        "hints": 0,
+        "messages": []
+      },
+      "extensionsUsed": [],
+      "drawCallCount": 6,
+      "primitiveCount": 6,
+      "materialCount": 3,
+      "totalTriangleCount": 544,
+      "totalVertexCount": 948,
+      "animationsCount": 0,
+      "skinsCount": 0,
+      "ok": true
+    },
+    {
+      "file": "dressing-bush.glb",
+      "role": "dressing",
+      "path": "art/generated-assets/snow-burgers/dressing-bush.glb",
+      "origin": "local Blender procedural geometry; no imported model, texture, or network input",
+      "provenance": "owner-directed AI-assisted Codex session; generator source is retained; no external model, texture, or network input",
+      "license": "Conditional output basis recorded in ASSET_LEDGER.md; no copyrightability, exclusivity, or blanket commercial-clearance conclusion",
+      "generatedBy": "tools/snow-burgers/generate-original-assets.py",
+      "generatedDate": "2026-08-07",
+      "bytes": 47484,
+      "sha256": "77a95b10cb0b823ee5e65aa9e502c7b8ffee8591bacae03c35c6d4d53b4b21a5",
+      "validator": {
+        "errors": 0,
+        "warnings": 0,
+        "infos": 6,
+        "hints": 0,
+        "messages": []
+      },
+      "extensionsUsed": [],
+      "drawCallCount": 6,
+      "primitiveCount": 6,
+      "materialCount": 2,
+      "totalTriangleCount": 540,
+      "totalVertexCount": 1200,
+      "animationsCount": 0,
+      "skinsCount": 0,
+      "ok": true
+    },
+    {
+      "file": "dressing-rock.glb",
+      "role": "dressing",
+      "path": "art/generated-assets/snow-burgers/dressing-rock.glb",
+      "origin": "local Blender procedural geometry; no imported model, texture, or network input",
+      "provenance": "owner-directed AI-assisted Codex session; generator source is retained; no external model, texture, or network input",
+      "license": "Conditional output basis recorded in ASSET_LEDGER.md; no copyrightability, exclusivity, or blanket commercial-clearance conclusion",
+      "generatedBy": "tools/snow-burgers/generate-original-assets.py",
+      "generatedDate": "2026-08-07",
+      "bytes": 9048,
+      "sha256": "258a52840761d4d962de127ed11e228ad17875d52c9866a17d0df15bfcdc2487",
+      "validator": {
+        "errors": 0,
+        "warnings": 0,
+        "infos": 3,
+        "hints": 0,
+        "messages": []
+      },
+      "extensionsUsed": [],
+      "drawCallCount": 3,
+      "primitiveCount": 3,
+      "materialCount": 2,
+      "totalTriangleCount": 60,
+      "totalVertexCount": 180,
+      "animationsCount": 0,
+      "skinsCount": 0,
+      "ok": true
+    },
+    {
+      "file": "camp-hut.glb",
+      "role": "camp",
+      "path": "art/generated-assets/snow-burgers/camp-hut.glb",
+      "origin": "local Blender procedural geometry; no imported model, texture, or network input",
+      "provenance": "owner-directed AI-assisted Codex session; generator source is retained; no external model, texture, or network input",
+      "license": "Conditional output basis recorded in ASSET_LEDGER.md; no copyrightability, exclusivity, or blanket commercial-clearance conclusion",
+      "generatedBy": "tools/snow-burgers/generate-original-assets.py",
+      "generatedDate": "2026-08-07",
+      "bytes": 356020,
+      "sha256": "13503088e65fd173a39ea803f1156f4ec4bf00fc474faacb48888970fc6d59ce",
+      "validator": {
+        "errors": 0,
+        "warnings": 0,
+        "infos": 0,
+        "hints": 0,
+        "messages": []
+      },
+      "extensionsUsed": [],
+      "drawCallCount": 11,
+      "primitiveCount": 11,
+      "materialCount": 11,
+      "totalTriangleCount": 6460,
+      "totalVertexCount": 12876,
+      "animationsCount": 0,
+      "skinsCount": 0,
+      "ok": true
+    },
+    {
+      "file": "camp-village.glb",
+      "role": "camp",
+      "path": "art/generated-assets/snow-burgers/camp-village.glb",
+      "origin": "local Blender procedural geometry; no imported model, texture, or network input",
+      "provenance": "owner-directed AI-assisted Codex session; generator source is retained; no external model, texture, or network input",
+      "license": "Conditional output basis recorded in ASSET_LEDGER.md; no copyrightability, exclusivity, or blanket commercial-clearance conclusion",
+      "generatedBy": "tools/snow-burgers/generate-original-assets.py",
+      "generatedDate": "2026-08-07",
+      "bytes": 1101216,
+      "sha256": "ad945fcf157e9157b98e8b08ce339b751bff048b8975754720bb27f58ffa3230",
+      "validator": {
+        "errors": 0,
+        "warnings": 0,
+        "infos": 0,
+        "hints": 0,
+        "messages": []
+      },
+      "extensionsUsed": [],
+      "drawCallCount": 12,
+      "primitiveCount": 12,
+      "materialCount": 12,
+      "totalTriangleCount": 20468,
+      "totalVertexCount": 40524,
+      "animationsCount": 0,
+      "skinsCount": 0,
+      "ok": true
+    }
+  ]
+}

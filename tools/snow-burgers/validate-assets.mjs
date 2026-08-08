@@ -12,17 +12,43 @@
  * does not vendor. "Valid" and "loadable here" are different questions.
  *
  *   node tools/snow-burgers/validate-assets.mjs
+ *   node tools/snow-burgers/validate-assets.mjs \
+ *     --out screenshots/final-gauntlet/assets/candidate/runtime-promoted/asset-VALIDATION.json
  *
  * Exits non-zero on any error-severity finding or budget breach, so it can gate
- * a build. Writes VALIDATION.json beside the other asset reports.
+ * a build. The default report is written under reports/snow-burgers; the
+ * immutable historical art/source-assets/snow-burgers/VALIDATION.json path is
+ * rejected unless the unmistakable --allow-archival-output override is given.
  */
 
-import { readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 
 import { loadGltfTransform, ASSETS, SOURCE_DIR, RUNTIME_DIR, REPO_ROOT } from "./gltf-lib.mjs";
+
+const DEFAULT_OUTPUT = path.join(REPO_ROOT, "reports", "snow-burgers", "runtime-assets-validation.json");
+const HISTORICAL_OUTPUT = path.resolve(SOURCE_DIR, "VALIDATION.json");
+
+function arg(name, fallback) {
+    const index = process.argv.indexOf(name);
+    return index >= 0 && process.argv[index + 1] ? process.argv[index + 1] : fallback;
+}
+
+function outputPath() {
+    const requested = path.resolve(REPO_ROOT, arg("--out", DEFAULT_OUTPUT));
+    const archivalOverride = process.argv.includes("--allow-archival-output");
+    if (requested === HISTORICAL_OUTPUT && !archivalOverride) {
+        throw new Error(
+            "Refusing to overwrite immutable historical source audit report " +
+            `${path.relative(REPO_ROOT, HISTORICAL_OUTPUT)}. ` +
+            "Choose --out reports/... or runtime evidence, or supply " +
+            "--allow-archival-output only for an intentional archival rewrite."
+        );
+    }
+    return requested;
+}
 
 /** Extensions the shipped runtime decodes with no network fetch. */
 const DECODABLE_HERE = new Set([
@@ -39,6 +65,9 @@ const DECODABLE_HERE = new Set([
 const SEVERITY = ["error", "warning", "info", "hint"];
 
 async function main() {
+    // Resolve and guard the output before loading the offline glTF SDK. A typo
+    // in a report path must fail closed before any validation work or write.
+    const out = outputPath();
     const sdk = await loadGltfTransform();
     const require = createRequire(path.join(path.dirname(sdk.root), "_resolver.cjs"));
     const validator = require("gltf-validator");
@@ -137,8 +166,9 @@ async function main() {
         (total <= preferred ? "within preferred" : totalOk ? "over preferred" : "OVER CEILING")
     );
 
+    await mkdir(path.dirname(out), { recursive: true });
     await writeFile(
-        path.join(SOURCE_DIR, "VALIDATION.json"),
+        out,
         JSON.stringify({
             generatedBy: "tools/snow-burgers/validate-assets.mjs",
             validatorVersion: require("gltf-validator/package.json").version,
@@ -149,7 +179,7 @@ async function main() {
             assets: results,
         }, null, 2) + "\n"
     );
-    console.error("wrote " + path.relative(REPO_ROOT, path.join(SOURCE_DIR, "VALIDATION.json")));
+    console.error("wrote " + path.relative(REPO_ROOT, out));
 
     if (failures) {
         console.error(`\n${failures} asset(s) failed validation.`);

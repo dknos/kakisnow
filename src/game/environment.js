@@ -2,9 +2,10 @@
  * Mountain dressing — conifers, wind-bent trees, shrubs, rocks and ice.
  *
  * Everything here is procedural geometry placed by a seeded blue-noise sample
- * and merged into a handful of meshes. Nothing is imported, for the same reason
- * the base camp is not: an imported tree would bring back exactly the
- * provenance problem this project already has seven of.
+ * and merged into a handful of meshes. The active dressing GLBs are the
+ * promoted local Blender replacements under `assets/models/snow-burgers/`;
+ * they contain no imported model, texture, or network input. The historical
+ * supplied source files remain audit-only and are not loaded here.
  *
  * -------------------------------------------------------------- one draw call
  *
@@ -57,17 +58,17 @@ const MODELS = (import.meta.env?.BASE_URL ?? "/") + "assets/models/snow-burgers/
 /**
  * The authored trees, in the order a placement draws from them.
  *
- * The fir set is five small trees at about 700 triangles each; the pine is one
- * large one at six thousand, decimated from 246,000. They are weighted rather
- * than picked evenly — a mountainside is mostly small trees with the occasional
- * big one, and an even draw puts a hero pine every fifth trunk.
+ * The promoted fir set is a compact 1,580-triangle authored family and the
+ * promoted pine is 544 triangles. They are weighted rather than picked evenly
+ * — a mountainside is mostly small trees with the occasional big one, and an
+ * even draw puts a hero pine every fifth trunk.
  */
 const TREE_MODELS = [
     { url: MODELS + "dressing-firs.glb", weight: 5, group: "prefix" },
     { url: MODELS + "dressing-pine.glb", weight: 1, group: "prefix" },
 ];
 /**
- * Shrubs and rocks, from the same supplied photogrammetry.
+ * Shrubs and rocks, from the promoted local authored candidates.
  *
  * Grouped per mesh rather than per name prefix: these arrive as a dozen
  * separate objects in one file with no naming convention between them, so each
