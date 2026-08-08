@@ -34,7 +34,10 @@ const _tmp = new Vector3();
 
 /** Height probes taken along the spring arm each frame. */
 const ARM_SAMPLES = 5;
-const CAMERA_ARM_RADIUS = 0.34;
+// The acceptance eye-volume is 0.30 m. Keep a deliberate buffer above it so
+// the fast inward spring cannot spend one sampled frame grazing a thin rail
+// while the desired arm moves across the collider between updates.
+const CAMERA_ARM_RADIUS = 0.38;
 const CAMERA_ARM_MARGIN = 0.18;
 const CAMERA_CLEAR_HOLD = 0.14;
 

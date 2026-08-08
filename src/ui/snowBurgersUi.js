@@ -368,7 +368,11 @@ const CSS = `
 .sb-hud-fuel.low .sb-fuel-label { color: #e2553a; }
 .sb-hud-flight {
     position: absolute; top: 92px; right: max(26px, env(safe-area-inset-right));
-    min-width: 168px; opacity: 0; transition: opacity 220ms ease;
+    min-width: 300px; padding: 10px 13px 11px;
+    border-right: 3px solid rgba(255, 166, 62, 0.94);
+    background: rgba(3, 8, 15, 0.82);
+    box-shadow: 0 6px 22px rgba(3, 8, 15, 0.42);
+    opacity: 0; transition: opacity 220ms ease;
     text-align: right; text-shadow: 0 2px 14px rgba(3,8,15,0.9);
 }
 .sb-hud-flight.on { opacity: 1; }
@@ -377,8 +381,9 @@ const CSS = `
     text-transform: uppercase; color: rgba(219,230,242,0.5);
 }
 .sb-hud-flight-value {
-    margin-top: 6px; font: 500 11px/1.35 ui-monospace, monospace;
-    letter-spacing: 0.08em; color: var(--warm); font-variant-numeric: tabular-nums;
+    margin-top: 6px; font: 650 clamp(13px, 1.1vw, 16px)/1.45 ui-monospace, monospace;
+    letter-spacing: 0.04em; color: var(--warm); font-variant-numeric: tabular-nums;
+    white-space: pre-line;
 }
 
 /* ---------------------------------------------------------------- tricks */
@@ -406,8 +411,11 @@ const CSS = `
 }
 #sb-grade {
     position: absolute; left: max(30px, env(safe-area-inset-left)); bottom: 168px;
-    font: 500 10px/1 ui-monospace, "Cascadia Mono", monospace;
-    letter-spacing: 0.34em; text-transform: uppercase;
+    padding: 6px 8px 6px 10px;
+    border-left: 2px solid currentColor;
+    background: rgba(3, 8, 15, 0.72);
+    font: 650 clamp(12px, 1.05vw, 15px)/1 ui-monospace, "Cascadia Mono", monospace;
+    letter-spacing: 0.2em; text-transform: uppercase;
     opacity: 0; transition: opacity 180ms ease;
     text-shadow: 0 2px 14px rgba(3,8,15,0.9);
     pointer-events: none;
@@ -1667,10 +1675,12 @@ export class SnowBurgersUi {
             return;
         }
         const trick = flight.trick ? ` · ${flight.trick}` : "";
+        const grade = flight.landingGrade
+            ? ` · LAND ${String(flight.landingGrade).toUpperCase()}` : "";
         this.el.flightValue.textContent =
             `AIR ${Number(flight.airtime ?? 0).toFixed(2)} S · ` +
-            `${Number(flight.distance ?? 0).toFixed(1)} M · ` +
-            `PEAK ${Number(flight.maxClearance ?? 0).toFixed(1)} M${trick}`;
+            `${Number(flight.distance ?? 0).toFixed(1)} M\n` +
+            `PEAK ${Number(flight.maxClearance ?? 0).toFixed(1)} M${trick}${grade}`;
         el.classList.add("on");
     }
 

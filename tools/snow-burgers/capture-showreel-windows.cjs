@@ -555,18 +555,50 @@ async function installFullBook() {
       await page.focus("#view").catch(() => {});
       await page.keyboard.down("Shift");
       await page.waitForFunction(
-        () => window.KAKISNOW.game.director.bigAirFlight.inFlight === true ||
-          Boolean(window.KAKISNOW.game.run.flightTelemetry),
+        () => window.KAKISNOW.game.director.bigAirFlight.inFlight === true,
         null,
         { timeout: 8000 },
-      ).catch(() => {});
-      await page.keyboard.down("KeyE");
-      await page.keyboard.down("KeyF");
-      await page.waitForTimeout(1100);
-      await page.keyboard.up("KeyF");
-      await page.keyboard.up("KeyE");
+      );
+      // The opening Summit run already proves trick input. Keep the signature
+      // rocket-chair flight neutral so it demonstrates the authored landing
+      // slope instead of manufacturing a late, unreadable crash.
       await page.keyboard.up("Shift");
-      await page.waitForTimeout(1700);
+      // Do not leave Big Air on a timer: the reel promises a landing read, so
+      // require the controller-authoritative touchdown result before cutting.
+      // This also fails the capture if a future physics change clears the lip
+      // but never reaches the authored landing.
+      await page.waitForFunction(
+        () => {
+          const flight = window.KAKISNOW.game.run.flightTelemetry;
+          // Ignore a short terrain-settling hop ahead of the table. The
+          // signature flight clears well over 30 m in the accepted event
+          // playthrough; using that physical result keeps this cut honest.
+          return Boolean(flight) && flight.distance >= 30 &&
+            flight.landingGrade !== "crash" &&
+            window.KAKISNOW.game.director.bigAirFlight.inFlight === false &&
+            window.KAKISNOW.character.airborne === false &&
+            window.KAKISNOW.character.position.z > 330;
+        },
+        null,
+        { timeout: 10000 },
+      );
+      await page.waitForFunction(
+        () => {
+          const hud = document.querySelector("#sb-hud-flight");
+          const value = document.querySelector("#sb-hud-flight-value");
+          const grade = document.querySelector("#sb-grade.on");
+          return hud && value && hud.classList.contains("on") &&
+            Number.parseFloat(getComputedStyle(hud).opacity) >= 0.75 &&
+            /AIR[\s\S]+S[\s\S]+M[\s\S]+PEAK[\s\S]+M[\s\S]+LAND[\s\S]+(perfect|clean|sketchy)/i
+              .test(value.textContent || "") &&
+            grade && /^(perfect|clean|sketchy)$/i.test(grade.textContent || "");
+        },
+        null,
+        { timeout: 2000 },
+      );
+      // Hold just long enough for the measured distance/height and landing
+      // grade to be read before the Burger Book transition.
+      await page.waitForTimeout(1600);
       await stopAutopilot();
     });
 
