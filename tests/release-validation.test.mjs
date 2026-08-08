@@ -194,6 +194,7 @@ test("WebGPU startup is bounded and its classifier does not hide unrelated failu
     assert.equal(expectedUnavailableError("WebGPU is not available in this browser."), true);
     assert.equal(expectedUnavailableError("WebGPU device initialisation failed."), true);
     assert.equal(expectedUnavailableError("No suitable WebGPU adapter was found."), true);
+    assert.equal(expectedUnavailableError("A fatal error occurred during WebGPU creation/initialization."), true);
     assert.equal(expectedUnavailableError("fatal device invariant"), false);
     assert.equal(expectedUnavailableError("GPU buffer bounds invariant failed"), false);
 });

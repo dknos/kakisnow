@@ -75,13 +75,11 @@ try {
             "--no-sandbox",
             "--disable-dev-shm-usage",
             "--disable-gpu-sandbox",
-            // These flags permit a software WebGPU adapter where the hosted
-            // runner exposes one. They never turn a missing adapter into a
-            // false ready result; the page must set its own ready marker.
-            "--enable-unsafe-webgpu",
-            "--enable-features=Vulkan",
-            "--use-angle=swiftshader",
-            "--use-vulkan=swiftshader",
+            // Do not force Vulkan/SwiftShader here. Some hosted Chromium
+            // builds expose navigator.gpu but hard-stall that software path,
+            // including page timers. The portable smoke accepts the authored
+            // unavailable presentation; real ready/device behavior is covered
+            // by the Windows hardware-WebGPU gauntlet.
         ],
     });
     report.browser = { executablePath: executablePath || "playwright-managed", headless: true };
