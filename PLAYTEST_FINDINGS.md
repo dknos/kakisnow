@@ -42,7 +42,7 @@ evidence of a missing system, but never evidence that a replacement feels good.
   is Big Air at 0.6587, retaining 0.1813 physical margin; Summit improved from
   the borderline baseline to 0.5380.
 - Final 2560×1440 Windows Chrome Burger Run p99 presentation intervals are
-  4.8 ms Summit, 5.6 ms Big Air, and 6.3 ms Whiteout. Corresponding submitted
+  3.1 ms Summit, 5.4 ms Big Air, and 4.3 ms Whiteout. Corresponding submitted
   draw/triangle counts are 382/2,055,443, 635/2,594,737, and 522/2,184,571.
   No GPU completion timer was available, so these are not labelled GPU ms.
 - Existing untracked PNG captures predate this branch and are preserved as

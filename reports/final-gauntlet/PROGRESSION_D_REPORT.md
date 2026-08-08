@@ -1,6 +1,7 @@
 # Workstream D — Progression and Endgame
 
-Status: builder slice complete, awaiting the independent integration critic.
+Status: **D2 independent PASS**; final integration regression review remains
+separate. No progression/endgame P0/P1 remains in the accepted slice.
 
 ## Implemented
 
@@ -29,10 +30,17 @@ Status: builder slice complete, awaiting the independent integration critic.
 ## Evidence
 
 - D-focused tests (`tests/progression.test.mjs`, `tests/save-v2.test.mjs`): 26
-  passed, 0 failed. The full suite is now 157 passed, 0 failed.
+  passed, 0 failed. The full suite at D2 time was 157 passed, 0 failed; the
+  final converged package rerun passes 182/182.
 - `npm run build`: passed; only the existing large Babylon chunk warning.
-- Browser smoke: `reports/browser-smoke-local/report.json`, zero console/page
-  errors for the accepted boot/presentation scope.
+- Historical D2 browser smoke snapshot: `reports/browser-smoke-local/report.json`
+  recorded zero console/page errors for that accepted boot/presentation scope;
+  it is retained for traceability and is not current release evidence. The
+  latest accessibility recheck provides current Windows Chrome/WebGPU browser
+  evidence in
+  `screenshots/final-gauntlet/accessibility-g-recheck2/g-critic-report.json`
+  and the corrected controller route in
+  `screenshots/final-gauntlet/accessibility-g-pad-recheck3/g-pad-reset-report.json`.
 - DOM interaction check: title → Book → Tour Complete → Credits, 6 course
   tabs, authored tape titles, locked-state gate, and zero console errors.
 - Manual captures at 1280×720 and 3440×1440:
@@ -69,9 +77,10 @@ the six-delivery milestone; no player save was altered by the capture.
   and Cancel return at 1280×720 plus the confirmation at 3440×1440. Full
   machine-readable state was printed by the probe; the result was `pass`.
 
-## Remaining critic gate
+## Final integration gate
 
-The independent critic should inspect the running artifact for keyboard/pad
-focus order, ultrawide density, and the transition from a newly completed main
-delivery through the finale. The cross-course start and destructive-action
-confirmation findings from the previous revision are now covered above.
+The independent D2 critic accepted keyboard/pad focus order, ultrawide density,
+the transition from a newly completed main delivery through the finale, the
+cross-course start, and destructive-action confirmation. A separate final
+integration critic still owns the converged product pass; this report does not
+claim commercial READY.

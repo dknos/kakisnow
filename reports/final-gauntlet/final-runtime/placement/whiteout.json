@@ -1,0 +1,4919 @@
+{
+  "tool": "tools/snow-burgers/validate-placement-windows.cjs",
+  "url": "http://127.0.0.1:5191",
+  "when": "2026-08-08T01:15:18.971Z",
+  "seedCount": 100,
+  "ingredients": [
+    "cheese",
+    "onion",
+    "patty",
+    "tomato",
+    "lettuce"
+  ],
+  "limits": {
+    "maxLateralRatio": 0.7,
+    "physicalLateralCeiling": 0.84,
+    "requiredSelectionReserve": 0.04,
+    "heightTolerance": 0.000001
+  },
+  "heightfield": {
+    "readbackLanded": true,
+    "cpuResolution": 2048,
+    "cpuTexelMetres": 1,
+    "minHeight": -14.585033416748047,
+    "maxHeight": 16.969100952148438,
+    "centreLine": [
+      {
+        "z": 0,
+        "y": -0.022
+      },
+      {
+        "z": 260,
+        "y": -0.329
+      },
+      {
+        "z": 520,
+        "y": -0.366
+      }
+    ]
+  },
+  "ok": true,
+  "passed": 100,
+  "failed": 0,
+  "route": {
+    "maxAttempts": 2,
+    "maxHeightError": 0,
+    "minGap": 102.085,
+    "tightestLateral": 0.545
+  },
+  "zones": {
+    "cheese": {
+      "routed": true,
+      "anchors": {
+        "min": 20,
+        "median": 26,
+        "max": 31
+      },
+      "rejectedTotal": 1613,
+      "rejectionsByReason": {
+        "local relief over the pad limit": 1603,
+        "slope over the zone limit": 10
+      }
+    },
+    "onion": {
+      "routed": true,
+      "anchors": {
+        "min": 16,
+        "median": 23,
+        "max": 31
+      },
+      "rejectedTotal": 7273,
+      "rejectionsByReason": {
+        "inside the lane, which belongs to the fast line": 5925,
+        "local relief over the pad limit": 1209,
+        "slope over the zone limit": 139
+      }
+    },
+    "patty": {
+      "routed": true,
+      "anchors": {
+        "min": 13,
+        "median": 18,
+        "max": 23
+      },
+      "rejectedTotal": 896,
+      "rejectionsByReason": {
+        "local relief over the pad limit": 896
+      }
+    },
+    "tomato": {
+      "routed": true,
+      "anchors": {
+        "min": 13,
+        "median": 19,
+        "max": 27
+      },
+      "rejectedTotal": 1090,
+      "rejectionsByReason": {
+        "local relief over the pad limit": 980,
+        "slope over the zone limit": 110
+      }
+    },
+    "lettuce": {
+      "routed": true,
+      "anchors": {
+        "min": 29,
+        "median": 33,
+        "max": 35
+      },
+      "rejectedTotal": 244,
+      "rejectionsByReason": {
+        "local relief over the pad limit": 244
+      }
+    }
+  },
+  "seeds": [
+    {
+      "seed": 1,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -0.094,
+          "y": -3.025,
+          "z": -200.694,
+          "slope": 0.2117
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -40.847,
+          "y": -1.564,
+          "z": -87.564,
+          "slope": 0.0535
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -19.125,
+          "y": 1.201,
+          "z": 83.423,
+          "slope": 0.338
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 26.602,
+          "y": -1.02,
+          "z": 263.106,
+          "slope": 0.2183
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 11.633,
+          "y": 0.96,
+          "z": 425.414,
+          "slope": 0.3081
+        }
+      ]
+    },
+    {
+      "seed": 2,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 23.362,
+          "y": -6.5,
+          "z": -201.123,
+          "slope": 0.0459
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -39.297,
+          "y": -2.754,
+          "z": -75.536,
+          "slope": 0.1404
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -19.757,
+          "y": 1.508,
+          "z": 78.099,
+          "slope": 0.2009
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 22.757,
+          "y": 0.614,
+          "z": 244.768,
+          "slope": 0.2414
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -5.528,
+          "y": 0.248,
+          "z": 425.691,
+          "slope": 0.1061
+        }
+      ]
+    },
+    {
+      "seed": 3,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 14.351,
+          "y": -5.66,
+          "z": -198.597,
+          "slope": 0.0823
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -29.898,
+          "y": -1.25,
+          "z": -90.915,
+          "slope": 0.0948
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -8.564,
+          "y": -0.6,
+          "z": 87.659,
+          "slope": 0.1223
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 15.506,
+          "y": -1.17,
+          "z": 206.537,
+          "slope": 0.4835
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -0.81,
+          "y": 1.174,
+          "z": 419.872,
+          "slope": 0.0349
+        }
+      ]
+    },
+    {
+      "seed": 4,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 5.175,
+          "y": -4.734,
+          "z": -190.483,
+          "slope": 0.453
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 35.759,
+          "y": -5.275,
+          "z": -81.965,
+          "slope": 0.3803
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -19.48,
+          "y": 3.146,
+          "z": 70.648,
+          "slope": 0.3057
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 21.32,
+          "y": -0.184,
+          "z": 205.25,
+          "slope": 0.6092
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 8.799,
+          "y": -2.687,
+          "z": 389.55,
+          "slope": 0.1526
+        }
+      ]
+    },
+    {
+      "seed": 5,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -18.494,
+          "y": -4.69,
+          "z": -198.434,
+          "slope": 0.4149
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 26.38,
+          "y": -3.441,
+          "z": -55.7,
+          "slope": 0.0383
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -29.507,
+          "y": 0.994,
+          "z": 72.413,
+          "slope": 0.2362
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 12.982,
+          "y": 0.201,
+          "z": 250.98,
+          "slope": 0.2446
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 1.804,
+          "y": -2.474,
+          "z": 386.357,
+          "slope": 0.3803
+        }
+      ]
+    },
+    {
+      "seed": 6,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 6.952,
+          "y": -4.532,
+          "z": -201.672,
+          "slope": 0.3948
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -41.154,
+          "y": -1.422,
+          "z": -90.325,
+          "slope": 0.085
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -25.01,
+          "y": -0.207,
+          "z": 90.417,
+          "slope": 0.3798
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 10.427,
+          "y": -0.862,
+          "z": 208.894,
+          "slope": 0.4615
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 16.694,
+          "y": 2.969,
+          "z": 405.833,
+          "slope": 0.4066
+        }
+      ]
+    },
+    {
+      "seed": 7,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -22.443,
+          "y": -0.133,
+          "z": -222.983,
+          "slope": 0.3491
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -31.249,
+          "y": -1.271,
+          "z": -90.255,
+          "slope": 0.1011
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -11.734,
+          "y": -0.016,
+          "z": 113.084,
+          "slope": 0.1683
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 11.819,
+          "y": -0.36,
+          "z": 249.794,
+          "slope": 0.3582
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 14.614,
+          "y": 1.395,
+          "z": 402.869,
+          "slope": 0.4009
+        }
+      ]
+    },
+    {
+      "seed": 8,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 10.779,
+          "y": -3.781,
+          "z": -220.735,
+          "slope": 0.2921
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 29.799,
+          "y": -3.662,
+          "z": -58.858,
+          "slope": 0.3183
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -23.409,
+          "y": 2.293,
+          "z": 81.791,
+          "slope": 0.1544
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 18.599,
+          "y": -0.172,
+          "z": 254.492,
+          "slope": 0.0249
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -9.685,
+          "y": 0.705,
+          "z": 410.739,
+          "slope": 0.2343
+        }
+      ]
+    },
+    {
+      "seed": 9,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 10.816,
+          "y": -2.965,
+          "z": -224.517,
+          "slope": 0.2029
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 30.947,
+          "y": -3.003,
+          "z": -49.087,
+          "slope": 0.1476
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -29.488,
+          "y": 1.248,
+          "z": 63.721,
+          "slope": 0.2416
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 25.364,
+          "y": 0.588,
+          "z": 257.509,
+          "slope": 0.217
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -13.87,
+          "y": 2.816,
+          "z": 418.131,
+          "slope": 0.4143
+        }
+      ]
+    },
+    {
+      "seed": 10,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -2.951,
+          "y": -4.744,
+          "z": -211.31,
+          "slope": 0.1421
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -27.528,
+          "y": -7.754,
+          "z": -41.248,
+          "slope": 0.2562
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -28.714,
+          "y": 0.702,
+          "z": 101.463,
+          "slope": 0.2518
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 18.136,
+          "y": -0.557,
+          "z": 260.863,
+          "slope": 0.2704
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -3.007,
+          "y": 1.026,
+          "z": 404.763,
+          "slope": 0.1047
+        }
+      ]
+    },
+    {
+      "seed": 11,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 22.341,
+          "y": -4.963,
+          "z": -209.864,
+          "slope": 0.1324
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 30.165,
+          "y": -2.994,
+          "z": -65.602,
+          "slope": 0.1556
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -24.068,
+          "y": -0.946,
+          "z": 95.71,
+          "slope": 0.245
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 25.751,
+          "y": 1.152,
+          "z": 245.92,
+          "slope": 0.1453
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 15.076,
+          "y": 3.409,
+          "z": 417.702,
+          "slope": 0.4506
+        }
+      ]
+    },
+    {
+      "seed": 12,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -19.903,
+          "y": -2.197,
+          "z": -206.989,
+          "slope": 0.5035
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 30.978,
+          "y": -3.875,
+          "z": -89.885,
+          "slope": 0.3032
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -13.718,
+          "y": -0.431,
+          "z": 90.13,
+          "slope": 0.0566
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 23.597,
+          "y": -0.631,
+          "z": 261.451,
+          "slope": 0.244
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 0.148,
+          "y": -2.336,
+          "z": 391.28,
+          "slope": 0.2744
+        }
+      ]
+    },
+    {
+      "seed": 13,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 19.307,
+          "y": -3.986,
+          "z": -210.717,
+          "slope": 0.4716
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -40.986,
+          "y": -2.548,
+          "z": -76.555,
+          "slope": 0.1286
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -19.4,
+          "y": 2.248,
+          "z": 60.117,
+          "slope": 0.1924
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 11.639,
+          "y": -3.052,
+          "z": 202.76,
+          "slope": 0.2218
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -6.336,
+          "y": -0.961,
+          "z": 385.119,
+          "slope": 0.3031
+        }
+      ]
+    },
+    {
+      "seed": 14,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -0.833,
+          "y": -4.538,
+          "z": -212.426,
+          "slope": 0.2272
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 26.17,
+          "y": -3.084,
+          "z": -74.494,
+          "slope": 0.1675
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -12.406,
+          "y": -0.383,
+          "z": 88.719,
+          "slope": 0.0781
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 26.988,
+          "y": -0.58,
+          "z": 230.462,
+          "slope": 0.3303
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -4.616,
+          "y": -1.37,
+          "z": 393.56,
+          "slope": 0.1693
+        }
+      ]
+    },
+    {
+      "seed": 15,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 2.449,
+          "y": -3.686,
+          "z": -216.181,
+          "slope": 0.2365
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 37.692,
+          "y": -3.975,
+          "z": -71.399,
+          "slope": 0.1945
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -8.449,
+          "y": 1.209,
+          "z": 76.218,
+          "slope": 0.408
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 21.447,
+          "y": 0.549,
+          "z": 233.579,
+          "slope": 0.2113
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 14.059,
+          "y": -2.457,
+          "z": 391.106,
+          "slope": 0.1934
+        }
+      ]
+    },
+    {
+      "seed": 16,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -14.067,
+          "y": -5.165,
+          "z": -194.525,
+          "slope": 0.4399
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 39.601,
+          "y": -5.438,
+          "z": -90.803,
+          "slope": 0.2668
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -29.494,
+          "y": 0.824,
+          "z": 102.187,
+          "slope": 0.2476
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 19.107,
+          "y": 1.315,
+          "z": 221.912,
+          "slope": 0.4141
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -15.8,
+          "y": 2.592,
+          "z": 405.777,
+          "slope": 0.4123
+        }
+      ]
+    },
+    {
+      "seed": 17,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 15.766,
+          "y": -5.76,
+          "z": -201.897,
+          "slope": 0.1349
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -31.23,
+          "y": -2.124,
+          "z": -83.104,
+          "slope": 0.1744
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -28.334,
+          "y": -0.178,
+          "z": 91.207,
+          "slope": 0.3675
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 9.126,
+          "y": -1.605,
+          "z": 207.51,
+          "slope": 0.3864
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 0.103,
+          "y": -1.324,
+          "z": 381.859,
+          "slope": 0.1833
+        }
+      ]
+    },
+    {
+      "seed": 18,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -9.272,
+          "y": -5.691,
+          "z": -206.561,
+          "slope": 0.1501
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -30.113,
+          "y": -9.351,
+          "z": -62.346,
+          "slope": 0.5093
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -19.206,
+          "y": -0.389,
+          "z": 89.908,
+          "slope": 0.1866
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 9.33,
+          "y": 0.494,
+          "z": 211.904,
+          "slope": 0.5955
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 4.617,
+          "y": 1.121,
+          "z": 421.536,
+          "slope": 0.0865
+        }
+      ]
+    },
+    {
+      "seed": 19,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 2.634,
+          "y": -3.532,
+          "z": -220.16,
+          "slope": 0.1077
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 38.319,
+          "y": -5.221,
+          "z": -78.207,
+          "slope": 0.2222
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -26.691,
+          "y": 1.415,
+          "z": 85.99,
+          "slope": 0.3795
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 27.507,
+          "y": 1.146,
+          "z": 249.535,
+          "slope": 0.1013
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 12.256,
+          "y": 1.26,
+          "z": 428.122,
+          "slope": 0.3671
+        }
+      ]
+    },
+    {
+      "seed": 20,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -7.71,
+          "y": -4.15,
+          "z": -199.202,
+          "slope": 0.6066
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -28.02,
+          "y": -6.377,
+          "z": -74.964,
+          "slope": 0.4075
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -14.883,
+          "y": -0.333,
+          "z": 85.615,
+          "slope": 0.0546
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 19.92,
+          "y": -0.06,
+          "z": 226.145,
+          "slope": 0.3181
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -4.866,
+          "y": 0.731,
+          "z": 406.786,
+          "slope": 0.18
+        }
+      ]
+    },
+    {
+      "seed": 21,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 20.318,
+          "y": -5.272,
+          "z": -206.864,
+          "slope": 0.1775
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -41.218,
+          "y": -4.361,
+          "z": -65.42,
+          "slope": 0.347
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -18.69,
+          "y": 1.272,
+          "z": 80.893,
+          "slope": 0.1517
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 22.116,
+          "y": 0.939,
+          "z": 219.535,
+          "slope": 0.2913
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -0.472,
+          "y": 0.37,
+          "z": 408.156,
+          "slope": 0.1824
+        }
+      ]
+    },
+    {
+      "seed": 22,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -0.944,
+          "y": -3.535,
+          "z": -204.12,
+          "slope": 0.2107
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -32.788,
+          "y": -3.749,
+          "z": -75.973,
+          "slope": 0.457
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -28.956,
+          "y": 0.771,
+          "z": 77.766,
+          "slope": 0.0922
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 20.248,
+          "y": 2.332,
+          "z": 213.324,
+          "slope": 0.4069
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -3.295,
+          "y": -0.41,
+          "z": 397.901,
+          "slope": 0.3248
+        }
+      ]
+    },
+    {
+      "seed": 23,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 23.591,
+          "y": -2.431,
+          "z": -224.335,
+          "slope": 0.286
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 33.162,
+          "y": -4.822,
+          "z": -88.423,
+          "slope": 0.2767
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -18.352,
+          "y": -0.498,
+          "z": 95.195,
+          "slope": 0.152
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 12.466,
+          "y": 3.376,
+          "z": 224.07,
+          "slope": 0.4937
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -0.138,
+          "y": -0.887,
+          "z": 396.317,
+          "slope": 0.3027
+        }
+      ]
+    },
+    {
+      "seed": 24,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -17.422,
+          "y": -3.512,
+          "z": -206.784,
+          "slope": 0.4381
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 33.639,
+          "y": -2.088,
+          "z": -38.939,
+          "slope": 0.4292
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -13.47,
+          "y": 1.495,
+          "z": 76.726,
+          "slope": 0.2616
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 26.285,
+          "y": 0.809,
+          "z": 206.369,
+          "slope": 0.2278
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 15.229,
+          "y": 2.203,
+          "z": 404.97,
+          "slope": 0.4227
+        }
+      ]
+    },
+    {
+      "seed": 25,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 3.007,
+          "y": -3.058,
+          "z": -200.616,
+          "slope": 0.279
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -26.816,
+          "y": -8.569,
+          "z": -44.341,
+          "slope": 0.3789
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -22.08,
+          "y": -0.788,
+          "z": 95.868,
+          "slope": 0.1238
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 14.93,
+          "y": -0.267,
+          "z": 255.428,
+          "slope": 0.1945
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -4.81,
+          "y": -1.262,
+          "z": 394.465,
+          "slope": 0.141
+        }
+      ]
+    },
+    {
+      "seed": 26,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 5.912,
+          "y": -4.317,
+          "z": -210.534,
+          "slope": 0.2302
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -37.152,
+          "y": -8.668,
+          "z": -48.953,
+          "slope": 0.257
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -16.929,
+          "y": 0.627,
+          "z": 82.944,
+          "slope": 0.4281
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 12.306,
+          "y": -3.548,
+          "z": 200.867,
+          "slope": 0.298
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 9.033,
+          "y": 1.19,
+          "z": 422.666,
+          "slope": 0.2307
+        }
+      ]
+    },
+    {
+      "seed": 27,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 0.398,
+          "y": -3.651,
+          "z": -208.313,
+          "slope": 0.2005
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -40.434,
+          "y": -1.58,
+          "z": -88.352,
+          "slope": 0.0241
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -21.032,
+          "y": 2.271,
+          "z": 62.434,
+          "slope": 0.2164
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 27.069,
+          "y": -0.428,
+          "z": 220.026,
+          "slope": 0.4152
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -12.995,
+          "y": 2.069,
+          "z": 423.007,
+          "slope": 0.4316
+        }
+      ]
+    },
+    {
+      "seed": 28,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 8.623,
+          "y": -4.674,
+          "z": -207.452,
+          "slope": 0.1281
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 33.046,
+          "y": -4.056,
+          "z": -59.073,
+          "slope": 0.222
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -25.346,
+          "y": -0.074,
+          "z": 105.565,
+          "slope": 0.1539
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 19.481,
+          "y": -0.151,
+          "z": 258.424,
+          "slope": 0.1157
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -5.677,
+          "y": -0.213,
+          "z": 398.325,
+          "slope": 0.3624
+        }
+      ]
+    },
+    {
+      "seed": 29,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -15.367,
+          "y": -1.399,
+          "z": -219.059,
+          "slope": 0.3847
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -30.729,
+          "y": -3.035,
+          "z": -80.065,
+          "slope": 0.4055
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -16.099,
+          "y": 1.035,
+          "z": 78.66,
+          "slope": 0.2305
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 23.061,
+          "y": 0.722,
+          "z": 218.841,
+          "slope": 0.236
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 16.117,
+          "y": -2.558,
+          "z": 394.435,
+          "slope": 0.2719
+        }
+      ]
+    },
+    {
+      "seed": 30,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -15.395,
+          "y": -4.179,
+          "z": -190.584,
+          "slope": 0.3951
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 31.341,
+          "y": -3.191,
+          "z": -46.9,
+          "slope": 0.2414
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -12.246,
+          "y": 1.357,
+          "z": 77.359,
+          "slope": 0.2906
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 26.273,
+          "y": 0.904,
+          "z": 210.965,
+          "slope": 0.0535
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -4.628,
+          "y": -1.308,
+          "z": 394.013,
+          "slope": 0.1463
+        }
+      ]
+    },
+    {
+      "seed": 31,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 4.527,
+          "y": -4.21,
+          "z": -192.682,
+          "slope": 0.2821
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 29.876,
+          "y": -3.893,
+          "z": -54.175,
+          "slope": 0.1759
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -8.507,
+          "y": 0.407,
+          "z": 95.138,
+          "slope": 0.431
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 19.414,
+          "y": -0.449,
+          "z": 205.696,
+          "slope": 0.6242
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -5.058,
+          "y": 1.037,
+          "z": 404.135,
+          "slope": 0.0412
+        }
+      ]
+    },
+    {
+      "seed": 32,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -14.887,
+          "y": -4.156,
+          "z": -209.255,
+          "slope": 0.4853
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 28.912,
+          "y": -3.905,
+          "z": -55.205,
+          "slope": 0.208
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -17.305,
+          "y": 1.264,
+          "z": 78.559,
+          "slope": 0.2855
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 10.688,
+          "y": -0.961,
+          "z": 267.511,
+          "slope": 0.5995
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -11.765,
+          "y": 1.748,
+          "z": 414.031,
+          "slope": 0.3124
+        }
+      ]
+    },
+    {
+      "seed": 33,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 20.377,
+          "y": -4.361,
+          "z": -210.672,
+          "slope": 0.4618
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 34.838,
+          "y": -2.933,
+          "z": -43.633,
+          "slope": 0.2969
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -10.814,
+          "y": -0.544,
+          "z": 88.553,
+          "slope": 0.0498
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 11.994,
+          "y": -2.537,
+          "z": 204.764,
+          "slope": 0.3342
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -7.684,
+          "y": 0.665,
+          "z": 407.352,
+          "slope": 0.1735
+        }
+      ]
+    },
+    {
+      "seed": 34,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 0.726,
+          "y": -3.057,
+          "z": -201.262,
+          "slope": 0.2331
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 37.585,
+          "y": -3.443,
+          "z": -48.208,
+          "slope": 0.3804
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -22.901,
+          "y": 1.753,
+          "z": 62.774,
+          "slope": 0.3417
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 22.883,
+          "y": 0.486,
+          "z": 221.106,
+          "slope": 0.2733
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -8.456,
+          "y": -1.614,
+          "z": 390.858,
+          "slope": 0.2161
+        }
+      ]
+    },
+    {
+      "seed": 35,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -14.287,
+          "y": -1.952,
+          "z": -225.821,
+          "slope": 0.3544
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 40.871,
+          "y": -4.44,
+          "z": -77.456,
+          "slope": 0.246
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -15.869,
+          "y": 0.014,
+          "z": 99.127,
+          "slope": 0.1361
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 22.954,
+          "y": 0.156,
+          "z": 258.617,
+          "slope": 0.2494
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -7.196,
+          "y": 0.865,
+          "z": 402.882,
+          "slope": 0.1065
+        }
+      ]
+    },
+    {
+      "seed": 36,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 13.058,
+          "y": -7.025,
+          "z": -188.669,
+          "slope": 0.2733
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 28.844,
+          "y": -2.716,
+          "z": -42.578,
+          "slope": 0.1528
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -24.914,
+          "y": 1.293,
+          "z": 72.19,
+          "slope": 0.3308
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 12.527,
+          "y": 4.03,
+          "z": 216.56,
+          "slope": 0.2824
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 11.567,
+          "y": 1.982,
+          "z": 418.074,
+          "slope": 0.2808
+        }
+      ]
+    },
+    {
+      "seed": 37,
+      "ok": true,
+      "reason": null,
+      "attempts": 2,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -5.911,
+          "y": -5.291,
+          "z": -204.971,
+          "slope": 0.2668
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -38.041,
+          "y": -2.444,
+          "z": -79.181,
+          "slope": 0.3077
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -10.312,
+          "y": -0.154,
+          "z": 113.333,
+          "slope": 0.2274
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 19.383,
+          "y": 0.671,
+          "z": 244.925,
+          "slope": 0.1156
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 1.813,
+          "y": 0.769,
+          "z": 404.941,
+          "slope": 0.0768
+        }
+      ]
+    },
+    {
+      "seed": 38,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -12.367,
+          "y": -5.888,
+          "z": -198.357,
+          "slope": 0.4082
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -38.311,
+          "y": -8.261,
+          "z": -49.856,
+          "slope": 0.1931
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -16.785,
+          "y": 2.938,
+          "z": 59.515,
+          "slope": 0.3444
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 16.3,
+          "y": -0.507,
+          "z": 257.785,
+          "slope": 0.1327
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 16.217,
+          "y": 3.871,
+          "z": 419.05,
+          "slope": 0.4564
+        }
+      ]
+    },
+    {
+      "seed": 39,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -15.658,
+          "y": -1.324,
+          "z": -224.542,
+          "slope": 0.3116
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 26.484,
+          "y": -3.433,
+          "z": -55.822,
+          "slope": 0.0198
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -14.621,
+          "y": -0.118,
+          "z": 83.417,
+          "slope": 0.2093
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 11.934,
+          "y": -2.9,
+          "z": 203.504,
+          "slope": 0.256
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -17.097,
+          "y": 3.97,
+          "z": 423.044,
+          "slope": 0.488
+        }
+      ]
+    },
+    {
+      "seed": 40,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 9.747,
+          "y": -5.242,
+          "z": -203.637,
+          "slope": 0.2111
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -27.014,
+          "y": -10.244,
+          "z": -48.519,
+          "slope": 0.2046
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -8.499,
+          "y": 3.887,
+          "z": 61.098,
+          "slope": 0.3323
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 16.632,
+          "y": 0.424,
+          "z": 244.21,
+          "slope": 0.2337
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -2.518,
+          "y": -0.904,
+          "z": 396.321,
+          "slope": 0.2789
+        }
+      ]
+    },
+    {
+      "seed": 41,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 6.417,
+          "y": -5.163,
+          "z": -191.52,
+          "slope": 0.4664
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 28.403,
+          "y": -3.458,
+          "z": -66.275,
+          "slope": 0.1866
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -12.758,
+          "y": -0.029,
+          "z": 93.032,
+          "slope": 0.1763
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 10.537,
+          "y": -0.307,
+          "z": 238.9,
+          "slope": 0.2748
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -11.26,
+          "y": 0.885,
+          "z": 427.751,
+          "slope": 0.3007
+        }
+      ]
+    },
+    {
+      "seed": 42,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 22.297,
+          "y": -5.485,
+          "z": -205.951,
+          "slope": 0.2887
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 39.999,
+          "y": -3.991,
+          "z": -72.261,
+          "slope": 0.1281
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -8.949,
+          "y": -0.349,
+          "z": 108.097,
+          "slope": 0.0972
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 9.582,
+          "y": -0.344,
+          "z": 253.311,
+          "slope": 0.3676
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -17.178,
+          "y": -0.472,
+          "z": 392.094,
+          "slope": 0.0763
+        }
+      ]
+    },
+    {
+      "seed": 43,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 23.333,
+          "y": -7.09,
+          "z": -186.359,
+          "slope": 0.3142
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 27.336,
+          "y": -3.476,
+          "z": -78.975,
+          "slope": 0.2234
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -19.944,
+          "y": -0.346,
+          "z": 90.2,
+          "slope": 0.1685
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 27.348,
+          "y": -1.069,
+          "z": 200.671,
+          "slope": 0.2191
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -1.666,
+          "y": -1.987,
+          "z": 386.588,
+          "slope": 0.1256
+        }
+      ]
+    },
+    {
+      "seed": 44,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 4.878,
+          "y": -4.283,
+          "z": -194.478,
+          "slope": 0.3133
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 34.39,
+          "y": -5.07,
+          "z": -86.013,
+          "slope": 0.1664
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -17.973,
+          "y": 2.605,
+          "z": 60.182,
+          "slope": 0.2855
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 16.282,
+          "y": -0.298,
+          "z": 260.307,
+          "slope": 0.0585
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -1.997,
+          "y": 0.67,
+          "z": 412.23,
+          "slope": 0.1851
+        }
+      ]
+    },
+    {
+      "seed": 45,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -13.604,
+          "y": -2.048,
+          "z": -223.056,
+          "slope": 0.4773
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -33.313,
+          "y": -7.222,
+          "z": -37.204,
+          "slope": 0.1224
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -17.279,
+          "y": 0.236,
+          "z": 105.003,
+          "slope": 0.1416
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 9.351,
+          "y": 4.006,
+          "z": 227.116,
+          "slope": 0.1979
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -0.736,
+          "y": 0.852,
+          "z": 405.357,
+          "slope": 0.144
+        }
+      ]
+    },
+    {
+      "seed": 46,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -3.129,
+          "y": -4.611,
+          "z": -223.807,
+          "slope": 0.3234
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 40.358,
+          "y": -2.454,
+          "z": -46.844,
+          "slope": 0.3866
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -25.443,
+          "y": 1.157,
+          "z": 76.736,
+          "slope": 0.3011
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 21.758,
+          "y": 0.893,
+          "z": 249.437,
+          "slope": 0.082
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 1.175,
+          "y": -2.786,
+          "z": 389.031,
+          "slope": 0.2378
+        }
+      ]
+    },
+    {
+      "seed": 47,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -23.03,
+          "y": -2.877,
+          "z": -198.734,
+          "slope": 0.4452
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 30.165,
+          "y": -3.907,
+          "z": -88.226,
+          "slope": 0.2523
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -27.896,
+          "y": -0.297,
+          "z": 91.16,
+          "slope": 0.353
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 18.902,
+          "y": 0.095,
+          "z": 234.166,
+          "slope": 0.2748
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 5.613,
+          "y": 0.311,
+          "z": 401.734,
+          "slope": 0.2006
+        }
+      ]
+    },
+    {
+      "seed": 48,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 0.019,
+          "y": -3,
+          "z": -189.77,
+          "slope": 0.2501
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -37.192,
+          "y": -5.686,
+          "z": -65.841,
+          "slope": 0.2772
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -15.115,
+          "y": 2.782,
+          "z": 71.358,
+          "slope": 0.3833
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 16.969,
+          "y": -1.467,
+          "z": 205.319,
+          "slope": 0.4732
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 1.608,
+          "y": 0.787,
+          "z": 404.775,
+          "slope": 0.0771
+        }
+      ]
+    },
+    {
+      "seed": 49,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -5.995,
+          "y": -4.848,
+          "z": -209.821,
+          "slope": 0.0999
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 39.706,
+          "y": -4.917,
+          "z": -57.857,
+          "slope": 0.2739
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -29.522,
+          "y": 0.174,
+          "z": 108.989,
+          "slope": 0.1388
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 18.871,
+          "y": 1.775,
+          "z": 220.429,
+          "slope": 0.385
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 9.752,
+          "y": 0.774,
+          "z": 404.553,
+          "slope": 0.1474
+        }
+      ]
+    },
+    {
+      "seed": 50,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -23.371,
+          "y": -2.392,
+          "z": -201.241,
+          "slope": 0.261
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -26.511,
+          "y": -2.383,
+          "z": -86.822,
+          "slope": 0.5611
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -24.407,
+          "y": 0.475,
+          "z": 88.566,
+          "slope": 0.308
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 26.083,
+          "y": -0.794,
+          "z": 202.168,
+          "slope": 0.4314
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 15.783,
+          "y": -3.26,
+          "z": 383.484,
+          "slope": 0.1722
+        }
+      ]
+    },
+    {
+      "seed": 51,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 16.149,
+          "y": -3.497,
+          "z": -220.514,
+          "slope": 0.2701
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -26.189,
+          "y": -2.02,
+          "z": -90.166,
+          "slope": 0.4867
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -13.762,
+          "y": 0.002,
+          "z": 81.26,
+          "slope": 0.3724
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 17.253,
+          "y": -1.524,
+          "z": 205.024,
+          "slope": 0.4566
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -4.806,
+          "y": -0.148,
+          "z": 398.475,
+          "slope": 0.3258
+        }
+      ]
+    },
+    {
+      "seed": 52,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -23.7,
+          "y": 0.01,
+          "z": -218.201,
+          "slope": 0.0718
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -38.172,
+          "y": -1.372,
+          "z": -91.126,
+          "slope": 0.1262
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -26.279,
+          "y": 1.042,
+          "z": 86.982,
+          "slope": 0.4094
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 27.46,
+          "y": 0.501,
+          "z": 257.632,
+          "slope": 0.2542
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -15.646,
+          "y": 2.969,
+          "z": 411.72,
+          "slope": 0.4823
+        }
+      ]
+    },
+    {
+      "seed": 53,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -5.15,
+          "y": -5.045,
+          "z": -224.851,
+          "slope": 0.1462
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 31.044,
+          "y": -3.154,
+          "z": -45.671,
+          "slope": 0.1959
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -9.165,
+          "y": 4.191,
+          "z": 60.112,
+          "slope": 0.2215
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 22.078,
+          "y": -1.298,
+          "z": 264.956,
+          "slope": 0.1242
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -2.183,
+          "y": -1.429,
+          "z": 383.281,
+          "slope": 0.2367
+        }
+      ]
+    },
+    {
+      "seed": 54,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -16.525,
+          "y": -2.473,
+          "z": -212.017,
+          "slope": 0.4775
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -32.927,
+          "y": -9.5,
+          "z": -53.142,
+          "slope": 0.2414
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -21.427,
+          "y": 1.685,
+          "z": 79.337,
+          "slope": 0.1608
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 25.907,
+          "y": -0.422,
+          "z": 221.94,
+          "slope": 0.3726
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -15.407,
+          "y": 1.014,
+          "z": 401.104,
+          "slope": 0.5094
+        }
+      ]
+    },
+    {
+      "seed": 55,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -13.152,
+          "y": -5.188,
+          "z": -206.415,
+          "slope": 0.444
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 39.87,
+          "y": -2.189,
+          "z": -44.445,
+          "slope": 0.2261
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -14.063,
+          "y": 0.141,
+          "z": 98.134,
+          "slope": 0.1922
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 17.791,
+          "y": -0.157,
+          "z": 254.112,
+          "slope": 0.0807
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -2.092,
+          "y": -1.254,
+          "z": 382.391,
+          "slope": 0.2226
+        }
+      ]
+    },
+    {
+      "seed": 56,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 17.341,
+          "y": -3.271,
+          "z": -220.297,
+          "slope": 0.2233
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 36.718,
+          "y": -5.221,
+          "z": -77.359,
+          "slope": 0.0596
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -18.964,
+          "y": 0.367,
+          "z": 99.465,
+          "slope": 0.0878
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 20.628,
+          "y": 1.155,
+          "z": 220.603,
+          "slope": 0.3194
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -11.659,
+          "y": 1.195,
+          "z": 407.211,
+          "slope": 0.2584
+        }
+      ]
+    },
+    {
+      "seed": 57,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 2.49,
+          "y": -3.529,
+          "z": -195.011,
+          "slope": 0.308
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -33.2,
+          "y": -2.487,
+          "z": -81.448,
+          "slope": 0.0897
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -9.891,
+          "y": 4.219,
+          "z": 60.245,
+          "slope": 0.2359
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 20.919,
+          "y": -0.148,
+          "z": 255.194,
+          "slope": 0.1306
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 0.036,
+          "y": 0.484,
+          "z": 407.595,
+          "slope": 0.1798
+        }
+      ]
+    },
+    {
+      "seed": 58,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -5.711,
+          "y": -4.936,
+          "z": -208.485,
+          "slope": 0.1371
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -41.347,
+          "y": -4.247,
+          "z": -59.89,
+          "slope": 0.5475
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -14.545,
+          "y": -0.41,
+          "z": 89.396,
+          "slope": 0.0824
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 16.141,
+          "y": -2.783,
+          "z": 202.433,
+          "slope": 0.5358
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 17.115,
+          "y": 4.377,
+          "z": 418.11,
+          "slope": 0.4361
+        }
+      ]
+    },
+    {
+      "seed": 59,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -4.473,
+          "y": -4.747,
+          "z": -209.516,
+          "slope": 0.1071
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 34.599,
+          "y": -3.93,
+          "z": -58.068,
+          "slope": 0.0812
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -19.561,
+          "y": 3.141,
+          "z": 70.86,
+          "slope": 0.3027
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 14.002,
+          "y": 0.141,
+          "z": 209.509,
+          "slope": 0.634
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 15.961,
+          "y": -2.976,
+          "z": 382.388,
+          "slope": 0.3174
+        }
+      ]
+    },
+    {
+      "seed": 60,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 16,
+          "y": -2.875,
+          "z": -217.35,
+          "slope": 0.2246
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 36.982,
+          "y": -5.393,
+          "z": -88.951,
+          "slope": 0.3349
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -28.898,
+          "y": 0.614,
+          "z": 70.303,
+          "slope": 0.1839
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 25.747,
+          "y": 1.156,
+          "z": 245.666,
+          "slope": 0.1517
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -9.532,
+          "y": 0.797,
+          "z": 411.322,
+          "slope": 0.2286
+        }
+      ]
+    },
+    {
+      "seed": 61,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -10.157,
+          "y": -6.045,
+          "z": -203.1,
+          "slope": 0.1252
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -29.306,
+          "y": -10.149,
+          "z": -51.662,
+          "slope": 0.3139
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -25.599,
+          "y": -0.191,
+          "z": 109.475,
+          "slope": 0.2717
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 26.581,
+          "y": 1.265,
+          "z": 246.049,
+          "slope": 0.0593
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 1.468,
+          "y": -2.109,
+          "z": 385.196,
+          "slope": 0.2879
+        }
+      ]
+    },
+    {
+      "seed": 62,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -5.306,
+          "y": -2.655,
+          "z": -197.418,
+          "slope": 0.2082
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -32.417,
+          "y": -3.041,
+          "z": -78.557,
+          "slope": 0.3373
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -12.9,
+          "y": 2.483,
+          "z": 70.083,
+          "slope": 0.2785
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 23.991,
+          "y": -0.128,
+          "z": 228.65,
+          "slope": 0.335
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -5.304,
+          "y": -1.427,
+          "z": 386.111,
+          "slope": 0.274
+        }
+      ]
+    },
+    {
+      "seed": 63,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -14.917,
+          "y": -1.643,
+          "z": -218.388,
+          "slope": 0.3374
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -30.833,
+          "y": -1.263,
+          "z": -89.95,
+          "slope": 0.0898
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -25.835,
+          "y": 1.034,
+          "z": 76.372,
+          "slope": 0.2183
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 20.724,
+          "y": -2.23,
+          "z": 200.73,
+          "slope": 0.382
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 0.993,
+          "y": 0.88,
+          "z": 402.464,
+          "slope": 0.1014
+        }
+      ]
+    },
+    {
+      "seed": 64,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 20.943,
+          "y": -6.262,
+          "z": -193.778,
+          "slope": 0.3596
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 26.125,
+          "y": -3.102,
+          "z": -74.636,
+          "slope": 0.1664
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -23.843,
+          "y": -0.862,
+          "z": 95.931,
+          "slope": 0.2594
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 23.913,
+          "y": 0.594,
+          "z": 218.456,
+          "slope": 0.1334
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -8.817,
+          "y": 0.565,
+          "z": 424.607,
+          "slope": 0.2548
+        }
+      ]
+    },
+    {
+      "seed": 65,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 15.016,
+          "y": -3.711,
+          "z": -220.611,
+          "slope": 0.1663
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 32.82,
+          "y": -4.397,
+          "z": -76.736,
+          "slope": 0.3619
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -10.309,
+          "y": -0.082,
+          "z": 94.712,
+          "slope": 0.1903
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 20.958,
+          "y": 0.814,
+          "z": 249.168,
+          "slope": 0.1224
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -0.063,
+          "y": -1.081,
+          "z": 395.636,
+          "slope": 0.2962
+        }
+      ]
+    },
+    {
+      "seed": 66,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 18.726,
+          "y": -3.378,
+          "z": -223.514,
+          "slope": 0.2672
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -37.557,
+          "y": -1.502,
+          "z": -91.599,
+          "slope": 0.1585
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -19.764,
+          "y": 2.504,
+          "z": 62.948,
+          "slope": 0.1273
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 24.64,
+          "y": 0.566,
+          "z": 243.093,
+          "slope": 0.3638
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -15.086,
+          "y": 3.126,
+          "z": 414.363,
+          "slope": 0.4606
+        }
+      ]
+    },
+    {
+      "seed": 67,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 19.986,
+          "y": -6.97,
+          "z": -191.126,
+          "slope": 0.384
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -40.878,
+          "y": -4.326,
+          "z": -61.145,
+          "slope": 0.4704
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -13.442,
+          "y": -0.414,
+          "z": 89.982,
+          "slope": 0.0506
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 25.967,
+          "y": -0.036,
+          "z": 232.165,
+          "slope": 0.3864
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 9.856,
+          "y": -1.402,
+          "z": 396.284,
+          "slope": 0.2809
+        }
+      ]
+    },
+    {
+      "seed": 68,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 17.872,
+          "y": -2.868,
+          "z": -217.913,
+          "slope": 0.1516
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 29.21,
+          "y": -3.951,
+          "z": -80.851,
+          "slope": 0.3786
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -9.337,
+          "y": 4.194,
+          "z": 60.179,
+          "slope": 0.2162
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 27.208,
+          "y": -1.171,
+          "z": 266.241,
+          "slope": 0.2647
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 17.119,
+          "y": -2.188,
+          "z": 380.801,
+          "slope": 0.4969
+        }
+      ]
+    },
+    {
+      "seed": 69,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -5.884,
+          "y": -2.896,
+          "z": -198.063,
+          "slope": 0.3706
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -40.898,
+          "y": -2.629,
+          "z": -75.795,
+          "slope": 0.1281
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -25.032,
+          "y": -0.05,
+          "z": 99.144,
+          "slope": 0.112
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 14.51,
+          "y": -0.499,
+          "z": 256.813,
+          "slope": 0.2198
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -4.89,
+          "y": 0.567,
+          "z": 429.006,
+          "slope": 0.1774
+        }
+      ]
+    },
+    {
+      "seed": 70,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -10.58,
+          "y": -3.763,
+          "z": -194.653,
+          "slope": 0.4348
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 28.467,
+          "y": -3.423,
+          "z": -83.24,
+          "slope": 0.4164
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -21.111,
+          "y": 1.67,
+          "z": 78.289,
+          "slope": 0.2091
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 22.227,
+          "y": 0.528,
+          "z": 221.626,
+          "slope": 0.3066
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 12.671,
+          "y": 1.368,
+          "z": 424.915,
+          "slope": 0.3925
+        }
+      ]
+    },
+    {
+      "seed": 71,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 7.989,
+          "y": -5.123,
+          "z": -194.21,
+          "slope": 0.2359
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -34.635,
+          "y": -2.165,
+          "z": -84.815,
+          "slope": 0.1364
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -18.815,
+          "y": -0.409,
+          "z": 89.633,
+          "slope": 0.1896
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 26.47,
+          "y": 0.762,
+          "z": 255.768,
+          "slope": 0.0182
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 1.48,
+          "y": 0.805,
+          "z": 404.529,
+          "slope": 0.0762
+        }
+      ]
+    },
+    {
+      "seed": 72,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 6.24,
+          "y": -4.201,
+          "z": -214.086,
+          "slope": 0.2196
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 31.628,
+          "y": -4.54,
+          "z": -86.936,
+          "slope": 0.3937
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -29.659,
+          "y": 0.875,
+          "z": 76.387,
+          "slope": 0.0604
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 23.369,
+          "y": -1.452,
+          "z": 201.916,
+          "slope": 0.4115
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 1.461,
+          "y": -2.491,
+          "z": 386.951,
+          "slope": 0.3699
+        }
+      ]
+    },
+    {
+      "seed": 73,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 20.39,
+          "y": -5.438,
+          "z": -205.76,
+          "slope": 0.1906
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 31.542,
+          "y": -3.144,
+          "z": -48.402,
+          "slope": 0.2385
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -14.992,
+          "y": -0.094,
+          "z": 110.165,
+          "slope": 0.0724
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 25.534,
+          "y": 0.622,
+          "z": 216.471,
+          "slope": 0.1251
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -8.292,
+          "y": 0.788,
+          "z": 423.759,
+          "slope": 0.3072
+        }
+      ]
+    },
+    {
+      "seed": 74,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -20.027,
+          "y": -0.19,
+          "z": -215.752,
+          "slope": 0.3206
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -41.939,
+          "y": -7.596,
+          "z": -46.013,
+          "slope": 0.1555
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -15.294,
+          "y": 0.535,
+          "z": 114.592,
+          "slope": 0.2192
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 16.618,
+          "y": 0.305,
+          "z": 240.013,
+          "slope": 0.2783
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -4.176,
+          "y": 1.038,
+          "z": 414.333,
+          "slope": 0.1187
+        }
+      ]
+    },
+    {
+      "seed": 75,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 8.377,
+          "y": -4.405,
+          "z": -214.501,
+          "slope": 0.1077
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -30.814,
+          "y": -1.329,
+          "z": -91.503,
+          "slope": 0.2071
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -9.86,
+          "y": 0.285,
+          "z": 103.985,
+          "slope": 0.414
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 8.302,
+          "y": -1.807,
+          "z": 206.998,
+          "slope": 0.3874
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 0.378,
+          "y": 0.945,
+          "z": 403.055,
+          "slope": 0.0818
+        }
+      ]
+    },
+    {
+      "seed": 76,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 20.285,
+          "y": -4.909,
+          "z": -208.421,
+          "slope": 0.2769
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 33.156,
+          "y": -3.83,
+          "z": -52.387,
+          "slope": 0.2037
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -29.346,
+          "y": 0.21,
+          "z": 109.253,
+          "slope": 0.0857
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 11.299,
+          "y": 0.613,
+          "z": 211.338,
+          "slope": 0.6134
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 13.424,
+          "y": 1.493,
+          "z": 426.697,
+          "slope": 0.3899
+        }
+      ]
+    },
+    {
+      "seed": 77,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -8.635,
+          "y": -4.935,
+          "z": -210.536,
+          "slope": 0.1097
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -39.905,
+          "y": -1.342,
+          "z": -90.272,
+          "slope": 0.0569
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -14.216,
+          "y": -0.261,
+          "z": 94.363,
+          "slope": 0.1999
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 8.456,
+          "y": -0.261,
+          "z": 246.747,
+          "slope": 0.1461
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 14.563,
+          "y": -3.38,
+          "z": 385.084,
+          "slope": 0.0453
+        }
+      ]
+    },
+    {
+      "seed": 78,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 4.275,
+          "y": -3.96,
+          "z": -212.377,
+          "slope": 0.1361
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 35.641,
+          "y": -5.442,
+          "z": -84.793,
+          "slope": 0.3518
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -16.636,
+          "y": 1.593,
+          "z": 77.161,
+          "slope": 0.3326
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 8.455,
+          "y": -0.064,
+          "z": 254.812,
+          "slope": 0.3623
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 14.071,
+          "y": 2.145,
+          "z": 428.904,
+          "slope": 0.4493
+        }
+      ]
+    },
+    {
+      "seed": 79,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -21.045,
+          "y": -0.59,
+          "z": -221.837,
+          "slope": 0.1566
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 30.97,
+          "y": -1.719,
+          "z": -36.652,
+          "slope": 0.3517
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -27.239,
+          "y": 0.283,
+          "z": 99.026,
+          "slope": 0.238
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 22.322,
+          "y": -0.094,
+          "z": 224.48,
+          "slope": 0.1561
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -0.213,
+          "y": 0.749,
+          "z": 423.426,
+          "slope": 0.2911
+        }
+      ]
+    },
+    {
+      "seed": 80,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 9.963,
+          "y": -5.439,
+          "z": -198.234,
+          "slope": 0.1897
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -33.704,
+          "y": -9.682,
+          "z": -54.485,
+          "slope": 0.2095
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -24.418,
+          "y": -0.149,
+          "z": 98.449,
+          "slope": 0.1702
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 18.462,
+          "y": 2.655,
+          "z": 216.666,
+          "slope": 0.4027
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -3.495,
+          "y": 1.198,
+          "z": 419.593,
+          "slope": 0.0374
+        }
+      ]
+    },
+    {
+      "seed": 81,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 5.577,
+          "y": -4.13,
+          "z": -197.964,
+          "slope": 0.3555
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 39.361,
+          "y": -4.886,
+          "z": -77.485,
+          "slope": 0.2723
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -19.412,
+          "y": 1.686,
+          "z": 77.354,
+          "slope": 0.2965
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 26.331,
+          "y": 1.259,
+          "z": 244.991,
+          "slope": 0.1159
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -14.065,
+          "y": -0.522,
+          "z": 381.474,
+          "slope": 0.4069
+        }
+      ]
+    },
+    {
+      "seed": 82,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -15.144,
+          "y": -4.448,
+          "z": -191.611,
+          "slope": 0.4526
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 38.721,
+          "y": -3.977,
+          "z": -52.782,
+          "slope": 0.3105
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -12.88,
+          "y": -0.234,
+          "z": 86.781,
+          "slope": 0.0453
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 20.974,
+          "y": 0.386,
+          "z": 244.178,
+          "slope": 0.2012
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 10.024,
+          "y": 0.655,
+          "z": 408.327,
+          "slope": 0.2039
+        }
+      ]
+    },
+    {
+      "seed": 83,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 8.197,
+          "y": -5.074,
+          "z": -195.246,
+          "slope": 0.1707
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 34.467,
+          "y": -4.924,
+          "z": -78.039,
+          "slope": 0.3238
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -12.022,
+          "y": -0.353,
+          "z": 87.346,
+          "slope": 0.138
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 8.9,
+          "y": -0.447,
+          "z": 247.5,
+          "slope": 0.2561
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 9.712,
+          "y": 1.125,
+          "z": 412.965,
+          "slope": 0.2299
+        }
+      ]
+    },
+    {
+      "seed": 84,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 0.875,
+          "y": -3.588,
+          "z": -207.898,
+          "slope": 0.1391
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -29.537,
+          "y": -10.163,
+          "z": -60.701,
+          "slope": 0.4394
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -27.011,
+          "y": 0.123,
+          "z": 109.258,
+          "slope": 0.147
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 17.502,
+          "y": 0.15,
+          "z": 236.958,
+          "slope": 0.2643
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 2.813,
+          "y": 1.328,
+          "z": 416.86,
+          "slope": 0.0423
+        }
+      ]
+    },
+    {
+      "seed": 85,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -7.926,
+          "y": -5.549,
+          "z": -206.502,
+          "slope": 0.211
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -39.749,
+          "y": -2.703,
+          "z": -75.496,
+          "slope": 0.1258
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -16.322,
+          "y": 0.062,
+          "z": 101.514,
+          "slope": 0.1206
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 23.223,
+          "y": 1.38,
+          "z": 211.143,
+          "slope": 0.325
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 6.784,
+          "y": 0.319,
+          "z": 408.714,
+          "slope": 0.105
+        }
+      ]
+    },
+    {
+      "seed": 86,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -20.779,
+          "y": -0.634,
+          "z": -221.958,
+          "slope": 0.1384
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 33.17,
+          "y": -2.954,
+          "z": -41.721,
+          "slope": 0.2588
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -27.27,
+          "y": 0.1,
+          "z": 108.34,
+          "slope": 0.0915
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 24.725,
+          "y": 0.297,
+          "z": 258.38,
+          "slope": 0.3048
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -2.877,
+          "y": 0.838,
+          "z": 406.017,
+          "slope": 0.17
+        }
+      ]
+    },
+    {
+      "seed": 87,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 1.491,
+          "y": -3.486,
+          "z": -222.27,
+          "slope": 0.1317
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 28.994,
+          "y": -3.857,
+          "z": -76.029,
+          "slope": 0.1943
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -10.095,
+          "y": 0.974,
+          "z": 77.547,
+          "slope": 0.4332
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 25.706,
+          "y": 0.947,
+          "z": 248.954,
+          "slope": 0.1332
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -4.159,
+          "y": -1.475,
+          "z": 384.971,
+          "slope": 0.276
+        }
+      ]
+    },
+    {
+      "seed": 88,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -8.418,
+          "y": -2.789,
+          "z": -186.586,
+          "slope": 0.4159
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 27.444,
+          "y": -3.568,
+          "z": -54.878,
+          "slope": 0.1515
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -27.722,
+          "y": 1.117,
+          "z": 86.319,
+          "slope": 0.346
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 10.837,
+          "y": 0.417,
+          "z": 234.862,
+          "slope": 0.5713
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 6.727,
+          "y": -0.054,
+          "z": 400.546,
+          "slope": 0.2396
+        }
+      ]
+    },
+    {
+      "seed": 89,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 3.694,
+          "y": -4.16,
+          "z": -189.875,
+          "slope": 0.395
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -28.985,
+          "y": -3.798,
+          "z": -79.573,
+          "slope": 0.5202
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -25.068,
+          "y": -0.592,
+          "z": 110.589,
+          "slope": 0.4339
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 27.13,
+          "y": 0.932,
+          "z": 251.029,
+          "slope": 0.1777
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 4.028,
+          "y": -1.94,
+          "z": 392.994,
+          "slope": 0.3109
+        }
+      ]
+    },
+    {
+      "seed": 90,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -13.489,
+          "y": -2.182,
+          "z": -223.815,
+          "slope": 0.4539
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -34.913,
+          "y": -2.917,
+          "z": -78.189,
+          "slope": 0.1675
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -12.834,
+          "y": 2.082,
+          "z": 73.412,
+          "slope": 0.162
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 13.656,
+          "y": 3.3,
+          "z": 222.197,
+          "slope": 0.5042
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -8.745,
+          "y": 1.418,
+          "z": 418.664,
+          "slope": 0.1163
+        }
+      ]
+    },
+    {
+      "seed": 91,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 6.457,
+          "y": -4.38,
+          "z": -201.126,
+          "slope": 0.41
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -36.656,
+          "y": -1.832,
+          "z": -87.771,
+          "slope": 0.1511
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -8.308,
+          "y": -0.645,
+          "z": 110.836,
+          "slope": 0.089
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 24.503,
+          "y": 0.091,
+          "z": 221.685,
+          "slope": 0.3008
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -4.048,
+          "y": -0.63,
+          "z": 397.152,
+          "slope": 0.304
+        }
+      ]
+    },
+    {
+      "seed": 92,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 23.363,
+          "y": -4.954,
+          "z": -208.001,
+          "slope": 0.1314
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -27.411,
+          "y": -10.846,
+          "z": -60.295,
+          "slope": 0.3535
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -8.214,
+          "y": -0.352,
+          "z": 106.877,
+          "slope": 0.0776
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 14.312,
+          "y": 0.163,
+          "z": 242.119,
+          "slope": 0.1156
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -13.215,
+          "y": -0.463,
+          "z": 380.528,
+          "slope": 0.4046
+        }
+      ]
+    },
+    {
+      "seed": 93,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 6.975,
+          "y": -4.415,
+          "z": -212.675,
+          "slope": 0.1503
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -31.733,
+          "y": -5.96,
+          "z": -70.906,
+          "slope": 0.3398
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -24.644,
+          "y": -0.858,
+          "z": 92.001,
+          "slope": 0.3268
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 27.68,
+          "y": 0.825,
+          "z": 251.398,
+          "slope": 0.1719
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -14.331,
+          "y": 3.051,
+          "z": 416.524,
+          "slope": 0.4342
+        }
+      ]
+    },
+    {
+      "seed": 94,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -12.856,
+          "y": -3.224,
+          "z": -215.2,
+          "slope": 0.2976
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 33.329,
+          "y": -4.944,
+          "z": -87.666,
+          "slope": 0.2037
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -16.529,
+          "y": -0.2,
+          "z": 108.095,
+          "slope": 0.1689
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 12.355,
+          "y": -0.613,
+          "z": 239.721,
+          "slope": 0.139
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -1.449,
+          "y": 0.306,
+          "z": 424.907,
+          "slope": 0.2
+        }
+      ]
+    },
+    {
+      "seed": 95,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 6.315,
+          "y": -4.764,
+          "z": -205.701,
+          "slope": 0.1244
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 41.712,
+          "y": -5.143,
+          "z": -59.856,
+          "slope": 0.2561
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -22.557,
+          "y": 1.845,
+          "z": 79.299,
+          "slope": 0.1388
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 26.421,
+          "y": -1.319,
+          "z": 266.593,
+          "slope": 0.1079
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -9.421,
+          "y": -0.861,
+          "z": 396.833,
+          "slope": 0.2668
+        }
+      ]
+    },
+    {
+      "seed": 96,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -15.954,
+          "y": -1.325,
+          "z": -225.071,
+          "slope": 0.2731
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 26.597,
+          "y": -2.73,
+          "z": -85.53,
+          "slope": 0.2451
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -15.992,
+          "y": 2.063,
+          "z": 75.047,
+          "slope": 0.2835
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 24.563,
+          "y": -0.059,
+          "z": 259.379,
+          "slope": 0.3229
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 8.041,
+          "y": 1.255,
+          "z": 421.145,
+          "slope": 0.094
+        }
+      ]
+    },
+    {
+      "seed": 97,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -17.065,
+          "y": -4.73,
+          "z": -200.548,
+          "slope": 0.5789
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": 35.263,
+          "y": -5.062,
+          "z": -80.813,
+          "slope": 0.3675
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -14.128,
+          "y": 0.773,
+          "z": 104.959,
+          "slope": 0.2676
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 22.325,
+          "y": 0.35,
+          "z": 230.783,
+          "slope": 0.2259
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 5.234,
+          "y": -0.377,
+          "z": 398.457,
+          "slope": 0.2373
+        }
+      ]
+    },
+    {
+      "seed": 98,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -22.711,
+          "y": -1.602,
+          "z": -205.106,
+          "slope": 0.4504
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -36.115,
+          "y": -2.302,
+          "z": -85.729,
+          "slope": 0.1823
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -14.216,
+          "y": 0.82,
+          "z": 79.203,
+          "slope": 0.3101
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 8.428,
+          "y": 0.033,
+          "z": 211.401,
+          "slope": 0.4853
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 0.551,
+          "y": -1.981,
+          "z": 385.335,
+          "slope": 0.2091
+        }
+      ]
+    },
+    {
+      "seed": 99,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": 4.086,
+          "y": -3.806,
+          "z": -215.18,
+          "slope": 0.1339
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -35.644,
+          "y": -8.737,
+          "z": -46.556,
+          "slope": 0.2156
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -19.722,
+          "y": 0.067,
+          "z": 88.084,
+          "slope": 0.3655
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 15.912,
+          "y": 0.411,
+          "z": 251.43,
+          "slope": 0.1958
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": -15.079,
+          "y": -0.985,
+          "z": 384.577,
+          "slope": 0.0486
+        }
+      ]
+    },
+    {
+      "seed": 100,
+      "ok": true,
+      "reason": null,
+      "attempts": 1,
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "zone": "cheese",
+          "x": -14.363,
+          "y": -2.871,
+          "z": -214.351,
+          "slope": 0.4241
+        },
+        {
+          "ingredient": "onion",
+          "zone": "onion",
+          "x": -32.556,
+          "y": -3.59,
+          "z": -76.528,
+          "slope": 0.4517
+        },
+        {
+          "ingredient": "patty",
+          "zone": "patty",
+          "x": -17.545,
+          "y": -0.466,
+          "z": 88.766,
+          "slope": 0.1465
+        },
+        {
+          "ingredient": "tomato",
+          "zone": "tomato",
+          "x": 23.945,
+          "y": -0.184,
+          "z": 259.747,
+          "slope": 0.3021
+        },
+        {
+          "ingredient": "lettuce",
+          "zone": "lettuce",
+          "x": 12.888,
+          "y": 1.278,
+          "z": 404.095,
+          "slope": 0.2784
+        }
+      ]
+    }
+  ],
+  "consoleErrors": [],
+  "gpuErrors": []
+}

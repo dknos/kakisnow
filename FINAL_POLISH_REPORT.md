@@ -62,8 +62,8 @@ snowboarding Burger Tour powered by KAKISNOW Snow Technology.**
   ceiling is 0.84, so even the tightest route retains 0.1813 player-error
   margin.
 - Final 2560×1440 Burger Run presentation intervals remain below the 11.1 ms
-  engineering target at p99: Summit 3.1/4.1/4.8 ms median/p95/p99, Big Air
-  3.6/4.8/5.6 ms, and Whiteout 4.4/5.4/6.3 ms. Submitted counts are 382/
+  engineering target at p99: Summit 2.1/2.5/3.1 ms median/p95/p99, Big Air
+  3.5/4.4/5.4 ms, and Whiteout 2.7/3.5/4.3 ms. Submitted counts are 382/
   2,055,443, 635/2,594,737, and 522/2,184,571 draws/triangles respectively.
   GPU timestamp data was unavailable, so no GPU-ms claim is made.
 - Signature-flight evidence covered classic 16:9/21:9 and rocket 16:9 paths,

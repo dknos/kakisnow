@@ -1,0 +1,183 @@
+{
+  "generatedBy": "tools/validate-release.mjs",
+  "generatedAt": "2026-08-08T02:09:59.834Z",
+  "strict": false,
+  "checks": [
+    "registry",
+    "assets",
+    "docs"
+  ],
+  "counts": {
+    "courses": 6,
+    "events": 12,
+    "tapes": 18
+  },
+  "status": "report-only-with-blockers",
+  "blockers": [
+    {
+      "name": "assets.hero-provenance",
+      "message": "RockerKaki still has an unresolved remove.bg commercial-use record"
+    }
+  ],
+  "reportPath": "reports/release-validation-report-only.json",
+  "checksRun": [
+    {
+      "name": "registry",
+      "counts": {
+        "courses": 6,
+        "events": 12,
+        "tapes": 18
+      },
+      "status": "pass"
+    },
+    {
+      "name": "assets.references",
+      "referenced": [
+        "assets/decoders/draco_decoder_gltf.wasm",
+        "assets/models/rockerkaki-rigged.glb",
+        "assets/models/snow-burgers/camp-hut.glb",
+        "assets/models/snowboard.glb"
+      ],
+      "count": 4,
+      "status": "pass"
+    },
+    {
+      "name": "assets.nonempty",
+      "count": 40,
+      "status": "pass"
+    },
+    {
+      "name": "assets.expected-manifest",
+      "count": 31,
+      "manifest": "art/generated-assets/snow-burgers/RUNTIME_MANIFEST.json",
+      "status": "pass"
+    },
+    {
+      "name": "assets.notices",
+      "bigAirFiles": 7,
+      "status": "pass"
+    },
+    {
+      "name": "assets.candidate",
+      "count": 13,
+      "provenance": "local-generated-candidate-source-conditional-output-basis",
+      "bytes": 2010952,
+      "status": "pass"
+    },
+    {
+      "name": "assets.license",
+      "unresolved": 0,
+      "status": "pass"
+    },
+    {
+      "name": "assets.hero-provenance",
+      "status": "warning",
+      "message": "RockerKaki still has an unresolved remove.bg commercial-use record"
+    },
+    {
+      "name": "docs.required",
+      "files": [
+        "README.md",
+        "CHANGELOG.md",
+        "GAUNTLET_PROGRESS.html",
+        "FINAL_POLISH_REPORT.md",
+        "PLAYTEST_FINDINGS.md",
+        "AUDIO_MIX_REPORT.md",
+        "ASSET_LEDGER.md",
+        "ASSET_OPTIMIZATION_REPORT.md",
+        "ASSETS.md",
+        "KNOWN_LIMITATIONS.md",
+        "CREDITS.md",
+        "PERF.md",
+        "docs/CONTROLS.md",
+        "docs/SAVE_SCHEMA.md",
+        "public/THIRD_PARTY_NOTICES.txt",
+        "art/generated-assets/snow-burgers/RUNTIME_MANIFEST.json",
+        "reports/final-gauntlet/FINAL_PERFORMANCE_MATRIX.md",
+        "reports/final-gauntlet/FINAL_TEST_REPORT.md",
+        "reports/final-gauntlet/final-runtime/FINAL_RUNTIME_MATRIX.md",
+        "reports/final-gauntlet/final-camera/FINAL_CAMERA_MATRIX.md",
+        "reports/final-gauntlet/final-camera/camera-matrix-report.json",
+        "reports/final-gauntlet/showreel/snow-burgers-showreel.json",
+        "reports/final-gauntlet/showreel/snow-burgers-showreel.webm",
+        "screenshots/final-gauntlet/release-ui/release-ui-report.json",
+        "screenshots/final-gauntlet/release-evidence/title-1280.webp"
+      ],
+      "status": "pass"
+    },
+    {
+      "name": "docs.counts",
+      "expected": {
+        "courses": 6,
+        "events": 12,
+        "tapes": 18
+      },
+      "documents": [
+        {
+          "file": "README.md",
+          "courses": 6,
+          "events": 12,
+          "tapes": 18,
+          "index": 38
+        },
+        {
+          "file": "CHANGELOG.md",
+          "courses": 6,
+          "events": 12,
+          "tapes": 18,
+          "index": 13
+        },
+        {
+          "file": "FINAL_POLISH_REPORT.md",
+          "courses": 6,
+          "events": 12,
+          "tapes": 18,
+          "index": 36
+        },
+        {
+          "file": "KNOWN_LIMITATIONS.md",
+          "courses": 6,
+          "events": 12,
+          "tapes": 18,
+          "index": 21
+        },
+        {
+          "file": "CREDITS.md",
+          "courses": 6,
+          "events": 12,
+          "tapes": 18,
+          "index": 11
+        },
+        {
+          "file": "PERF.md",
+          "courses": 6,
+          "events": 12,
+          "tapes": 18,
+          "index": 22
+        },
+        {
+          "file": "docs/CONTROLS.md",
+          "courses": 6,
+          "events": 12,
+          "tapes": 18,
+          "index": 12
+        },
+        {
+          "file": "docs/SAVE_SCHEMA.md",
+          "courses": 6,
+          "events": 12,
+          "tapes": 18,
+          "index": 15
+        }
+      ],
+      "status": "pass"
+    }
+  ],
+  "warnings": [
+    {
+      "name": "assets.hero-provenance",
+      "message": "RockerKaki still has an unresolved remove.bg commercial-use record"
+    }
+  ],
+  "errors": []
+}

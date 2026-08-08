@@ -1,0 +1,115 @@
+{
+  "tool": "tools/snow-burgers/playthrough-windows.cjs",
+  "url": "http://127.0.0.1:5192/?course=whiteout-ridge&event=five-alarm&autopause=off",
+  "viewport": {
+    "width": 2560,
+    "height": 1440
+  },
+  "seeds": 1,
+  "vehicle": "rocket-chair",
+  "runs": [
+    {
+      "seed": 1,
+      "vehicle": "rocket-chair",
+      "ok": true,
+      "finalState": "results",
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "x": -0.09,
+          "y": -3.02,
+          "z": -200.69,
+          "zone": "cheese"
+        },
+        {
+          "ingredient": "onion",
+          "x": -40.85,
+          "y": -1.56,
+          "z": -87.56,
+          "zone": "onion"
+        },
+        {
+          "ingredient": "patty",
+          "x": -19.13,
+          "y": 1.2,
+          "z": 83.42,
+          "zone": "patty"
+        },
+        {
+          "ingredient": "tomato",
+          "x": 26.6,
+          "y": 0.18,
+          "z": 263.11,
+          "zone": "tomato"
+        },
+        {
+          "ingredient": "lettuce",
+          "x": 11.63,
+          "y": -0.98,
+          "z": 425.41,
+          "zone": "lettuce"
+        }
+      ],
+      "collected": [
+        "cheese",
+        "onion",
+        "patty",
+        "tomato",
+        "lettuce"
+      ],
+      "lastZ": 592.1,
+      "flightHud": {
+        "on": false,
+        "text": "Big Air flight\n    AIR · 0.00 S"
+      },
+      "flightHudSeen": null,
+      "airborneObserved": false,
+      "fuelAtFinish": 0,
+      "blocked": null,
+      "result": {
+        "completed": true,
+        "time": 43.12,
+        "medal": "gold",
+        "style": 29,
+        "integrity": 100,
+        "stars": 4,
+        "grade": "Summit Stack",
+        "splits": {
+          "cheese": 3.3834999999999833,
+          "onion": 9.236199999988063,
+          "patty": 17.746599999994167,
+          "tomato": 26.929099999994524,
+          "lettuce": 34.97769999998879
+        },
+        "detail": {
+          "airTime": 0,
+          "airShare": 0,
+          "carve": 0.189,
+          "pace": 1,
+          "pipeTime": 0,
+          "routeRisk": 0.5,
+          "landings": 0,
+          "hardLandings": 0,
+          "worstLanding": 0,
+          "distance": 848
+        },
+        "bigAirFlight": null,
+        "rocket": 74,
+        "notMeasured": []
+      }
+    }
+  ],
+  "screenshots": [
+    "00-title",
+    "001-pickup-1-cheese",
+    "001-pickup-2-onion",
+    "001-pickup-3-patty",
+    "001-pickup-4-tomato",
+    "001-pickup-5-lettuce",
+    "001-assembly",
+    "001-results"
+  ],
+  "consoleErrors": [],
+  "webgpuValidation": [],
+  "ok": true
+}

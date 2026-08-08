@@ -1,0 +1,159 @@
+{
+  "tool": "tools/snow-burgers/capture-release-ui-windows.cjs",
+  "url": "http://127.0.0.1:5190",
+  "viewports": [
+    {
+      "id": "1280x720",
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "id": "1920x1080",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "id": "2560x1440",
+      "width": 2560,
+      "height": 1440
+    },
+    {
+      "id": "3440x1440",
+      "width": 3440,
+      "height": 1440
+    },
+    {
+      "id": "1280x720-zoom125-equivalent",
+      "width": 1024,
+      "height": 576
+    }
+  ],
+  "checks": [
+    {
+      "name": "1280x720 title ready",
+      "ok": true,
+      "detail": "{\"title\":\"Snow-Burgers — Shred. Stack. Serve.\",\"footer\":\"Snow-Burgers v1.0.0 · Powered by KAKISNOW Snow Technology\",\"screen\":true}"
+    },
+    {
+      "name": "1280x720 visible version",
+      "ok": true,
+      "detail": "Snow-Burgers v1.0.0 · Powered by KAKISNOW Snow Technology"
+    },
+    {
+      "name": "1280x720 no horizontal title clipping",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "1280x720 settings focus reaches Back",
+      "ok": true,
+      "detail": "{\"back\":{\"focused\":true,\"top\":675.15625,\"bottom\":703.546875,\"label\":\"Back\"},\"focusedBack\":{\"top\":675.15625,\"bottom\":703.546875}}"
+    },
+    {
+      "name": "1280x720 no horizontal settings clipping",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "credits expose package version",
+      "ok": true,
+      "detail": "SNOW-BURGERS · RELEASE NOTES\nCREDITS\nPROJECT\nSnow-Burgers v1.0.0 · SHRED. STACK. SERVE.\nTECHNOLOGY\nKAKISNOW Snow Technology · custom WebGPU snow, terrain, defor"
+    },
+    {
+      "name": "credits expose privacy contract",
+      "ok": true,
+      "detail": "SNOW-BURGERS · RELEASE NOTES\nCREDITS\nPROJECT\nSnow-Burgers v1.0.0 · SHRED. STACK. SERVE.\nTECHNOLOGY\nKAKISNOW Snow Technology · custom WebGPU snow, terrain, deformation, lighting, atmosphere, and post stack.\nEXTERNAL WORK\nRuntime asset source"
+    },
+    {
+      "name": "1280x720 order fits horizontally",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "1920x1080 title ready",
+      "ok": true,
+      "detail": "{\"title\":\"Snow-Burgers — Shred. Stack. Serve.\",\"footer\":\"Snow-Burgers v1.0.0 · Powered by KAKISNOW Snow Technology\",\"screen\":true}"
+    },
+    {
+      "name": "1920x1080 visible version",
+      "ok": true,
+      "detail": "Snow-Burgers v1.0.0 · Powered by KAKISNOW Snow Technology"
+    },
+    {
+      "name": "1920x1080 no horizontal title clipping",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "2560x1440 title ready",
+      "ok": true,
+      "detail": "{\"title\":\"Snow-Burgers — Shred. Stack. Serve.\",\"footer\":\"Snow-Burgers v1.0.0 · Powered by KAKISNOW Snow Technology\",\"screen\":true}"
+    },
+    {
+      "name": "2560x1440 visible version",
+      "ok": true,
+      "detail": "Snow-Burgers v1.0.0 · Powered by KAKISNOW Snow Technology"
+    },
+    {
+      "name": "2560x1440 no horizontal title clipping",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "3440x1440 title ready",
+      "ok": true,
+      "detail": "{\"title\":\"Snow-Burgers — Shred. Stack. Serve.\",\"footer\":\"Snow-Burgers v1.0.0 · Powered by KAKISNOW Snow Technology\",\"screen\":true}"
+    },
+    {
+      "name": "3440x1440 visible version",
+      "ok": true,
+      "detail": "Snow-Burgers v1.0.0 · Powered by KAKISNOW Snow Technology"
+    },
+    {
+      "name": "3440x1440 no horizontal title clipping",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "1280x720-zoom125-equivalent title ready",
+      "ok": true,
+      "detail": "{\"title\":\"Snow-Burgers — Shred. Stack. Serve.\",\"footer\":\"Snow-Burgers v1.0.0 · Powered by KAKISNOW Snow Technology\",\"screen\":true}"
+    },
+    {
+      "name": "1280x720-zoom125-equivalent visible version",
+      "ok": true,
+      "detail": "Snow-Burgers v1.0.0 · Powered by KAKISNOW Snow Technology"
+    },
+    {
+      "name": "1280x720-zoom125-equivalent no horizontal title clipping",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "1280x720-zoom125-equivalent settings focus reaches Back",
+      "ok": true,
+      "detail": "{\"back\":{\"focused\":true,\"top\":531.15625,\"bottom\":559.546875,\"label\":\"Back\"},\"focusedBack\":{\"top\":531.15625,\"bottom\":559.546875}}"
+    },
+    {
+      "name": "1280x720-zoom125-equivalent no horizontal settings clipping",
+      "ok": true,
+      "detail": "[]"
+    }
+  ],
+  "captures": [
+    "1280x720-title.png",
+    "1280x720-settings.png",
+    "1280x720-credits.png",
+    "1280x720-order.png",
+    "1280x720-hud.png",
+    "1920x1080-title.png",
+    "2560x1440-title.png",
+    "3440x1440-title.png",
+    "1280x720-zoom125-equivalent-title.png",
+    "1280x720-zoom125-equivalent-settings.png"
+  ],
+  "consoleErrors": [],
+  "failedRequests": [],
+  "webgpuValidation": [],
+  "ok": true
+}

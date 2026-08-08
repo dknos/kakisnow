@@ -1,0 +1,107 @@
+{
+  "tool": "tools/snow-burgers/playthrough-windows.cjs",
+  "url": "http://127.0.0.1:5192/?course=midnight-resort&event=park-order&autopause=off",
+  "viewport": {
+    "width": 2560,
+    "height": 1440
+  },
+  "seeds": 1,
+  "vehicle": "classic-snowboard",
+  "runs": [
+    {
+      "seed": 1,
+      "vehicle": "classic-snowboard",
+      "ok": true,
+      "finalState": "results",
+      "placements": [
+        {
+          "ingredient": "cheese",
+          "x": 18.08,
+          "y": 2.72,
+          "z": -6.1,
+          "zone": "cheese"
+        },
+        {
+          "ingredient": "patty",
+          "x": -23.68,
+          "y": -1.16,
+          "z": 93.83,
+          "zone": "patty"
+        },
+        {
+          "ingredient": "tomato",
+          "x": 1.13,
+          "y": 0.5,
+          "z": 428.88,
+          "zone": "tomato"
+        },
+        {
+          "ingredient": "lettuce",
+          "x": 0.88,
+          "y": 0.87,
+          "z": 525.73,
+          "zone": "lettuce"
+        }
+      ],
+      "collected": [
+        "cheese",
+        "patty",
+        "tomato",
+        "lettuce"
+      ],
+      "lastZ": 592.1,
+      "flightHud": {
+        "on": false,
+        "text": "Big Air flight\n    AIR · 0.00 S"
+      },
+      "flightHudSeen": null,
+      "airborneObserved": false,
+      "fuelAtFinish": 1,
+      "blocked": null,
+      "result": {
+        "completed": true,
+        "time": 34.69,
+        "medal": null,
+        "style": 32,
+        "integrity": 100,
+        "stars": 3,
+        "grade": "Lodge Special",
+        "splits": {
+          "cheese": 3.4363000000119075,
+          "patty": 9.093300000011874,
+          "tomato": 26.373500000000607,
+          "lettuce": 31.35010000002466
+        },
+        "detail": {
+          "airTime": 0,
+          "airShare": 0,
+          "carve": 0.148,
+          "pace": 1,
+          "pipeTime": 3.08,
+          "routeRisk": 0.413,
+          "landings": 0,
+          "hardLandings": 0,
+          "worstLanding": 0,
+          "distance": 628
+        },
+        "bigAirFlight": null,
+        "rocket": 0,
+        "notMeasured": [
+          "rocket efficiency"
+        ]
+      }
+    }
+  ],
+  "screenshots": [
+    "00-title",
+    "001-pickup-1-cheese",
+    "001-pickup-2-patty",
+    "001-pickup-3-tomato",
+    "001-pickup-4-lettuce",
+    "001-assembly",
+    "001-results"
+  ],
+  "consoleErrors": [],
+  "webgpuValidation": [],
+  "ok": true
+}

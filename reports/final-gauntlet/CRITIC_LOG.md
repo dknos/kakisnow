@@ -364,3 +364,163 @@ RockerKaki's remove.bg plan is separately unresolved.
 Disposition: F2 P1 NOT ACCEPTED. Determinism and delivery safety pass; F3 owns
 the concrete contract, focal quality, and report corrections before any
 runtime promotion decision.
+
+## F4/F5 — replacement promotion and immutable-audit recheck
+
+Intent: accept the replacement set only after its corrected visual forms,
+runtime contracts, deterministic source chain, real renderer integration, and
+validation-report safety are independently exercised.
+
+Independent evidence:
+
+- Two clean Blender 5.1.1 runs produced the same thirteen hashes; every GLB
+  passed Khronos validation and the runtime files match the reviewed manifest.
+- All thirteen assets passed four-view critique. Corrected ingredients, burger,
+  rocket-chair anchors, huts/village, foliage, and rocks read coherently under
+  the KAKISNOW material, fog, snow-contact, and camera path.
+- Real Windows Chrome/WebGPU Summit runs at 1280×720 and 3440×1440 collected
+  all four ingredients and served a gold burger; the rocket smoke reached the
+  finish with finite state and zero console/WebGPU errors.
+- The default seven-focal validator now writes
+  `reports/snow-burgers/runtime-assets-validation.json`. It refuses the
+  immutable historical source-audit path without explicit archival opt-in.
+- The historical `VALIDATION.json` SHA-256 remained
+  `38b502c83cb402617f0afb41b5411f1518d6d65e79166b720f1b7afb47b3bd84`
+  before and after the critic run. Sixteen focused checks, 178 full tests, and
+  the production build passed.
+
+Largest remaining release-facing defect: RockerKaki's separate remove.bg
+account/plan provenance is unresolved. It is not attributed to the now-clean
+thirteen-model Snow-Burgers replacement set.
+
+Disposition: F4/F5 PASS for central runtime assets and validation safety.
+Commercial publication remains blocked on the hero processing-chain decision.
+
+## D2 — progression, Burger Book, and endgame recheck
+
+Intent: prove that registry-derived progression forms a complete player journey,
+including the formerly broken cross-course Book start and destructive save
+actions that never depend on a native browser confirmation.
+
+Independent evidence:
+
+- Fresh, six-main-delivery, and full-book fixtures were exercised in Windows
+  Chrome/WebGPU. Tour Complete, distinct 100% Served, credits music, seen-state
+  persistence, title return, and continued play all passed.
+- The Burger Book reports 6 courses, 12 events, and 18 Recipe Tapes from the
+  registries at 1280×720 and 3440×1440.
+- Burger Book → Pinecone Pass → Timber Melt now reloads directly into the
+  Timber Melt order card with `mode=burger-run`; the same-course mode-less link
+  also reaches its order card.
+- Simulated controller navigation cancelled and confirmed the game-owned clear
+  ghosts/reset panels. Cancel preserved the save; clear removed only ghosts;
+  reset removed progress. A throwing `window.confirm` sentinel was never called.
+- The full suite passed 157/157 and the production build passed. Browser review
+  recorded zero console, request, or WebGPU errors.
+
+Largest remaining defect: a short loading-wordmark fade can overlap the first
+order card. The bounded 1180 px ultrawide Book is intentionally restrained but
+leaves generous side space.
+
+Disposition: D2 PASS. No progression/endgame P0/P1 remains.
+
+## G2 — accessibility and controller-route recheck
+
+Intent: re-grade the revised accessibility/control slice after the initial
+critic found controller-back and ordinary-touch prompt-family defects.
+
+Independent evidence:
+
+- The full suite passed 180/180 and the production build passed.
+- Windows Chrome/WebGPU loading, tutorial, remap/conflict, HUD scale, contrast,
+  captions, ghost visibility, touch prompt, and source-release checks passed
+  with zero console or WebGPU errors.
+- Deterministic Xbox and generic mapped-pad routes proved distinct glyphs,
+  Book/Credits return, focus scrolling through the tall settings docket, and
+  game-owned reset confirmation cancellation without state mutation.
+- Defensive pointer capture removed the prior synthetic-harness error.
+
+Physical controller/phone and human color/listening review remain honest
+device gates rather than inferred browser approvals.
+
+Disposition: G2 PASS. No reproducible accessibility/control P0/P1 remains.
+
+## Final route-safety matrix — real heightfield recheck
+
+Intent: replace merely physical ingredient reachability with a deliberate
+player-error reserve, then prove every shipped course still forms a valid
+deterministic order on the surface that actually renders.
+
+Evidence:
+
+- Runtime route selection is capped at 0.66, an independent harness rejects
+  above 0.70, and the measured physical carve ceiling remains 0.84.
+- Fresh Windows Chrome/WebGPU 2048² heightfield readbacks pass 100/100 seeds on
+  each of six courses: 600/600 total, zero height mismatch, zero console or
+  WebGPU validation errors.
+- Worst normalized demand is 0.6587 on Big Air Basin, leaving 0.1813 physical
+  reserve. Summit's prior 0.8225 borderline line is now 0.5380.
+- All course identities advance to version 2, preventing stale version-1
+  ghosts from pretending to match changed pickup lines while preserving the
+  surrounding save and records.
+
+Disposition: PASS. No shipped route remains close to the 0.84 ceiling.
+
+## Final showreel — builder/critic correction loop
+
+Intent: deliver one concise visual proof of the product journey without hiding
+loading, stale progress, or staged state.
+
+The first 74.560-second cut was rejected because a 0.3-second title handoff
+briefly showed stale `3/6 MOUNTAINS OPEN` progress before the completed Burger
+Book. The builder imported the completed fixture before title paint and
+recaptured the exact course-version-2 build. Independent frame-by-frame review
+then verified SHA-256
+`53de313f0e45e95c67fa1a5bd9643d72ef63b4569d0597acc1a40da70e26d096`:
+
+- 74.560 seconds, 1280×720 VP8 at 25 fps, 3,947,768 bytes;
+- title, order, carve, pickup, trick/crash/recovery, finish, results, avalanche,
+  rocket, Big Air, Burger Book, and 100% Served all readable;
+- both gameplay cuts are free of boot/loading flashes;
+- the corrected handoff shows 6/6, 12/12, 18/18, and 100%;
+- zero console errors, failed requests, WebGPU validation errors, or device
+  loss.
+
+The WebM has no audio stream and is not mix evidence.
+
+Disposition: PASS after one independent rejection and correction. No material
+player-facing showreel defect remains.
+
+## Final camera matrix — exact production build
+
+Intent: screen finish, obstruction, hazard, signature-flight, aspect-ratio,
+reduced-motion, and zoom paths on the converged camera.
+
+The Windows Chrome/WebGPU harness sampled 2,235 frames across 20 scenarios:
+all six finishes, five rail areas, snowcat, avalanche, Big Air at two aspect
+ratios and motion modes, a 21:9 finish, and near/far zoom. It reports zero
+below-terrain frames, non-finite frames, solid intersections, violent snaps,
+oscillation windows, console errors, WebGPU validation errors, or failed
+requests. Exact-build finish and Big Air pixels were inspected separately.
+
+Disposition: PASS for the scripted matrix. Free-camera human play and physical
+reduced-motion comfort remain honest human gates.
+
+## Final integration/smoothing critic — converged candidate
+
+Intent: ignore subsystem ownership and find incoherence, clutter, pacing
+problems, or technically working features that do not belong together.
+
+The independent critic reviewed the live final title pixel and real Summit
+title → order → drop-in/countdown → HUD → pause/settings path, the
+12/12 production event matrix, 600/600 route matrix, final responsive pixels,
+20-scenario camera record, performance matrix, and corrected full-journey
+showreel. The title, Burger Tour, Labs, Burger Book, Settings, How to Ride,
+Credits, cold-alpine/warm-diner treatment, event/result hierarchy, and finale
+read as one product. The critic found no material cross-system inconsistency or
+player-facing defect requiring revision.
+
+Disposition: PASS. Physical gamepad/touch, human ride-feel/listening/
+colour-vision/reduced-motion comfort, and exact target-GPU certification remain
+external gates. RockerKaki/remove.bg remains a rights blocker, not an
+integration defect.

@@ -6,8 +6,8 @@
 
 The converged product matrix is recorded in
 `reports/final-gauntlet/FINAL_PERFORMANCE_MATRIX.md`. Its 2560×1440 Windows
-Chrome/WebGPU Burger Run samples measure p99 presentation intervals of 4.8 ms
-on Summit, 5.6 ms in Big Air Basin, and 6.3 ms on Whiteout Ridge, with zero
+Chrome/WebGPU Burger Run samples measure p99 presentation intervals of 3.1 ms
+on Summit, 5.4 ms in Big Air Basin, and 4.3 ms on Whiteout Ridge, with zero
 console errors. The same timing caveat applies: these are rAF presentation
 intervals, not GPU completion milliseconds or target-board certification.
 
