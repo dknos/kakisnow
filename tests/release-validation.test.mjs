@@ -1,16 +1,27 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { readFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
 
 import {
     validateRegistry,
     validateDocumentationCounts,
+    validateExpectedRuntimeManifest,
+    runReleaseValidation,
     compareCandidateLedger,
     sha256,
     REPO_ROOT,
+    EXPECTED_RUNTIME_MANIFEST_PATH,
 } from "../tools/validate-release.mjs";
 import { expectedUnavailableError } from "../tools/smoke-browser-logic.mjs";
+import { PRODUCT_VERSION } from "../src/ui/snowBurgersUi.js";
+
+test("player-facing version is derived from the release package", async () => {
+    const packageInfo = JSON.parse(await readFile(path.join(REPO_ROOT, "package.json"), "utf8"));
+    assert.equal(PRODUCT_VERSION, packageInfo.version);
+});
 
 test("release registry validator derives the current course, event, and tape counts", () => {
     const ctx = { checks: [], errors: [], warnings: [] };
@@ -22,11 +33,39 @@ test("release registry validator derives the current course, event, and tape cou
     assert.equal(ctx.errors.length, 0);
 });
 
-test("documentation validator catches a stale numeric claim", async () => {
+test("documentation validator accepts current registry markers across release docs", async () => {
     const ctx = { checks: [], errors: [], warnings: [] };
     await validateDocumentationCounts(ctx, { courses: 6, events: 12, tapes: 18 });
-    assert.ok(ctx.errors.some((error) => error.name === "docs.events"));
-    assert.ok(ctx.errors.some((error) => error.name === "docs.courses"));
+    assert.equal(ctx.errors.length, 0);
+    assert.ok(ctx.checks.some((check) => check.name === "docs.required" && check.status === "pass"));
+    assert.ok(ctx.checks.some((check) => check.name === "docs.counts" && check.status === "pass"));
+});
+
+test("documentation counts use the exact marker, not historical prose", async () => {
+    const ctx = { checks: [], errors: [], warnings: [] };
+    await validateDocumentationCounts(ctx, { courses: 6, events: 12, tapes: 18 }, {
+        requiredDocs: [],
+        countedDocs: ["README.md"],
+        documents: {
+            "README.md": [
+                "The old baseline mentioned five courses and thirteen events.",
+                "<!-- snow-burgers-release-counts courses=6 events=12 tapes=18 -->",
+            ].join("\n"),
+        },
+    });
+    assert.equal(ctx.errors.length, 0);
+});
+
+test("documentation validator rejects a stale exact marker", async () => {
+    const ctx = { checks: [], errors: [], warnings: [] };
+    await validateDocumentationCounts(ctx, { courses: 6, events: 12, tapes: 18 }, {
+        requiredDocs: [],
+        countedDocs: ["README.md"],
+        documents: {
+            "README.md": "<!-- snow-burgers-release-counts courses=5 events=13 tapes=18 -->",
+        },
+    });
+    assert.ok(ctx.errors.some((error) => error.name === "docs.counts"));
 });
 
 test("candidate cross-check rejects a stale ledger hash", async () => {
@@ -55,6 +94,94 @@ test("candidate cross-check rejects a stale ledger hash", async () => {
         candidate,
     );
     assert.ok(stale.problems.some((problem) => /SHA-256/.test(problem)));
+});
+
+async function validateManifestMutation(mutate) {
+    const tempRoot = await mkdtemp(path.join(tmpdir(), "snow-burgers-release-manifest-"));
+    const manifestPath = path.join(tempRoot, "RUNTIME_MANIFEST.json");
+    try {
+        const manifest = JSON.parse(await readFile(EXPECTED_RUNTIME_MANIFEST_PATH, "utf8"));
+        await mutate(manifest);
+        await writeFile(manifestPath, JSON.stringify(manifest), "utf8");
+        const ctx = { checks: [], errors: [], warnings: [] };
+        await validateExpectedRuntimeManifest(ctx, { manifestPathOverride: manifestPath });
+        return ctx;
+    } finally {
+        await rm(tempRoot, { recursive: true, force: true });
+    }
+}
+
+test("expected runtime manifest accepts all fixed dynamic assets", async () => {
+    const ctx = { checks: [], errors: [], warnings: [] };
+    const result = await validateExpectedRuntimeManifest(ctx);
+    assert.equal(result.assets.length, 31);
+    assert.equal(ctx.errors.length, 0);
+    assert.ok(ctx.checks.some((check) => check.name === "assets.expected-manifest" && check.status === "pass"));
+});
+
+test("expected runtime manifest rejects a missing dynamic asset entry", async () => {
+    const ctx = await validateManifestMutation((manifest) => {
+        manifest.assets = manifest.assets.filter((asset) =>
+            asset.runtimePath !== "assets/models/snow-burgers/ingredient-onion.glb");
+    });
+    assert.ok(ctx.errors.some((error) => error.name === "assets.expected-manifest" &&
+        error.missingExpected?.includes("assets/models/snow-burgers/ingredient-onion.glb")));
+});
+
+test("expected runtime manifest rejects a swapped runtime hash", async () => {
+    const ctx = await validateManifestMutation((manifest) => {
+        const cheese = manifest.assets.find((asset) =>
+            asset.runtimePath === "assets/models/snow-burgers/ingredient-cheese.glb");
+        const patty = manifest.assets.find((asset) =>
+            asset.runtimePath === "assets/models/snow-burgers/ingredient-patty.glb");
+        cheese.sha256 = patty.sha256;
+    });
+    assert.ok(ctx.errors.some((error) => error.name === "assets.manifest-runtime" &&
+        error.message.includes("ingredient-cheese.glb")));
+});
+
+test("expected runtime manifest rejects a swapped dynamic runtime path", async () => {
+    const ctx = await validateManifestMutation((manifest) => {
+        const cheese = manifest.assets.find((asset) =>
+            asset.runtimePath === "assets/models/snow-burgers/ingredient-cheese.glb");
+        cheese.runtimePath = "assets/models/snow-burgers/ingredient-patty.glb";
+    });
+    assert.ok(ctx.errors.some((error) => error.name === "assets.expected-manifest" &&
+        (error.missingExpected?.includes("assets/models/snow-burgers/ingredient-cheese.glb") ||
+            error.unexpected?.includes("assets/models/snow-burgers/ingredient-patty.glb"))));
+});
+
+test("expected runtime manifest rejects a stale source hash", async () => {
+    const ctx = await validateManifestMutation((manifest) => {
+        const tomato = manifest.assets.find((asset) =>
+            asset.runtimePath === "assets/models/snow-burgers/ingredient-tomato.glb");
+        tomato.sourceSha256 = "0".repeat(64);
+    });
+    assert.ok(ctx.errors.some((error) => error.name === "assets.manifest-source" &&
+        error.message.includes("ingredient-tomato.glb")));
+});
+
+test("expected runtime manifest rejects stale social source provenance", async () => {
+    const ctx = await validateManifestMutation((manifest) => {
+        manifest.socialPreview.editedSourceSha256 = "f".repeat(64);
+    });
+    assert.ok(ctx.errors.some((error) => error.name === "assets.social-preview" &&
+        error.message.includes("edited source SHA-256")));
+});
+
+test("release reports distinguish report-only blockers from strict failure", async () => {
+    const report = await runReleaseValidation({ strict: false });
+    assert.equal(report.status, "report-only-with-blockers");
+    assert.equal(report.reportPath, "reports/release-validation-report-only.json");
+    assert.ok(report.blockers.some((blocker) => blocker.name === "assets.hero-provenance"));
+
+    const strict = await runReleaseValidation({ strict: true });
+    assert.equal(strict.status, "fail");
+    assert.equal(strict.reportPath, "reports/release-validation-strict.json");
+    assert.deepEqual(
+        strict.errors.map((error) => error.name),
+        ["assets.hero-provenance"],
+    );
 });
 
 test("WebGPU-unavailable classifier does not hide unrelated device failures", () => {

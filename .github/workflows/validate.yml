@@ -53,7 +53,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: kakisnow-validation-report-${{ github.run_id }}
-          path: reports/release-validation.json
+          path: |
+            reports/release-validation-report-only.json
+            reports/release-validation-strict.json
           if-no-files-found: warn
 
   browser-smoke:
@@ -101,7 +103,8 @@ jobs:
           name: kakisnow-browser-smoke-${{ github.run_id }}
           path: |
             reports/browser-smoke/
-            reports/release-validation.json
+            reports/release-validation-report-only.json
+            reports/release-validation-strict.json
           if-no-files-found: warn
 
       # The smoke accepts the authored WebGPU-unavailable screen when the

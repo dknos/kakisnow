@@ -2,10 +2,12 @@
 
 SHRED. STACK. SERVE.
 
+<!-- snow-burgers-release-counts courses=6 events=12 tapes=18 -->
+
 Snow-Burgers is a WebGPU-only downhill snowboarding game. The default playable
 hero, RockerKaki, takes an order at the summit, rides the 520-metre Summit Line
-collecting five giant burger ingredients — cheese, patty, tomato, lettuce and
-onion — and builds the order at the grill at Burger Base Camp.
+collecting the order's giant burger ingredients — cheese, patty, tomato,
+lettuce, and sometimes onion — and builds the stack at Burger Base Camp.
 
 Powered by KAKISNOW Snow Technology. KAKISNOW is the internal name of the snow
 rendering and simulation technology the game runs on, and it is why the
@@ -25,28 +27,38 @@ One order is one run.
    bring back and the sequence the burger is stacked in.
 2. **Drop in at the summit.** Summit Line starts at the top of the course and
    finishes 520 metres downhill, through three takeoffs and two halfpipes.
-3. **Collect cheese, patty, tomato, lettuce and onion.** Each ingredient has
-   its own authored zone along the course rather than a random scatter, so the
-   course itself decides how far off a fast line each one sits.
+3. **Collect every ingredient on the order.** Each ingredient has its own
+   authored zone along the course rather than a random scatter, so the course
+   itself decides how far off a fast line each one sits.
 4. **Reach the grill at Burger Base Camp** at the bottom of the course.
 5. **Build the burger** out of what the run actually carried down.
 6. **Score the run.**
 7. **Retry the order, or take the next one.**
 
-That loop is complete, and it runs on six mountains. The Burger Tour opens
-on the Summit Line and unlocks Pinecone Pass, Glacier Gorge, Midnight Resort
-and Whiteout Ridge as the records earn them — thirteen events across delivery,
-fixed-seed time trial, style, integrity and rocket rules, every medal ladder
-measured against the committed autopilot rather than guessed. The sixth,
-**Big Air Basin**, is four hundred metres of superpipe that opens onto an iced
-in-run and a jumping hill: a takeoff table, two and a half seconds of air, and
-a landing hill falling forty-eight metres away underneath it, in a stadium
-basin cut into the snowfield with grandstands up both walls. Runs are seeded
-and race their own best ghost; tricks, grinds, crashes and near misses score;
-three Recipe Tapes hide on every course. Each course is one data file in
-`src/game/courses/` — terrain primitives, zones, hazards, surfaces, weather,
-events — validated at load and baked through the one shared heightfield
-shader.
+That loop is complete, and it runs on six mountains and twelve registered
+events. The Burger Tour opens on Summit Line, then unlocks Pinecone Pass,
+Glacier Gorge, Midnight Resort, Whiteout Ridge and Big Air Basin through
+registry-derived gates: serve Summit Stack, medal Timber Melt, earn eight
+total stars, serve the four preceding main orders, and medal Blue Plate
+respectively. The six main delivery orders award the tour ending without
+requiring perfect medals. The remaining events revisit those same lines with
+fixed-seed time, style, integrity, trick, rocket and survival rules.
+Every event has a medal ladder measured against its committed targets. The
+sixth, **Big Air Basin**, is four hundred metres of superpipe that opens onto
+an iced in-run and a jumping hill: a takeoff table, two and a half seconds of
+air, and a landing hill falling forty-eight metres away underneath it, in a
+stadium basin cut into the snowfield with grandstands up both walls. Runs are
+seeded and can race a matching best ghost; tricks, grinds, crashes and near
+misses score; eighteen Recipe Tapes hide across the six courses. Each course
+is one data file in `src/game/courses/` — terrain primitives, zones, hazards,
+surfaces, weather and events — validated at load and baked through the one
+shared heightfield shader.
+
+On a fresh profile, Summit Stack is the onboarding order: short,
+action-dismissed prompts teach steering, a jump, a landing, one simple spin, a
+pickup and the grill. After the first served burger, the title menu points to
+the next order and the Burger Book shows the remaining course, medal, tape and
+100% work.
 
 ## FREE RIDE LAB
 
@@ -98,7 +110,7 @@ blender --background --factory-startup --python tools/validate-rockerkaki-rig.py
 - `Space` — jump (also works at the lip with input buffering and coyote time)
 - `Q` / `E` — spin left / right in the air; gamepad bumpers do the same
 - Hold `F` + `W`/`S` — frontflip / backflip; `F` + `A`/`D` — tweak grabs
-- `R` / gamepad east — recover to the last safe spot (+2 s in a run)
+- `R` / gamepad east (B) — recover to the last safe spot (+2 s in a run)
 - `Left Shift` / gamepad right trigger — rocket thrust, when the chair is fitted
 - `Escape` / gamepad Start / touch corner button — pause
 - Arrows + `Enter` (or d-pad + south) — drive any menu without a mouse
@@ -110,18 +122,34 @@ blender --background --factory-startup --python tools/validate-rockerkaki-rig.py
 Pausing freezes the run clock, the countdown, fuel, the ghost and every
 simulated system while the mountain keeps rendering behind a light veil.
 Losing window focus or pointer lock during active play pauses automatically
-(`?autopause=off` disables that for headless tooling). The pause menu carries
-the player settings — quality, volume, mouse sensitivity, invert Y, camera
-shake, reduced motion, touch controls — which persist in `localStorage`
-separately from records.
+(`?autopause=off` disables that for headless tooling). The pause and title
+settings screens carry quality, master/music/effects/ambience/interface volume,
+mouse sensitivity, invert Y, camera shake, reduced motion, HUD scale,
+high-contrast cues, route assist, ingredient beacon, hazard captions, ghost
+visibility/strength, forgiving landings and touch-controls mode. Keyboard
+bindings can be remapped from that screen with reserved-key and conflict
+checks; gamepad and touch prompts use the detected input family. These player
+settings and bindings persist in `localStorage` separately from records. The
+Burger Book player desk exports/imports a local JSON book, clears ghosts and
+resets progress with confirmation; settings and bindings are not part of that
+book file. See [Controls](./docs/CONTROLS.md) and [Save schema](./docs/SAVE_SCHEMA.md).
 
 Landing square matters: the rotation left unfinished at touchdown grades the
 landing PERFECT / CLEAN / SKETCHY / CRASH, perfect pays speed, and a crash
 tumbles into a breadcrumb recovery. Rails catch from an aligned falling
-approach and pop off with Space. Five courses form the Burger Tour — records
-unlock mountains, three Recipe Tapes hide on every one, and each course's
-events, hazards (groomers, gusts, an avalanche), surfaces and weather come
-off its definition in `src/game/courses/`.
+approach and pop off with Space. The six courses form the Burger Tour — its six
+main deliveries define basic tour completion, while every registered event,
+medal and the three Recipe Tapes per course contribute to the explicit 100%
+book. The player-facing Burger Book derives all six-course, twelve-event and
+eighteen-tape totals from the same registries, including the next unlock reason
+and remaining work.
+
+## Data and privacy
+
+Snow-Burgers uses no accounts, analytics, telemetry, advertising identifiers, or
+backend. Records, settings, bindings, ghosts, and Burger Book progress stay in
+the browser's local storage. Save export/import is player-initiated and uses a
+local JSON file; nothing is uploaded by the game.
 
 The F1 overlay is the developer surface and stays hidden by default. It
 exposes the rolling frame-time graph, worst-1% rate, scene counts, quality
@@ -214,15 +242,22 @@ project. What follows describes that renderer rather than the game layer.
 ## Evidence and provenance
 
 - [ASSETS.md](./ASSETS.md) records vendored assets, checksums, use status, and
-  the unresolved redistribution caveats: RockerKaki's, and the seven
-  Snow-Burgers game assets, none of which arrived carrying a licence. The Big
-  Air Basin venue models are the one asset group with a clean answer — all CC
-  BY 4.0, attributed in `public/THIRD_PARTY_NOTICES.txt`.
+  the current redistribution caveats. The Big Air Basin venue models are CC
+  BY 4.0 and are attributed in `public/THIRD_PARTY_NOTICES.txt`; central
+  Snow-Burgers replacement derivatives and their exact runtime hashes are
+  indexed by the machine-checked
+  [runtime manifest](./art/generated-assets/snow-burgers/RUNTIME_MANIFEST.json);
+  the human-readable ledger and notices retain the conditional rights caveats.
 - [BIG_AIR_BASIN.md](./BIG_AIR_BASIN.md) is the honest build report for the
   sixth course: what was measured, what was rebuilt after the measurement
   disagreed with it, and what is still weak.
 - [DECISIONS.md](./DECISIONS.md) records deliberate departures from the brief.
 - [PERF.md](./PERF.md) records measured runtime evidence and its limits.
+- [KNOWN_LIMITATIONS.md](./KNOWN_LIMITATIONS.md) records the remaining device,
+  rights, integration and release gates.
+- [CREDITS.md](./CREDITS.md) and
+  [public/THIRD_PARTY_NOTICES.txt](./public/THIRD_PARTY_NOTICES.txt) ship the
+  project, dependency, generated-art and attribution record.
 - [art/source-assets/snow-burgers/OPTIMIZATION_REPORT.md](./art/source-assets/snow-burgers/OPTIMIZATION_REPORT.md)
   records what the game-asset pipeline measured and did: the texture and
   triangle budgets, the rendered evidence behind each decimation target, and
@@ -275,7 +310,6 @@ gait.
 [ASSETS.md](./ASSETS.md) records the recovered Grok Imagine to Tencent HY 3D
 provenance and required AI disclosure. Do not publish a commercial build
 containing this model until the remove.bg account tier in its source chain is
-confirmed or that uncertain processing step is replaced. The seven Snow-Burgers
-game assets carry a separate unresolved caveat of their own: all seven report
-no copyright and no licence, and being supplied locally establishes nothing
-about redistribution rights.
+confirmed or that uncertain processing step is replaced. Generated replacement
+assets are documented separately; possession of a local file is not treated as
+redistribution permission.

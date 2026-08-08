@@ -1,6 +1,15 @@
 # Performance record
 
-## Final integrated candidate
+<!-- snow-burgers-release-counts courses=6 events=12 tapes=18 -->
+
+## Accepted performance evidence (not target-hardware certification)
+
+The converged product matrix is recorded in
+`reports/final-gauntlet/FINAL_PERFORMANCE_MATRIX.md`. Its 2560×1440 Windows
+Chrome/WebGPU Burger Run samples measure p99 presentation intervals of 4.8 ms
+on Summit, 5.6 ms in Big Air Basin, and 6.3 ms on Whiteout Ridge, with zero
+console errors. The same timing caveat applies: these are rAF presentation
+intervals, not GPU completion milliseconds or target-board certification.
 
 The committed evidence is:
 
@@ -11,6 +20,11 @@ Both records were captured on 2026-07-29 at 2560×1440 in headless Windows
 Chrome 150 with Babylon.js 9.18.1. WebGPU reported a non-fallback NVIDIA
 Blackwell adapter. The browser did not expose a specific board model, so this
 record does not identify the adapter as an RTX 5070 Ti.
+
+Those milestone records predate the final accessibility/progression
+integration; the converged three-course matrix linked above supersedes them for
+whole-product frame-pacing comparison. Neither dataset replaces exact
+target-hardware certification.
 
 The timing numbers below are uncapped `requestAnimationFrame` wall-clock
 presentation intervals. The profile launched Chrome with

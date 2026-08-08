@@ -35,7 +35,7 @@
   .phase { display: grid; grid-template-columns: minmax(180px, .7fr) 2fr; gap: 28px; align-items: start; }
   .stamp { display: inline-block; padding: 8px 11px 7px; border: 2px solid var(--grill); color: var(--grill); font: 800 12px/1 ui-monospace, monospace; letter-spacing: .12em; text-transform: uppercase; transform: rotate(-1deg); }
   .meter { height: 7px; margin-top: 18px; background: rgba(233,244,251,.1); overflow: hidden; }
-  .meter i { display: block; width: 28%; height: 100%; background: var(--grill); }
+  .meter i { display: block; width: 96%; height: 100%; background: var(--grill); }
   .workstreams { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
   .stream { min-height: 128px; padding: 16px; background: var(--night); }
   .stream b { display: block; margin: 8px 0 5px; }
@@ -49,7 +49,7 @@
   a { color: var(--ice); text-underline-offset: 3px; }
   .evidence { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
   figure { margin: 0; background: #050b11; border: 1px solid var(--rule); }
-  figure img { display: block; width: 100%; aspect-ratio: 16/9; object-fit: cover; }
+  figure img { display: block; width: 100%; aspect-ratio: 16/9; object-fit: contain; background: #03080f; }
   figcaption { padding: 12px 14px; color: var(--muted); font-size: 12px; line-height: 1.5; }
   code { color: var(--snow); font-family: ui-monospace, monospace; }
   footer { padding: 25px 0 50px; color: var(--muted); font-size: 12px; }
@@ -74,12 +74,12 @@
 <main>
   <section class="phase">
     <div>
-      <span class="stamp">P1 build + critique</span>
-      <div class="meter" aria-label="Gauntlet progress: first P1 implementation and critique wave"><i></i></div>
+      <span class="stamp">Reviewable candidate</span>
+      <div class="meter" aria-label="Gauntlet progress: technical candidate complete with one documented commercial-rights blocker"><i></i></div>
     </div>
     <div>
       <h2>Current phase</h2>
-      <p>Repository safety and the clean baseline are established. All twelve events complete in Windows Chrome/WebGPU with no console or GPU validation errors. Reliable frame-phase takeoff, analogue input parity, obstacle-aware and predictive camera, trusted signature-flight records, and the complete title/order/results/settings UI slice have cleared independent P1 critique. The adaptive-score core and validation-before-deploy mechanism also pass independent review. Asset-rights reconciliation, progression, accessibility, integration, and release acceptance remain active or open; no release recommendation has been made.</p>
+      <p>Repository safety and the clean baseline are established. The exact production bundle completes all twelve events in Windows Chrome/WebGPU with no console or GPU validation errors, and all six real-heightfield route sweeps pass 600/600 seeds with a comfortable physical margin. Gameplay, camera, product UI, progression/endgame, adaptive-score core, accessibility/control completion, validation-before-deploy, and replacement-asset promotion have cleared independent critique. The registry-derived Burger Book tracks 6 courses, 12 events, and 18 tapes; Tour Complete, a distinct 100% state, credits, continued play, cross-course starts, and game-owned save confirmations pass real Windows Chrome/WebGPU review. The final 74.560-second showreel passes independent frame-by-frame critique. Commercial release remains blocked by the single strict RockerKaki/remove.bg provenance check; physical-device, human listening/colour, and exact target-GPU checks remain owner gates.</p>
     </div>
   </section>
 
@@ -89,11 +89,11 @@
       <div class="stream"><span class="label state">A · Accepted</span><b>Gameplay feel</b><small>Frame-phase takeoff, no-double-launch, crash recovery, analogue steering/look/throttle, button edges, and disconnect release pass independent review.</small></div>
       <div class="stream"><span class="label state">B · Accepted</span><b>Camera</b><small>Obstacle arm, predictive Big Air framing, grounded landing cue, reduced motion, and trusted per-vehicle PBs pass.</small></div>
       <div class="stream"><span class="label state">C · Accepted</span><b>UI / UX</b><small>Product flow, controller ranges, close-zoom focus scrolling, result identity, Big Air PB/delta states, and bounded ultrawide layout pass.</small></div>
-      <div class="stream"><span class="label open">D · Queued</span><b>Progression</b><small>Burger Book, tapes, finale, credits, 100%.</small></div>
-      <div class="stream"><span class="label state">E · Core accepted</span><b>Audio</b><small>Original 16-node adaptive score, buses, focus/pause/retry stability, and existing run states pass; finale cues and hardware listening remain.</small></div>
-      <div class="stream"><span class="label open">F · F3 active</span><b>Art / assets</b><small>Determinism and safe output pass; rocket cargo anchor, focal pickup/camp quality, draw-count report, and runtime promotion remain.</small></div>
-      <div class="stream"><span class="label open">G · Queued</span><b>Accessibility</b><small>Scale, contrast, glyphs, remapping, input-only play.</small></div>
-      <div class="stream"><span class="label state">H · P1 accepted</span><b>QA / release</b><small>Exact-SHA validation, portable boot/error smoke, artifacts, and fail-closed Pages gating pass independent review.</small></div>
+      <div class="stream"><span class="label state">D · Accepted</span><b>Progression</b><small>Burger Book, 18 authored tapes, six-delivery finale, distinct 100%, credits, saves, and continued play pass independent review.</small></div>
+      <div class="stream"><span class="label state">E · Core accepted</span><b>Audio</b><small>Original 16-node adaptive score, buses, focus/pause/retry stability, and finale/credits calls pass; captions and hardware listening remain.</small></div>
+      <div class="stream"><span class="label state">F · Accepted</span><b>Art / assets</b><small>Thirteen deterministic originals are promoted, hash-locked, Khronos-valid, runtime-reviewed, and protected from overwriting the immutable source audit. RockerKaki remains a separate rights blocker.</small></div>
+      <div class="stream"><span class="label state">G · Accepted</span><b>Accessibility</b><small>Independent G recheck: 180/180 tests and build, Windows Chrome/WebGPU keyboard/pad/touch evidence, HUD scale, contrast, captions, current-input prompts, safe remapping, and source release pass. The converged package is now 182/182; physical device and human colour review remain.</small></div>
+      <div class="stream"><span class="label state">H · Accepted</span><b>QA / release</b><small>Exact-SHA validation, portable boot/error smoke, artifacts, and fail-closed Pages gating pass independent review; strict validation keeps the single hero-provenance blocker visible.</small></div>
     </div>
   </section>
 
@@ -105,13 +105,13 @@
         <tr><td>01</td><td>Six course records, twelve event records, eighteen authored tape placements.</td><td class="state">Registry verified</td></tr>
         <tr><td>02</td><td>Node 22.22.1, npm 10.9.4, Windows Chrome 151.0.7922.108.</td><td class="state">Environment recorded</td></tr>
         <tr><td>03</td><td>RTX 5080 16 GB and RTX 2080 8 GB visible through WSL; target measurements must name the GPU actually exercised.</td><td class="state">Hardware recorded</td></tr>
-        <tr><td>04</td><td>Runtime assets total 22,713,084 tracked bytes. Thirteen Snow-Burgers/dressing GLBs and RockerKaki's remove.bg step retain rights caveats.</td><td class="open">Release blocker</td></tr>
-        <tr><td>05</td><td>Clean detached baseline: <code>npm ci</code>, 90/90 tests, and production build pass. Current integrated candidate: 100/100 tests and build pass before the final responsive recheck.</td><td class="state">Reproducible</td></tr>
+        <tr><td>04</td><td>The baseline runtime asset tree was 22,713,084 bytes. The promoted thirteen-model Snow-Burgers set is 2,010,952 bytes and has a deterministic source/runtime chain; RockerKaki's remove.bg step remains the sole strict rights blocker.</td><td class="open">One release blocker</td></tr>
+        <tr><td>05</td><td>Historical detached baseline: <code>npm ci</code>, 90/90 tests, and production build pass. The converged package now passes 182/182 tests and build.</td><td class="state">Reproducible</td></tr>
         <tr><td>06</td><td>All twelve events reached results in fresh Windows Chrome/WebGPU runs; zero console errors and zero WebGPU validation errors.</td><td class="state">12 / 12 complete</td></tr>
-        <tr><td>07</td><td>2560×1440 presentation intervals: 2.3 ms median, 5.5 ms p95, 6.3 ms p99; 206 draws and 2,487,910 submitted triangles. GPU completion timing was unavailable.</td><td class="state">Baseline measured</td></tr>
-        <tr><td>08</td><td>The playthrough formatter prints a misleading hard-coded <code>/4</code> ingredient denominator; underlying report arrays are correct.</td><td class="open">QA defect open</td></tr>
+        <tr><td>07</td><td>Final 2560×1440 Burger Run p99 presentation intervals are 4.8 ms Summit, 5.6 ms Big Air, and 6.3 ms Whiteout. Counts are 382/2.06 M, 635/2.59 M, and 522/2.18 M draws/submitted triangles; GPU completion timing was unavailable.</td><td class="state">Final matrix measured</td></tr>
+        <tr><td>08</td><td>The corrected live-denominator playthrough harness completes all twelve final production events, including two- and five-ingredient orders. Six fresh GPU-heightfield route sweeps pass 600/600 seeds; worst demand is 0.6587 against a 0.84 physical ceiling.</td><td class="state">Final runtime pass</td></tr>
         <tr><td>09</td><td>Fresh accepted classic 16:9/21:9 and rocket 16:9 runs report 2.53–2.54 s, 49.2–49.3 m, and 18.5–18.7 m clearance with visible grounded landing cues.</td><td class="state">P1 accepted</td></tr>
-        <tr><td>10</td><td>Candidate Pages deployment now requires a successful main validation, checks out that exact SHA, and reruns strict release validation plus build. Branch pushes cannot deploy.</td><td class="state">P1 accepted</td></tr>
+        <tr><td>10</td><td>Candidate Pages deployment now requires a successful main validation, checks out that exact SHA, and reruns strict release validation plus build. Branch pushes cannot deploy; strict validation currently fails only the documented RockerKaki/remove.bg hero-provenance check.</td><td class="state">H accepted · blocker visible</td></tr>
       </tbody>
     </table>
   </section>
@@ -131,41 +131,56 @@
   </section>
 
   <section>
-    <h2>Candidate evidence · not yet accepted</h2>
+    <h2>Candidate evidence · accepted final cut</h2>
     <div class="evidence">
       <figure>
-        <a href="screenshots/final-gauntlet/ui-builder-round2/1280x720-title.png"><img src="screenshots/final-gauntlet/ui-builder-round2/1280x720-title.png" alt="Candidate 1280 by 720 Burger Tour title screen"></a>
-        <figcaption><strong>Title candidate:</strong> a live-mountain Burger Tour docket gives Continue a clear first read, separates events, labs, tour locks, and settings, and names the registry-derived six-mountain/twelve-order scope.</figcaption>
+        <a href="screenshots/final-gauntlet/release-evidence/title-1280.webp"><img src="screenshots/final-gauntlet/release-evidence/title-1280.webp" alt="Accepted 1280 by 720 Burger Tour title screen"></a>
+        <figcaption><strong>Final title:</strong> a live-mountain Burger Tour docket gives Continue a clear first read, separates events, labs, tour locks, and settings, names the registry-derived scope, and carries the package-derived v1.0.0 footer.</figcaption>
       </figure>
       <figure>
-        <a href="screenshots/final-gauntlet/ui-builder-round2/1280x720-order.png"><img src="screenshots/final-gauntlet/ui-builder-round2/1280x720-order.png" alt="Candidate Summit Stack order card at 1280 by 720"></a>
-        <figcaption><strong>Order candidate:</strong> rule, allowed vehicle, measured medal target, and the four registry-derived ingredients fit at 720p without obscuring the entire mountain.</figcaption>
+        <a href="screenshots/final-gauntlet/release-evidence/order-1280.webp"><img src="screenshots/final-gauntlet/release-evidence/order-1280.webp" alt="Accepted Summit Stack order card at 1280 by 720"></a>
+        <figcaption><strong>Final order:</strong> rule, allowed vehicle, measured medal target, current-input controls, and the four registry-derived ingredients fit at 720p without obscuring the entire mountain.</figcaption>
       </figure>
     </div>
+    <p><strong>Showreel:</strong> <a href="reports/final-gauntlet/showreel/snow-burgers-showreel.webm">74.560-second gameplay capture</a> (<a href="reports/final-gauntlet/showreel/snow-burgers-showreel.json">manifest</a>) covers title, order, carving, pickup, trick, hazard, rocket, Big Air, burger finish, results, Burger Book, and completion. The video uses disclosed live/runtime/save staging and independently passes required-beat, transition, stale-state, format, and error review. It is a silent visual evidence reel; audio remains a separate hardware listening gate.</p>
     <div class="evidence">
       <figure>
         <a href="public/assets/ui/snow-burgers/social-preview.webp"><img src="public/assets/ui/snow-burgers/social-preview.webp" alt="AI-generated Snow-Burgers social preview candidate"></a>
         <figcaption><strong>Product-art candidate:</strong> an explicitly AI-generated social/credits illustration preserves the RockerKaki reference and shows board, four ingredients, landing line, rocket streak, and warm base camp. Source, prompt, references, hashes, and local WebP derivative are recorded.</figcaption>
       </figure>
       <figure>
-        <a href="screenshots/final-gauntlet/ui-critic-round2/critic-wait-3440-title.png"><img src="screenshots/final-gauntlet/ui-critic-round2/critic-wait-3440-title.png" alt="Accepted native ultrawide Burger Tour title capture"></a>
+        <a href="screenshots/final-gauntlet/release-evidence/title-ultrawide.webp"><img src="screenshots/final-gauntlet/release-evidence/title-ultrawide.webp" alt="Accepted native ultrawide Burger Tour title capture"></a>
         <figcaption><strong>Native 3440×1440 recheck:</strong> the docket remains centered, unclipped, and readable with derived six-mountain/twelve-order copy; conservative scale leaves some unused space.</figcaption>
       </figure>
     </div>
     <div class="evidence">
       <figure>
-        <a href="screenshots/final-gauntlet/camera/round4-bigair-classic-16x9/001-big-air-flight.png"><img src="screenshots/final-gauntlet/camera/round4-bigair-classic-16x9/001-big-air-flight.png" alt="Accepted classic-board Big Air flight with visible landing gate"></a>
+        <a href="screenshots/final-gauntlet/release-evidence/big-air-flight.webp"><img src="screenshots/final-gauntlet/release-evidence/big-air-flight.webp" alt="Accepted classic-board Big Air flight with visible landing gate"></a>
         <figcaption><strong>Signature flight:</strong> controller/terrain prediction keeps the rider, venue, grounded landing gate, and live airtime/distance/peak telemetry readable without taking control.</figcaption>
       </figure>
       <figure>
-        <a href="screenshots/final-gauntlet/ui-critic-round4/critic-c4-1280-first.png"><img src="screenshots/final-gauntlet/ui-critic-round4/critic-c4-1280-first.png" alt="Accepted first Big Air personal-best result"></a>
-        <figcaption><strong>Flight record:</strong> the first completed signature flight becomes a warm, vehicle-labelled PB callout; repeat attempts show the saved best and signed delta.</figcaption>
+        <a href="screenshots/final-gauntlet/release-evidence/burger-book.webp"><img src="screenshots/final-gauntlet/release-evidence/burger-book.webp" alt="Accepted Burger Book overview"></a>
+        <figcaption><strong>Burger Book:</strong> six courses, twelve events, eighteen tapes, medals, records, remaining targets, and continued play are visible from registry-derived data.</figcaption>
+      </figure>
+    </div>
+    <div class="evidence">
+      <figure>
+        <a href="screenshots/final-gauntlet/release-evidence/tour-complete.webp"><img src="screenshots/final-gauntlet/release-evidence/tour-complete.webp" alt="Accepted Tour Complete celebration"></a>
+        <figcaption><strong>Tour conclusion:</strong> the sixth main delivery earns an unmistakable Tour Complete celebration without requiring perfect medals; 100% remains a separate persistent goal.</figcaption>
+      </figure>
+      <figure>
+        <a href="screenshots/final-gauntlet/release-evidence/credits-1280.webp"><img src="screenshots/final-gauntlet/release-evidence/credits-1280.webp" alt="Snow-Burgers versioned credits and privacy disclosure"></a>
+        <figcaption><strong>Release credits:</strong> v1.0.0, KAKISNOW technology, notices, AI disclosure, and the local-save/no-telemetry privacy contract ship in the game. The <a href="screenshots/final-gauntlet/release-ui/release-ui-report.json">responsive UI report</a> records every required viewport.</figcaption>
       </figure>
     </div>
   </section>
 
   <section>
     <h2>Critic log</h2>
+    <p>Chronological rows retain superseded findings from earlier builder and
+    critic rounds so the gauntlet is auditable; an earlier <span class="open">open</span>
+    or rejected row is not a claim about the current corrected artifact. The
+    current D2, F4/F5, G, H, showreel, and final-matrix closeout rows are appended below.</p>
     <table>
       <thead><tr><th>Pass</th><th>Artifact exercised</th><th>Largest defect</th><th>Disposition</th></tr></thead>
       <tbody>
@@ -182,14 +197,25 @@
         <tr><td>E3</td><td>Real preview state trace, analyser spectra, 7 focused tests, 1,120 transition/update stress, 16,800 finite parameter writes, full build.</td><td>Core and existing runtime states pass. Finale/credits calls plus real Windows speaker/headphone loudness and masking review remain release gates.</td><td class="state">Core accepted</td></tr>
         <tr><td>F2</td><td>Two clean Blender runs, 13 Khronos validations, safe-output refusal, runtime hash/mtime audit, 52 four-view renders, source/contracts/reports, and social-art derivative regeneration.</td><td>Determinism and provenance language pass. Rocket cargo is 0.30 m off its runtime anchor; seven focal models need revision; hut/village still read as placeholders; draw counts are stale. Six 3D candidates pass visual review subject to runtime smoke.</td><td class="open">P1 correction active</td></tr>
         <tr><td>A4</td><td>154 tests/build; nine-rate full-window and natural-lip sweeps; 90,000 randomized segment probes; false-launch, coyote, crash, pad-edge, disconnect, and allocation review.</td><td>The first correction missed far-edge authored-window crossings and was rejected. Segment-versus-lane intersection closes that defect with zero mismatches; physical-pad feel and close rail pixels remain integration gates.</td><td class="state">Accepted</td></tr>
+        <tr><td>D2</td><td>Fresh/full/tour/100% fixtures, cross-course and same-course order links, keyboard and simulated-pad save confirmations, 1280×720 and 3440×1440 pixels, 157 tests/build, and real Windows Chrome/WebGPU.</td><td>No P0/P1 remains. A brief boot-fade wordmark can overlap the first order card; the bounded ultrawide Book intentionally leaves generous side space.</td><td class="state">Accepted</td></tr>
+        <tr><td>F4</td><td>Thirteen promoted GLBs, 52 four-view renders, two clean Blender generations, Khronos validation, contract/hash checks, Summit 16:9/21:9 and rocket Windows WebGPU runs.</td><td>All replacement silhouettes, materials, anchor contracts, camp dressing, pickup collection, burger finish, and rocket behavior pass. The remaining remove.bg uncertainty belongs only to RockerKaki.</td><td class="state">Accepted</td></tr>
+        <tr><td>F5</td><td>Historical audit hash before/after default validation, guarded archival output, separate runtime report, 16 focused checks, 178 full tests, build, and all 13 runtime-manifest hashes.</td><td>The validator no longer overwrites immutable source evidence. Default output is a distinct runtime report; historical output requires explicit archival opt-in.</td><td class="state">Accepted</td></tr>
+        <tr><td>D2-final</td><td>Independent progression/endgame recheck with fresh, six-delivery, full-book, cross-course, save-confirmation, and 1280×720/3440×1440 fixtures.</td><td>Registry-derived Burger Book, authored tapes, Tour Complete, distinct 100%, credits, continued play, and safe save actions pass.</td><td class="state">Accepted</td></tr>
+        <tr><td>F4/F5-final</td><td>Thirteen promoted runtime GLBs, exact source/runtime hashes, Khronos validation, immutable historical audit protection, and real WebGPU ingredient/burger/rocket smoke.</td><td>Active replacements pass visual/runtime review; the former thirteen supplied GLBs are historical audit inputs only. RockerKaki is the separate strict rights blocker.</td><td class="state">Accepted</td></tr>
+        <tr><td>G-final</td><td>Independent Windows Chrome/WebGPU accessibility/control recheck: 180/180 focused-suite tests and build, keyboard/touch/settings/tutorial/caption/reduced-motion evidence, and corrected standard/generic-pad Book/reset/Credits routes. The converged package now passes 182/182.</td><td>No P0/P1 remains in the independent slice. Physical controller/phone ergonomics and human colour-vision review were unavailable.</td><td class="state">Accepted · device/human gate</td></tr>
+        <tr><td>H-final</td><td>Report-only and strict release validators, production-preview boot/error smoke, exact-SHA Pages gating, and release artifact checks.</td><td>Fail-closed deployment mechanism passes; report-only remains explicit and strict exits 1 for exactly `assets.hero-provenance` (RockerKaki/remove.bg).</td><td class="state">Accepted · blocker visible</td></tr>
+        <tr><td>ROUTES</td><td>Six fresh Windows Chrome/WebGPU heightfield sweeps, 100 seeds per course, independent 0.70 validator, and course identity version 2.</td><td>600/600 pass with zero height error. Worst lateral demand is 0.6587, leaving 0.1813 inside the 0.84 physical carve ceiling; stale version-1 ghosts are honestly ignored.</td><td class="state">Accepted</td></tr>
+        <tr><td>CAMERA-FINAL</td><td>Twenty exact-production scenarios and 2,235 sampled frames: six finishes, five rails, snowcat, avalanche, Big Air, reduced motion, 16:9/21:9, and near/far zoom.</td><td>Zero below-terrain, non-finite, solid-intersection, violent-snap, oscillation, console, WebGPU, or failed-request findings; representative pixels pass visual inspection.</td><td class="state">Accepted</td></tr>
+        <tr><td>SHOWREEL</td><td>74.560-second Windows Chrome/WebGPU recording with title, order, ride, pickup, trick, hazard, rocket, Big Air, burger finish, results, Book, and completion.</td><td>The first cut was rejected for stale 3/6 title state. The corrected SHA-256 53de313f… shows 6/6 before the Book and independently passes frame-by-frame transition/error review.</td><td class="state">Accepted</td></tr>
+        <tr><td>INTEGRATION</td><td>Independent live-title/Summit-flow review plus the final event, placement, responsive, camera, performance, and showreel evidence package.</td><td>No material incoherence, overdesign, clutter, pacing defect, or cross-system regression remains. External human/device gates and the hero-rights blocker are kept separate.</td><td class="state">Accepted</td></tr>
       </tbody>
     </table>
-    <p>Secondary C1 corrections are built: the lab hint now follows explicit mode/screen state, the title scope is registry-derived, and bounded native-ultrawide scaling preserves the 720p layout. H2 adds a deliberately narrow known-WebGPU-unavailable classifier: authored availability failures reach the product explanation, while unrelated device and buffer invariants fail CI. The combined report is emitted even on failure and the current asset/documentation failures remain visible release blockers.</p>
+    <p>Secondary C1 corrections are built: the lab hint now follows explicit mode/screen state, the title scope is registry-derived, and bounded native-ultrawide scaling preserves the 720p layout. H2 adds a deliberately narrow known-WebGPU-unavailable classifier: authored availability failures reach the product explanation, while unrelated device and buffer invariants fail CI. The combined report is emitted even on failure. F4/F5, D2, G, and H are accepted independent slices; strict release validation still exposes the single RockerKaki/remove.bg hero-provenance blocker.</p>
   </section>
 
   <section>
     <h2>Highest-impact open findings</h2>
-    <p>The authoritative ranked list, evidence, correction, and acceptance check lives in <a href="PLAYTEST_FINDINGS.md">PLAYTEST_FINDINGS.md</a>. Current top items are the missing finale/credits, missing player-facing Burger Book, incomplete accessibility/control surface, unresolved central-asset rights, and final integration of progression/audio states.</p>
+    <p>The authoritative ranked list, evidence, correction, and acceptance check lives in <a href="PLAYTEST_FINDINGS.md">PLAYTEST_FINDINGS.md</a>. Finale/credits, the player-facing Burger Book, all thirteen active procedural replacement models, accessibility/control completion, release gating, final event/placement/performance evidence, and the showreel are accepted. Remaining owner gates are physical controller/phone ergonomics, human listening/colour review, exact target-GPU certification, and the separately documented RockerKaki commercial-rights decision.</p>
   </section>
 </main>
 <footer>Generated locally. No analytics, remote fonts, runtime CDN, deployment, or production mutation.</footer>

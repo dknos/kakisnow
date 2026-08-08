@@ -308,7 +308,7 @@ let context = null;
 
     process.stderr.write(
       `seed ${started.seed}: ${ok ? "COMPLETED" : "FAILED"} ` +
-      `state=${state} collected=${(last?.collected ?? []).length}/4 ` +
+      `state=${state} collected=${(last?.collected ?? []).length}/${started.placements.length} ` +
       (result ? `time=${result.time.toFixed(2)}s ${result.grade} ${result.stars}★ rocket=${result.rocket}` : "") +
       (last?.fuel !== null && last?.fuel !== undefined ? ` fuel=${last.fuel}` : "") +
       `\n`

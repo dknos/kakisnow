@@ -91,8 +91,8 @@ The converged 2026-08-07 production build records these delivery sizes:
 | `public/assets/` | 19,153,380 | Vendored active and archival assets; no runtime CDN |
 | Baseline runtime asset tree | 22,713,084 | Pre-gauntlet comparison from the accepted baseline |
 | Asset-tree change | -3,559,704 (-15.7%) | Replacement promotion reduced, rather than inflated, the shipped asset tree |
-| `dist/` | 37,457,623 | Complete production output including source maps and retained archival assets |
-| Main production JavaScript | 2,403,145 | Minified entry chunk; Vite reports 615.89 kB gzip |
+| `dist/` | 37,462,650 | Complete production output including source maps and retained archival assets |
+| Main production JavaScript | 2,403,142 | Minified entry chunk; Vite reports 615.92 kB gzip |
 
 The fixed runtime manifest validates 31 direct/dynamically assembled assets by
 path, byte count, and SHA-256. Production-preview and Windows Chrome/WebGPU

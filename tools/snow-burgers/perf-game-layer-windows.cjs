@@ -62,7 +62,11 @@ function stats(v){
       const now=performance.now();
       times.push(now-last); last=now;
       if(now<end) requestAnimationFrame(tick);
-      else res({times, draws:window.KAKISNOW.perfStats?.draws??null});
+      else res({
+        times,
+        drawCalls:window.KAKISNOW.perfStats?.drawCalls??null,
+        submittedTriangles:window.KAKISNOW.perfStats?.triangles??null,
+      });
     };
     requestAnimationFrame(tick);
   }), seconds*1000);
@@ -90,8 +94,16 @@ function stats(v){
     url, seconds, viewport:{width:2560,height:1440},
     note:"Uncapped rAF presentation intervals in headless Windows Chrome. "+
          "Useful for the delta between the two samples, not as an absolute frame cost.",
-    freeRideLab:stats(free.times.slice(2)),
-    burgerRun:stats(game.times.slice(2)),
+    freeRideLab:{
+      ...stats(free.times.slice(2)),
+      drawCalls:free.drawCalls,
+      submittedTriangles:free.submittedTriangles,
+    },
+    burgerRun:{
+      ...stats(game.times.slice(2)),
+      drawCalls:game.drawCalls,
+      submittedTriangles:game.submittedTriangles,
+    },
     ...counts,
     consoleErrors:errs,
   };

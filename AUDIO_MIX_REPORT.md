@@ -1,13 +1,15 @@
 # Snow-Burgers audio mix report
 
-Workstream E core slice · 2026-08-07
+Workstream E independent core pass · 2026-08-07
 
 ## Scope
 
 This slice completes the audio engine's reusable procedural score and keeps the
 existing board, terrain, rocket, hazard, trick, pickup, grill, and UI feedback
-voices intact. The game director now owns the score state-boundary calls;
-settings/UI integration remains with the lead agent in a separate phase.
+voices intact. The game director owns the score state-boundary calls, while the
+converged UI persists all five buses and the accessibility pass supplies visible
+warning captions. This report records the accepted core; physical listening
+remains a release gate.
 
 The score is one Snow-Burgers musical language rather than a folder of songs:
 a cold sustained mountain pad, a filtered diner-radio pulse, a small melodic
@@ -128,8 +130,8 @@ allocation contract.
 ## Known limitations and integration gates
 
 - `gameDirector.js` now calls the score contract at title/order/countdown/run,
-  speed/trick/avalanche/Big Air, finish, and results boundaries. Tour-complete
-  and credits remain explicit callable states for progression integration.
+  speed/trick/avalanche/Big Air, finish, results, tour-complete, and credits
+  boundaries. D2 independently verifies the finale and credits state path.
 - Adaptive rhythm is gain-and-filter based rather than sample/stem playback;
   the held eight-step phrase gives the run a repeatable motif while keeping
   startup and retry behavior deterministic and node-stable. A real-speaker
@@ -140,5 +142,8 @@ allocation contract.
   nodes are reclaimed by the browser and that repeated retry does not create a
   persistent audio-node leak.
 - Hardware loudness, reduced-volume intelligibility, music-off behavior, and
-  pause/focus transitions remain release acceptance checks for the integrated
-  build.
+  pause/focus transitions remain release acceptance checks on physical
+  speakers/headphones. Automated captions and bus tests do not substitute for
+  human listening.
+- The packaged 74.560-second gameplay showreel has no audio stream. It proves
+  visual state and pacing only and is not cited as mix or soundtrack evidence.
