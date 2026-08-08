@@ -44,15 +44,15 @@ fs.mkdirSync(output, { recursive: true });
   });
   await page.evaluate((requestedStyle) => {
     const debug = window.__KAKISNOW_DEBUG__;
-    debug.hero.setStyle(requestedStyle);
-    debug.controller.cameraDistance = 6.4;
-    debug.controller.targetCameraDistance = 6.4;
+    debug.setHeroStyle(requestedStyle === "snowbound" ? "snowbound" : "rockerkaki");
+    debug.rig.distance = 6.4;
+    debug.rig.distanceTarget = 6.4;
   }, style);
   const offsets = [0, Math.PI * 0.5, Math.PI, Math.PI * 1.5];
   for (let index = 0; index < offsets.length; index += 1) {
     await page.evaluate((offset) => {
-      const controller = window.__KAKISNOW_DEBUG__.controller;
-      controller.cameraYaw = controller.facing + offset;
+      const debug = window.__KAKISNOW_DEBUG__;
+      debug.rig.yaw = debug.character.facing + offset;
     }, offsets[index]);
     await page.waitForTimeout(420);
     await page.screenshot({
@@ -62,5 +62,17 @@ fs.mkdirSync(output, { recursive: true });
   await context.close();
 })()
   .finally(() => {
-    fs.rmSync(profile, { recursive: true, force: true });
+    try {
+      fs.rmSync(profile, {
+        recursive: true,
+        force: true,
+        maxRetries: 8,
+        retryDelay: 250,
+      });
+    } catch (error) {
+      // Windows can hold the just-closed Chrome profile for a few more ticks.
+      // Capture success must not be replaced by a cleanup-only EPERM, and the
+      // OS temp directory remains a recoverable location if all retries lose.
+      console.warn(`[kakisnow] turntable profile cleanup deferred: ${error.message}`);
+    }
   });

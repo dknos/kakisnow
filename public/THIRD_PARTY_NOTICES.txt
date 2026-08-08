@@ -378,8 +378,8 @@ non-uniqueness. The [OpenAI Service Terms](https://openai.com/policies/service-t
 warn that code-generation output may be subject to third-party licenses. This
 notice does not assert copyrightability, exclusivity, or blanket commercial
 clearance. The former supplied GLBs remain preserved as historical audit inputs
-and are no longer runtime assets. RockerKaki's unresolved remove.bg step is the
-sole known commercial redistribution blocker; see `ASSETS.md`.
+and are no longer runtime assets. The clean RockerKaki source is documented
+below; physical/human review gates remain in `KNOWN_LIMITATIONS.md`.
 
 | Runtime path | Title / role | Generated | Source/runtime SHA-256 |
 | --- | --- | --- | --- |
@@ -402,6 +402,36 @@ canonicalization, and runtime copy only; no external model or texture was
 modified or embedded. The former supplied source records remain in
 `art/source-assets/snow-burgers/IMPORT_AUDIT.json` for historical audit and are
 not shipped by these runtime paths.
+
+==============================================================================
+RockerKaki — clean local procedural runtime source
+==============================================================================
+
+The default playable hero is generated locally by
+`tools/generate-rockerkaki.py` with Blender 5.1.1 primitives and a repository-
+local 64×64 palette. It has no imported geometry, imported texture, network
+input, background-removal service, or third-party model dependency. The
+generation record is `art/generated-assets/rockerkaki/GENERATION_RECORD.json`.
+
+  Source GLB:  public/assets/models/rockerkaki.glb
+      366,316 bytes
+      SHA-256 c3a4c7325e86db85f43a8bc06694cc4621cec7a1acfb7ea8dbcb6dc01424b602
+  Rigged GLB:  public/assets/models/rockerkaki-rigged.glb
+      555,636 bytes
+      SHA-256 c300cb1a1b581ac07d7f0319a4c0902340ee4d64520294a1ec4ac82fcb658007
+
+The source records one material, 12,928 triangles and 8,962 exported rig
+vertices.
+The editable rig contains one root control, nine deform bones, and the
+`RockerBreath` action. It was reviewed in Blender and in real Windows
+Chrome/WebGPU gameplay; the full downhill smoke pass completed at 60 FPS with
+zero console or GPU validation errors.
+
+Historical audit note: the former Grok concept → remove.bg derivative →
+Tencent HY 3D Global chain is retained as rejected, non-runtime history in
+`ASSETS.md`. Its remove.bg account/plan could not be verified, so none of its
+files is redistributed by this build. The clean local source above supersedes
+that chain without erasing the audit record.
 
 Snow-Burgers social preview — AI-generated artwork disclosure
 ==============================================================================

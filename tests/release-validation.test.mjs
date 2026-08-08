@@ -9,6 +9,7 @@ import {
     validateRegistry,
     validateDocumentationCounts,
     validateExpectedRuntimeManifest,
+    validateHeroProvenance,
     runReleaseValidation,
     compareCandidateLedger,
     sha256,
@@ -170,19 +171,42 @@ test("expected runtime manifest rejects stale social source provenance", async (
         error.message.includes("edited source SHA-256")));
 });
 
-test("release reports distinguish report-only blockers from strict failure", async () => {
+test("clean RockerKaki provenance is hash-locked and rejects imported inputs", async () => {
+    const cleanContext = { checks: [], errors: [], warnings: [] };
+    const clean = await validateHeroProvenance(cleanContext);
+    assert.deepEqual(clean.issues, []);
+    assert.equal(cleanContext.errors.length, 0);
+
+    const tempRoot = await mkdtemp(path.join(tmpdir(), "rockerkaki-provenance-"));
+    const recordPath = path.join(tempRoot, "GENERATION_RECORD.json");
+    try {
+        const record = structuredClone(clean.record);
+        record.externalTextureInputs = ["uncleared-texture.png"];
+        await writeFile(recordPath, JSON.stringify(record), "utf8");
+        const tamperedContext = { checks: [], errors: [], warnings: [] };
+        const tampered = await validateHeroProvenance(tamperedContext, {
+            recordPath,
+            strict: true,
+        });
+        assert.ok(tampered.issues.some((issue) => /externalTextureInputs/.test(issue)));
+        assert.ok(tamperedContext.errors.some((error) => error.name === "assets.hero-provenance"));
+    } finally {
+        await rm(tempRoot, { recursive: true, force: true });
+    }
+});
+
+test("release reports pass in report-only and strict modes", async () => {
     const report = await runReleaseValidation({ strict: false });
-    assert.equal(report.status, "report-only-with-blockers");
+    assert.equal(report.status, "report-only-pass");
     assert.equal(report.reportPath, "reports/release-validation-report-only.json");
-    assert.ok(report.blockers.some((blocker) => blocker.name === "assets.hero-provenance"));
+    assert.equal(report.blockers.length, 0);
+    assert.ok(report.checksRun.some((check) =>
+        check.name === "assets.hero-provenance" && check.status === "pass"));
 
     const strict = await runReleaseValidation({ strict: true });
-    assert.equal(strict.status, "fail");
+    assert.equal(strict.status, "pass");
     assert.equal(strict.reportPath, "reports/release-validation-strict.json");
-    assert.deepEqual(
-        strict.errors.map((error) => error.name),
-        ["assets.hero-provenance"],
-    );
+    assert.deepEqual(strict.errors, []);
 });
 
 test("WebGPU startup is bounded and its classifier does not hide unrelated failures", async () => {

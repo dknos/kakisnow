@@ -36,8 +36,10 @@ record, date, edit relationship and runtime derivative are recorded alongside
 the asset, with applicable terms links and owner visual-review state. This
 disclosure does not assert copyrightability, exclusivity or blanket commercial
 clearance, and it does not make an unresolved third-party model or image
-provenance record resolved. The current strict release blocker is the
-RockerKaki/remove.bg processing record described in `ASSETS.md`.
+provenance record resolved. The active RockerKaki runtime source is the clean
+local Blender procedural replacement documented in `ASSETS.md`; the historical
+Grok/remove.bg/Tencent chain remains documented there as rejected, non-runtime
+audit history.
 
 The thirteen promoted Snow-Burgers GLB derivatives were produced by the local
 Blender primitive generator in an owner-directed AI-assisted Codex session;

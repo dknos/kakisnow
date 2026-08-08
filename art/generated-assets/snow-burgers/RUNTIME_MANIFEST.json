@@ -7,6 +7,9 @@
   "generationRecords": [
     "art/generated-assets/snow-burgers/VALIDATION.json",
     "art/generated-assets/snow-burgers/REPRODUCIBILITY.md",
+    "art/generated-assets/rockerkaki/GENERATION_RECORD.json",
+    "tools/generate-rockerkaki.py",
+    "tools/rig-rockerkaki.py",
     "art/generated-assets/2d/social-preview-generation.md",
     "ASSET_LEDGER.md",
     "ASSETS.md",
@@ -31,7 +34,7 @@
     },
     "removeBgPolicy": {
       "url": "https://www.remove.bg/help/a/can-i-use-remove-bg-for-commercial-purposes",
-      "status": "account-plan-unresolved-commercial-blocker"
+      "status": "historical-rejected-source-chain-not-used-by-runtime"
     },
     "ccBy40": {
       "url": "https://creativecommons.org/licenses/by/4.0/",
@@ -51,15 +54,14 @@
       ]
     },
     "hero": {
-      "category": "owner-supplied-ai-derived",
-      "status": "remove-bg-account-plan-unresolved-commercial-redistribution-blocker",
-      "disclosure": "Owner-supplied RockerKaki source chain; Grok/Tencent generation and remove.bg processing recorded in ASSETS.md",
-      "ownerReviewState": "owner-source-chain-recorded-commercial-review-open",
-      "generationRecord": "ASSETS.md",
+      "category": "local-procedural-generated-character",
+      "status": "clean-local-procedural-source-runtime",
+      "disclosure": "AI-assisted Codex session; local Blender primitive hero and 64px palette; no imported geometry, texture, network input, or background-removal service",
+      "ownerReviewState": "runtime-webgpu-and-source-review-passed-2026-08-08",
+      "generationRecord": "art/generated-assets/rockerkaki/GENERATION_RECORD.json",
       "terms": [
-        "xaiTerms",
-        "tencentTerms",
-        "removeBgPolicy"
+        "openaiTerms",
+        "openaiServiceTerms"
       ]
     },
     "cc-by": {
@@ -252,22 +254,22 @@
       "runtimePath": "assets/models/rockerkaki.glb",
       "repositoryPath": "public/assets/models/rockerkaki.glb",
       "role": "hero-source",
-      "bytes": 512464,
-      "sha256": "9fbf425a3d7afd2fb910acdc9faa25e7dc95cbc5b09b7288e7922073533948fe",
+      "bytes": 366316,
+      "sha256": "c3a4c7325e86db85f43a8bc06694cc4621cec7a1acfb7ea8dbcb6dc01424b602",
       "rightsProfile": "hero",
       "sourcePath": "public/assets/models/rockerkaki.glb",
-      "sourceSha256": "9fbf425a3d7afd2fb910acdc9faa25e7dc95cbc5b09b7288e7922073533948fe"
+      "sourceSha256": "c3a4c7325e86db85f43a8bc06694cc4621cec7a1acfb7ea8dbcb6dc01424b602"
     },
     {
       "id": "rockerkaki-rigged.glb",
       "runtimePath": "assets/models/rockerkaki-rigged.glb",
       "repositoryPath": "public/assets/models/rockerkaki-rigged.glb",
       "role": "hero-rigged",
-      "bytes": 692096,
-      "sha256": "70e9e944297398013ec65d31af9b1f082b5eb9a3b9e632ac8361961033393d7c",
+      "bytes": 555636,
+      "sha256": "c300cb1a1b581ac07d7f0319a4c0902340ee4d64520294a1ec4ac82fcb658007",
       "rightsProfile": "hero",
       "sourcePath": "public/assets/models/rockerkaki.glb",
-      "sourceSha256": "9fbf425a3d7afd2fb910acdc9faa25e7dc95cbc5b09b7288e7922073533948fe"
+      "sourceSha256": "c3a4c7325e86db85f43a8bc06694cc4621cec7a1acfb7ea8dbcb6dc01424b602"
     },
     {
       "id": "snowboard.glb",

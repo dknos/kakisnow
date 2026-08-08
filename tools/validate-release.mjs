@@ -530,6 +530,104 @@ export async function validateExpectedRuntimeManifest(
  * licensed. The strict default intentionally blocks a release while any
  * current runtime rights row says "unresolved".
  */
+export async function validateHeroProvenance(
+    ctx = makeContext(),
+    {
+        strict = true,
+        recordPath = path.join(REPO_ROOT, "art", "generated-assets", "rockerkaki", "GENERATION_RECORD.json"),
+        runtimeManifestPath = EXPECTED_RUNTIME_MANIFEST_PATH,
+    } = {},
+) {
+    const issues = [];
+    let record = null;
+    let runtimeManifest = null;
+    try {
+        record = JSON.parse(await readFile(recordPath, "utf8"));
+    } catch (error) {
+        issues.push(`clean hero generation record is missing or invalid: ${error.message}`);
+    }
+    try {
+        runtimeManifest = JSON.parse(await readFile(runtimeManifestPath, "utf8"));
+    } catch (error) {
+        issues.push(`runtime manifest is missing or invalid: ${error.message}`);
+    }
+
+    const emptyInputList = (name) => {
+        if (!Array.isArray(record?.[name]) || record[name].length !== 0) {
+            issues.push(`${name} must be an explicit empty array`);
+        }
+    };
+    if (record) {
+        if (record.status !== "clean-local-procedural-source") {
+            issues.push(`unexpected hero generation status: ${record.status ?? "missing"}`);
+        }
+        if (record.sourceScript !== "tools/generate-rockerkaki.py" ||
+            !existsSync(path.join(REPO_ROOT, record.sourceScript ?? "missing"))) {
+            issues.push("clean hero source script is missing");
+        }
+        emptyInputList("externalGeometryInputs");
+        emptyInputList("externalTextureInputs");
+        emptyInputList("networkInputs");
+    }
+
+    const profile = runtimeManifest?.rightsProfiles?.hero;
+    const recordRelative = path.relative(REPO_ROOT, recordPath).replaceAll(path.sep, "/");
+    if (!profile || profile.generationRecord !== recordRelative ||
+        !/clean-local-procedural/i.test(profile.status ?? "") ||
+        /unresolved|blocker/i.test(profile.status ?? "")) {
+        issues.push("runtime hero rights profile does not point at the clean procedural record");
+    }
+
+    const rejectedHashes = new Set([
+        "9fbf425a3d7afd2fb910acdc9faa25e7dc95cbc5b09b7288e7922073533948fe",
+        "70e9e944297398013ec65d31af9b1f082b5eb9a3b9e632ac8361961033393d7c",
+    ]);
+    const expectedOutputs = [
+        ["sourceGlb", "public/assets/models/rockerkaki.glb"],
+        ["riggedGlb", "public/assets/models/rockerkaki-rigged.glb"],
+    ];
+    for (const [key, expectedPath] of expectedOutputs) {
+        const output = record?.outputs?.[key];
+        if (!output || output.path !== expectedPath || !Number.isInteger(output.bytes) ||
+            typeof output.sha256 !== "string" || !/^[0-9a-f]{64}$/i.test(output.sha256)) {
+            issues.push(`${key} generation output record is incomplete`);
+            continue;
+        }
+        const fullPath = path.join(REPO_ROOT, expectedPath);
+        if (!existsSync(fullPath)) {
+            issues.push(`${expectedPath} is missing`);
+            continue;
+        }
+        const bytes = await readFile(fullPath);
+        const actualHash = sha256(bytes);
+        if (bytes.length !== output.bytes || actualHash !== output.sha256.toLowerCase()) {
+            issues.push(`${expectedPath} does not match its clean generation record`);
+        }
+        if (rejectedHashes.has(actualHash)) {
+            issues.push(`${expectedPath} still matches a rejected remove.bg-chain derivative`);
+        }
+        const manifestAsset = runtimeManifest?.assets?.find((asset) =>
+            asset.repositoryPath === expectedPath);
+        if (!manifestAsset || manifestAsset.rightsProfile !== "hero" ||
+            manifestAsset.bytes !== bytes.length || manifestAsset.sha256 !== actualHash) {
+            issues.push(`${expectedPath} does not match the runtime hero manifest row`);
+        }
+    }
+
+    if (issues.length) {
+        const detail = `RockerKaki clean-source validation found ${issues.length} issue(s)`;
+        if (strict) fail(ctx, "assets.hero-provenance", detail, { issues });
+        else warn(ctx, "assets.hero-provenance", detail, { issues });
+    } else {
+        pass(ctx, "assets.hero-provenance", {
+            status: "clean-local-procedural-source",
+            generationRecord: recordRelative,
+            inputs: 0,
+        });
+    }
+    return { record, issues, context: ctx };
+}
+
 export async function validateAssetLedger(ctx = makeContext(), { strict = true } = {}) {
     const ledgerPath = path.join(REPO_ROOT, "ASSET_LEDGER.md");
     const noticesPath = path.join(PUBLIC_DIR, "THIRD_PARTY_NOTICES.txt");
@@ -540,8 +638,6 @@ export async function validateAssetLedger(ctx = makeContext(), { strict = true }
     if (!existsSync(noticesPath)) fail(ctx, "assets.notices", "public/THIRD_PARTY_NOTICES.txt is missing");
     const ledger = await readFile(ledgerPath, "utf8");
     const notices = existsSync(noticesPath) ? await readFile(noticesPath, "utf8") : "";
-    const assetsDocPath = path.join(REPO_ROOT, "ASSETS.md");
-    const assetsDoc = existsSync(assetsDocPath) ? await readFile(assetsDocPath, "utf8") : "";
     const start = ledger.indexOf("## Current runtime supplied files");
     const end = ledger.indexOf("## Original replacement candidate");
     if (start < 0 || end <= start) {
@@ -612,15 +708,7 @@ export async function validateAssetLedger(ctx = makeContext(), { strict = true }
         if (strict) fail(ctx, "assets.license", detail, { unresolved: unresolved.map((row) => row.file) });
         else warn(ctx, "assets.license", detail, { unresolved: unresolved.map((row) => row.file) });
     } else pass(ctx, "assets.license", { unresolved: 0 });
-    // RockerKaki is not part of the Snow-Burgers GLB table, but its source
-    // record has an independent remove.bg commercial-use caveat. Keep that
-    // caveat visible to CI until the owner replaces or qualifies the step.
-    if (/remove\.bg account\/plan used in the chain could not be recovered/i.test(assetsDoc) ||
-        /keeps commercial redistribution\s+gated/i.test(assetsDoc)) {
-        const detail = "RockerKaki still has an unresolved remove.bg commercial-use record";
-        if (strict) fail(ctx, "assets.hero-provenance", detail);
-        else warn(ctx, "assets.hero-provenance", detail);
-    } else pass(ctx, "assets.hero-provenance", { unresolved: 0 });
+    await validateHeroProvenance(ctx, { strict });
     return { records, unresolved, candidate, context: ctx };
 }
 

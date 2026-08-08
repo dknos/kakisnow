@@ -98,14 +98,62 @@ cylinder. The files are not fetched or decoded by the current renderer.
 
 ## RockerKaki character
 
-Status: project-owner-supplied, AI-generated runtime derivative. Created with
-Grok Imagine and Tencent HY 3D Global. It is not CC0 and is not offered as a
-standalone reusable asset. It is loaded as the default playable, unrigged hero;
-the procedural Snowbound figure remains selectable.
+Status: active project-owned procedural runtime source. RockerKaki remains the
+default playable hero and the procedural Snowbound figure remains selectable.
+The release runtime now uses a clean local replacement made from Blender
+primitives and a repository-local 64×64 palette. The source has no imported
+geometry, imported texture, network input, background-removal service, or
+third-party model dependency.
 
-The local source chain was recovered from browser history, Windows origin
+The reproducible source is `tools/generate-rockerkaki.py`, run with Blender
+5.1.1 using:
+
+```text
+blender --background --factory-startup --python tools/generate-rockerkaki.py
+```
+
+The generation record is
+`art/generated-assets/rockerkaki/GENERATION_RECORD.json`. It records the
+palette, source/rig outputs, exact byte counts and hashes, identity notes, and
+explicitly empty external-input arrays. The source mesh has one material,
+12,928 triangles, 8,962 exported rig vertices, and the recognizable RockerKaki
+silhouette: large chibi head, violet/white hair, small horns, dark alpine
+outfit, seated boots, and electric guitar.
+
+| Runtime/source | Path | Bytes | SHA-256 |
+| --- | --- | ---: | --- |
+| Source GLB | `public/assets/models/rockerkaki.glb` | 366,316 | `c3a4c7325e86db85f43a8bc06694cc4621cec7a1acfb7ea8dbcb6dc01424b602` |
+| Rigged GLB | `public/assets/models/rockerkaki-rigged.glb` | 555,636 | `c300cb1a1b581ac07d7f0319a4c0902340ee4d64520294a1ec4ac82fcb658007` |
+| Source blend | `art/rockerkaki-source.blend` | 340,075 | `10a73d6a01a10fbd82132ca1605fe478aeb7c526bed2328522fd7314567b086d` |
+| Editable rig blend | `art/rockerkaki-rig.blend` | 396,689 | `0cd42b7c301ccf756447b1db9b269259ccd02da9c075b005c00ffec07deb2d08` |
+| Palette | `art/generated-assets/rockerkaki/rockerkaki-palette.png` | 248 | `83a80a58ac2f0e34af5537ec6cd577cb5191fda14938eebec5748b0807fd63d7` |
+
+The rigging pass is reproducible with
+`blender --background --factory-startup --python tools/rig-rockerkaki.py`.
+The rig contains one root control and nine deform bones, with the
+`RockerBreath` action. `tools/validate-rockerkaki-rig.py` is the headless
+acceptance check. The source is intentionally held in its authored rigid pose
+at runtime because the mesh is made from many disconnected surface islands;
+ride, carve, jump and landing motion is applied to the complete model so its
+face, hair and guitar remain intact through the custom beauty, depth, prepass
+and shadow WGSL paths.
+
+The clean replacement passed Blender structure/turntable review, real Windows
+Chrome/WebGPU face review, and a full downhill traversal with zero console or
+GPU validation errors at 60 FPS. Those checks establish runtime and source
+integrity; they do not replace physical-controller, touch-device, human audio,
+human colour-vision, or exact target-GPU review.
+
+Two clean Blender 5.1.1 processes produced byte-identical source and rigged
+GLBs after canonicalization. Blender's editable `.blend` container metadata is
+not claimed byte-deterministic; the table and generation record identify the
+exact editable files carried by this release candidate.
+
+### Historical rejected source chain
+
+The former source chain was recovered from browser history, Windows origin
 metadata, embedded image metadata, texture comparison, and project Git
-history:
+history. It is retained for audit only and is not runtime:
 
 1. Grok concept image
    `grok-image-433071f4-1f4b-4b90-a03e-79199adf1239.png`
@@ -118,7 +166,7 @@ history:
    (SHA-256 prefix `c80b8661`).
 4. Project optimization commit
    `52ee61982ce66b8c5ad3ab7cd0490c82115991c7`, followed by the
-   40,000-triangle runtime derivative used here.
+   40,000-triangle former runtime derivative.
 
 - Original local source:
   `/home/nemoclaw/Kaki-Survivors-2/assets/breakroom/rockerkaki.glb`
@@ -130,7 +178,7 @@ history:
   - Size: 512,464 bytes.
   - SHA-256:
     `9fbf425a3d7afd2fb910acdc9faa25e7dc95cbc5b09b7288e7922073533948fe`
-- Shipped KAKISNOW copy: `public/assets/models/rockerkaki.glb`
+- Former shipped KAKISNOW copy (now rejected from runtime): `public/assets/models/rockerkaki.glb`
   - Size: 512,464 bytes.
   - SHA-256:
     `9fbf425a3d7afd2fb910acdc9faa25e7dc95cbc5b09b7288e7922073533948fe`
@@ -158,13 +206,13 @@ the face and guitar intact through the custom beauty, depth, prepass, and shadow
 WGSL paths. `tools/validate-rockerkaki-rig.py` is the headless Blender
 acceptance check.
 
-The current reproducible derivative hashes are:
+The historical reproducible derivative hashes are retained for audit only:
 
 - Source GLB: `9fbf425a3d7afd2fb910acdc9faa25e7dc95cbc5b09b7288e7922073533948fe`
 - Rigged GLB: `70e9e944297398013ec65d31af9b1f082b5eb9a3b9e632ac8361961033393d7c`
 - Editable BLEND: `c839dc7d3eb1f051b1eb3bfc7ebcc20a3f94245c8e0aa4d3f19c0febbd87201a`
 
-The applicable
+The historical chain's applicable
 [xAI terms](https://x.ai/legal/terms-of-service/previous-2026-04-10)
 state that users retain ownership of inputs and outputs and request attribution.
 The applicable
@@ -173,11 +221,10 @@ assign Tencent's output rights to the user subject to input rights and require
 AI disclosure. The remove.bg account/plan used in the chain could not be
 recovered; its
 [commercial-use policy](https://www.remove.bg/help/a/can-i-use-remove-bg-for-commercial-purposes)
-limits free/no-account outputs to noncommercial use. Accordingly, this local
-demo records the generator disclosure and keeps commercial redistribution
-gated on confirming a qualifying remove.bg plan or replacing that uncertain
-step. Do not describe RockerKaki as CC0 or extract it as a generally licensed
-asset.
+limits free/no-account outputs to noncommercial use. That chain was rejected
+from the active build; the clean local procedural source above contains no
+remove.bg output. Do not describe the historical chain as cleared or extract
+either chain as a generally licensed standalone asset.
 
 ## Snowboard — CC BY 4.0, runtime
 
@@ -353,8 +400,9 @@ clearance. No model, texture, or network input entered the local generator.
   no external inputs are embedded.
 - Rights statement: the no-import process and conditional OpenAI output basis
   are documented without a copyrightability, exclusivity, or blanket
-  commercial-clearance conclusion. RockerKaki/remove.bg remains the sole known
-  commercial redistribution blocker.
+  commercial-clearance conclusion. The clean local RockerKaki source is
+  separately hash-locked above; the former remove.bg chain is rejected
+  non-runtime history.
 
 The former supplied GLBs remain preserved and untouched as historical audit
 inputs. Runtime validation, WebGPU captures, and the exact promoted hashes are
