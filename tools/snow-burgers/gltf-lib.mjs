@@ -7,7 +7,8 @@
  *
  *   1. `GLTF_TRANSFORM_ROOT`, a directory containing `core/`, `extensions/`
  *      and `functions/`. Set this to pin an exact copy.
- *   2. The project's own `node_modules`, if someone has installed it there.
+ *   2. The project's own dev dependencies. This is the reproducible CI path;
+ *      dev-only SDK packages do not enter the Vite runtime bundle.
  *   3. The copy vendored inside the globally installed `@gltf-transform/cli`,
  *      which is where `npm i -g @gltf-transform/cli` actually puts the SDK.
  *
@@ -71,11 +72,29 @@ export async function loadGltfTransform() {
         const dir = path.join(root, pkg);
         const meta = require(path.join(dir, "package.json"));
         versions[`@gltf-transform/${pkg}`] = meta.version;
-        // `exports.default` is the ESM build; fall back to the conventional
-        // filename for older layouts.
-        const entry = typeof meta.exports === "object" && meta.exports?.default
-            ? meta.exports.default
-            : "./dist/index.modern.js";
+        // Published SDK versions have used both a string `exports.default`
+        // and nested condition objects such as
+        // `exports.default.default`. Prefer the explicit module field, then
+        // accept each known ESM shape and legacy filename. Never hand an
+        // exports condition object to path.join().
+        const entry = [
+            meta.module,
+            meta.exports?.["."]?.import?.default,
+            meta.exports?.["."]?.import,
+            meta.exports?.["."]?.default?.default,
+            meta.exports?.["."]?.default,
+            meta.exports?.import?.default,
+            meta.exports?.import,
+            meta.exports?.default?.default,
+            meta.exports?.default,
+            "./dist/index.modern.js",
+            "./dist/index.js",
+        ].find((candidate) =>
+            typeof candidate === "string" && existsSync(path.join(dir, candidate))
+        );
+        if (!entry) {
+            throw new Error(`No ESM entry found for @gltf-transform/${pkg} ${meta.version}`);
+        }
         mods[pkg] = await import(pathToFileURL(path.join(dir, entry)).href);
     }
 

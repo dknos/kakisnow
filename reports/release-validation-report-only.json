@@ -1,6 +1,6 @@
 {
   "generatedBy": "tools/validate-release.mjs",
-  "generatedAt": "2026-08-08T02:09:59.834Z",
+  "generatedAt": "2026-08-08T02:15:06.027Z",
   "strict": false,
   "checks": [
     "registry",
