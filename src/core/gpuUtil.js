@@ -12,6 +12,28 @@
  */
 
 /**
+ * Bound a startup promise so a browser that exposes WebGPU but never resolves
+ * adapter/device creation cannot strand the player behind the loader.
+ *
+ * @template T
+ * @param {Promise<T>} promise
+ * @param {number} timeoutMs
+ * @param {string} label
+ * @returns {Promise<T>}
+ */
+export function withTimeout(promise, timeoutMs, label) {
+    let timer = null;
+    const timeout = new Promise((_, reject) => {
+        timer = setTimeout(() => {
+            reject(new Error(`${label} after ${timeoutMs} ms (timeout)`));
+        }, timeoutMs);
+    });
+    return Promise.race([promise, timeout]).finally(() => {
+        if (timer !== null) clearTimeout(timer);
+    });
+}
+
+/**
  * Wait for an object exposing `isReady()`.
  * @param {{isReady: (...a:any[]) => boolean}} obj
  * @param {string} label used in the timeout message

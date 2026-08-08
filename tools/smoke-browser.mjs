@@ -115,6 +115,8 @@ try {
         report.state = await page.evaluate(() => {
             const unavailable = document.querySelector("#nogpu");
             const boot = document.querySelector("#boot");
+            const bootPhase = document.querySelector("#boot-phase");
+            const bootBar = document.querySelector("#boot-bar");
             return {
                 ready: window.__KAKISNOW__?.ready === true,
                 product: window.__KAKISNOW__?.product ?? null,
@@ -122,6 +124,8 @@ try {
                 unavailableVisible: unavailable?.classList.contains("show") ?? false,
                 unavailableText: unavailable?.textContent?.replace(/\s+/g, " ").trim() ?? "",
                 bootVisible: Boolean(boot && getComputedStyle(boot).display !== "none" && !boot.classList.contains("gone")),
+                bootPhase: bootPhase?.textContent?.replace(/\s+/g, " ").trim() ?? "",
+                bootProgress: bootBar instanceof HTMLElement ? bootBar.style.width : "",
                 title: document.title,
             };
         });

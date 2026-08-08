@@ -41,7 +41,7 @@ import { ShadowSystem } from "./render/shadows.js";
 import { Terrain } from "./terrain/terrain.js";
 import { DepthPass } from "./render/depthPass.js";
 import { PostChain } from "./post/postChain.js";
-import { whenReady } from "./core/gpuUtil.js";
+import { whenReady, withTimeout } from "./core/gpuUtil.js";
 import * as loading from "./core/loading.js";
 
 // ------------------------------------------------------- module-scope scratch
@@ -66,7 +66,11 @@ async function boot() {
     });
 
     try {
-        await engine.initAsync();
+        await withTimeout(
+            engine.initAsync(),
+            15000,
+            "WebGPU device initialisation failed",
+        );
     } catch (err) {
         console.error(err);
         loading.fail("WebGPU device initialisation failed.");

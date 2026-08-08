@@ -40,6 +40,12 @@ branch; production deployment and merge remain owner-authorized steps.
   runtime reference checks and fail-closed asset-rights checks.
 - Added a CI boundary so validation must pass before a Pages deployment job can
   publish. This branch has not been deployed by this work.
+- Declared the offline glTF validation SDK as pinned dev dependencies so a
+  clean CI install runs the same asset checks as the authoring machine.
+- Bounded WebGPU device creation at 15 seconds. Browsers that expose the API
+  but never resolve device startup now reach the authored unavailable screen
+  instead of stranding the player behind the loading screen; browser-smoke
+  reports also retain the last boot phase and progress value.
 - Split report-only and strict validation artifacts so a report with rights
   blockers is never represented as a plain release `pass`.
 - Recorded Windows Chrome/WebGPU event, camera, placement and presentation-

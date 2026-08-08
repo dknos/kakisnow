@@ -17,6 +17,7 @@ import {
 } from "../tools/validate-release.mjs";
 import { expectedUnavailableError } from "../tools/smoke-browser-logic.mjs";
 import { PRODUCT_VERSION } from "../src/ui/snowBurgersUi.js";
+import { withTimeout } from "../src/core/gpuUtil.js";
 
 test("player-facing version is derived from the release package", async () => {
     const packageInfo = JSON.parse(await readFile(path.join(REPO_ROOT, "package.json"), "utf8"));
@@ -184,7 +185,12 @@ test("release reports distinguish report-only blockers from strict failure", asy
     );
 });
 
-test("WebGPU-unavailable classifier does not hide unrelated device failures", () => {
+test("WebGPU startup is bounded and its classifier does not hide unrelated failures", async () => {
+    assert.equal(await withTimeout(Promise.resolve("ready"), 100, "WebGPU device initialisation failed"), "ready");
+    await assert.rejects(
+        withTimeout(new Promise(() => {}), 1, "WebGPU device initialisation failed"),
+        /WebGPU device initialisation failed.*timeout/i,
+    );
     assert.equal(expectedUnavailableError("WebGPU is not available in this browser."), true);
     assert.equal(expectedUnavailableError("WebGPU device initialisation failed."), true);
     assert.equal(expectedUnavailableError("No suitable WebGPU adapter was found."), true);
