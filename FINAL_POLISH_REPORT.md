@@ -30,15 +30,21 @@ snowboarding Burger Tour powered by KAKISNOW Snow Technology.**
   reduced-motion camera behavior and finish/Big Air presentation states.
 - Delivered the title/order/HUD/results/pause/settings/Burger Book/credits/
   How-to-Ride/finale UI surfaces represented by the current source tree.
-- Added controller-authoritative Big Air telemetry and per-vehicle personal
-  best comparison, plus an adaptive procedural audio score with separate
-  music, effects, ambience, UI and master controls.
+- Added controller-authoritative Big Air telemetry, per-vehicle personal-best
+  comparison, and a 720p-readable two-line flight/landing-grade strip, plus an
+  adaptive procedural audio score with separate music, effects, ambience, UI
+  and master controls.
 - Promoted thirteen local procedural Snow-Burgers GLB derivatives for
   ingredients, the served burger, rocket chair, camp and dressing. The
   machine-readable runtime manifest records each exact path, byte count,
   runtime/source SHA-256, generation record and conditional rights profile;
   the social preview has separate source/edited/runtime hashes and a
   generation-command record.
+- Replaced the historical RockerKaki Grok/remove.bg/Tencent runtime chain with
+  a clean local Blender primitive source and 64×64 palette. The active hero is
+  one material, 12,928 triangles, 8,962 exported rig vertices, nine deform
+  bones, and the `RockerBreath` action; source and rig hashes are recorded in
+  `art/generated-assets/rockerkaki/GENERATION_RECORD.json`.
 - Added release validation and CI gating for registry integrity, direct asset
   references, the fixed dynamic-runtime inventory, exact hashes, candidate
   ledger/provenance state, and documentation-count consistency. Strict and
@@ -49,7 +55,7 @@ snowboarding Burger Tour powered by KAKISNOW Snow Technology.**
 - Baseline source commit: `121ce4eedf968e381dd2647f6a2b0e923ac41b85`.
 - Historical baseline `npm ci`, unit tests and production build passed. The
   converged package rerun passes `npm ci` with zero audit vulnerabilities,
-  `npm test` **182/182**, and `npm run build`.
+  `npm test` **183/183**, and `npm run build`.
 - The exact production bundle completed all twelve registered events in
   Windows Chrome/WebGPU at 2560×1440 with full required orders, zero console
   errors, and zero WebGPU validation errors. The two style/trick-specialist
@@ -62,9 +68,9 @@ snowboarding Burger Tour powered by KAKISNOW Snow Technology.**
   ceiling is 0.84, so even the tightest route retains 0.1813 player-error
   margin.
 - Final 2560×1440 Burger Run presentation intervals remain below the 11.1 ms
-  engineering target at p99: Summit 2.1/2.5/3.1 ms median/p95/p99, Big Air
-  3.5/4.4/5.4 ms, and Whiteout 2.7/3.5/4.3 ms. Submitted counts are 382/
-  2,055,443, 635/2,594,737, and 522/2,184,571 draws/triangles respectively.
+  engineering target at p99: Summit 2.6/3.6/4.4 ms median/p95/p99, Big Air
+  3.5/4.8/6.1 ms, and Whiteout 2.7/3.6/4.7 ms. Submitted counts are 382/
+  1,947,155, 635/2,486,449, and 522/2,076,283 draws/triangles respectively.
   GPU timestamp data was unavailable, so no GPU-ms claim is made.
 - Signature-flight evidence covered classic 16:9/21:9 and rocket 16:9 paths,
   with approximately 2.53–2.54 s airtime, 49.2–49.3 m distance and
@@ -74,16 +80,11 @@ snowboarding Burger Tour powered by KAKISNOW Snow Technology.**
   reduced motion, 16:9/21:9, and near/far zoom. It reports zero below-terrain,
   non-finite, solid-intersection, violent-snap, oscillation, console, WebGPU,
   or failed-request findings.
-- Current bounded validation rerun: `npm test` 182/182 passed and `npm run
-  build` passed. `validate:registry` and `validate:docs` pass; strict asset
-  validation fails only `assets.hero-provenance` for RockerKaki/remove.bg.
-  The report-only artifact is explicitly `report-only-with-blockers`, while
-  the strict artifact is explicitly `fail` at
-  `reports/release-validation-strict.json`.
-- The release validator's current report-only artifact is
-  `report-only-with-blockers` with exit 0. Strict validation exits 1 for exactly
-  `assets.hero-provenance` (RockerKaki/remove.bg); no other runtime asset
-  provenance failure remains in the active candidate.
+- Current bounded validation rerun: `npm test` 183/183 passed and `npm run
+  build` passed. `validate:registry`, `validate:docs`, report-only release
+  validation, and strict asset validation pass; the active hero record is
+  `clean-local-procedural-source` and no runtime asset provenance failure
+  remains.
 
 ## Manually inspected
 
@@ -97,6 +98,9 @@ snowboarding Burger Tour powered by KAKISNOW Snow Technology.**
   inspected by the asset critic; thirteen local procedural derivatives were
   promoted with the recorded hashes. F4's real WebGPU Summit/rocket smoke and
   the corrected camp runtime paths pass.
+- RockerKaki's Blender source/rig structure and turntable, real Windows
+  Chrome/WebGPU face readability, and full downhill traversal were inspected;
+  the traversal reported 60 FPS with zero console or GPU validation errors.
 - Natural takeoff phase sweeps and real `navigator.getGamepads()` polling were
   inspected by the gameplay critic. Physical controller feel remains open.
 - A final independent integration/smoothing critic reviewed the live title and
@@ -121,6 +125,9 @@ snowboarding Burger Tour powered by KAKISNOW Snow Technology.**
 - Existing Big Air venue derivatives remain subject to their CC BY 4.0 notices;
   all other runtime/imported provenance is represented in the asset ledger and
   notices.
+- The former Grok/remove.bg/Tencent hero files remain documented as rejected,
+  non-runtime audit history. The active hero has no imported geometry, texture,
+  network input, or background-removal step.
 
 ## Open gates and unresolved issues
 
@@ -130,13 +137,13 @@ snowboarding Burger Tour powered by KAKISNOW Snow Technology.**
   evidence; no physical-device or human listening/colour-vision approval is
   inferred from automated evidence.
 - The package and player-facing title/credits surfaces both display `v1.0.0`.
-- RockerKaki's remove.bg processing step remains a commercial redistribution
-  blocker until its account/plan is confirmed or replaced with a clean
-  owner-controlled derivative.
+- The clean local RockerKaki source supersedes the historical remove.bg chain;
+  the former chain remains rejected and non-runtime. It is not an active
+  release blocker.
 - Exact target-GPU certification is unavailable in this environment. Recorded
   rAF presentation intervals are not GPU completion times.
 - Physical controller and touch-device QA plus human audio and colour-vision
-  review remain external release gates. The final 74.560-second 1280×720 VP8
+  review remain external release gates. The final 72.240-second 1280×720 VP8
   showreel passes independent frame-by-frame critique with no loading flash,
   stale save state, console error, failed request, WebGPU validation error, or
   device loss. It is intentionally a silent visual evidence reel; it does not
@@ -153,10 +160,9 @@ snowboarding Burger Tour powered by KAKISNOW Snow Technology.**
 
 ## Release recommendation
 
-**NOT READY.** The technical candidate is reviewable and its automated,
-browser, camera, performance, placement, responsive-UI, showreel, and
-independent-critic evidence is packaged. Commercial publication remains
-fail-closed because RockerKaki's remove.bg account/plan is unresolved. Physical
+**READY WITH DOCUMENTED LIMITATIONS.** The automated, browser, camera,
+performance, placement, responsive-UI, showreel, asset, and independent-critic
+evidence is packaged, and strict runtime provenance validation passes. Physical
 controller/phone ergonomics, human audio listening, human colour-vision review,
-and exact target-GPU certification remain explicit owner/device sign-offs; no
-merge or deployment is recommended until the hero-rights blocker is resolved.
+and exact target-GPU certification remain explicit owner/device sign-offs. This
+branch is reviewable and has not been merged or deployed.

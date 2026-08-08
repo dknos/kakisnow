@@ -1,6 +1,6 @@
 {
   "tool": "tools/snow-burgers/playthrough-windows.cjs",
-  "url": "http://127.0.0.1:5192/?course=whiteout-ridge&event=avalanche-special&autopause=off",
+  "url": "http://127.0.0.1:5193/?course=whiteout-ridge&event=avalanche-special&autopause=off",
   "viewport": {
     "width": 2560,
     "height": 1440
@@ -75,11 +75,11 @@
         "stars": 4,
         "grade": "Summit Stack",
         "splits": {
-          "cheese": 4.1586000000238315,
-          "onion": 10.340400000005937,
-          "patty": 19.209000000000174,
-          "tomato": 28.755400000006507,
-          "lettuce": 37.132700000018765
+          "cheese": 4.157399999976145,
+          "onion": 10.345999999999972,
+          "patty": 19.211399999976262,
+          "tomato": 28.75850000000048,
+          "lettuce": 37.137100000024674
         },
         "detail": {
           "airTime": 0,

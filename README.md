@@ -94,12 +94,19 @@ npm run build
 npm run preview
 ```
 
-Rebuild and validate the editable RockerKaki Blender rig with:
+Rebuild the clean local RockerKaki source and validate its editable Blender rig
+with:
 
 ```bash
+blender --background --factory-startup --python tools/generate-rockerkaki.py
 blender --background --factory-startup --python tools/rig-rockerkaki.py
 blender --background --factory-startup --python tools/validate-rockerkaki-rig.py
 ```
+
+The source uses only Blender primitives and the repository-local 64×64 palette;
+it imports no geometry or texture and calls no network or background-removal
+service. Exact source/runtime hashes and the generation record are in
+`art/generated-assets/rockerkaki/GENERATION_RECORD.json`.
 
 ## Controls
 
@@ -300,16 +307,16 @@ photographs the trench from behind each time:
 ## Hero selection
 
 RockerKaki is the playable default and Snowbound can be selected from the F1
-overlay. The supplied seated RockerKaki asset has no skeleton, skin, morphs,
-or animation clips, so its movement is driven by the shared player controller,
-terrain contact, surf lean, and effects rather than a fabricated skeletal walk
-cycle. The snowboard belongs to RockerKaki: she is authored seated, and the
+overlay. The clean RockerKaki source is a local Blender primitive model with
+one material, 12,928 triangles, 8,962 exported rig vertices, and a nine-deform-bone
+editable rig with the `RockerBreath` action. Runtime keeps the authored pose
+rigid because its disconnected face, hair, and guitar surfaces must not
+stretch; ride, carve, jump, and landing motion is applied to the complete
+model. The snowboard belongs to RockerKaki: she is authored seated, and the
 board is what she is seated on. Snowbound stands and keeps its planted-foot
 gait.
 
-[ASSETS.md](./ASSETS.md) records the recovered Grok Imagine to Tencent HY 3D
-provenance and required AI disclosure. Do not publish a commercial build
-containing this model until the remove.bg account tier in its source chain is
-confirmed or that uncertain processing step is replaced. Generated replacement
-assets are documented separately; possession of a local file is not treated as
-redistribution permission.
+[ASSETS.md](./ASSETS.md) records the clean source chain and exact hashes. The
+former Grok Imagine → remove.bg → Tencent HY 3D chain is retained there as
+rejected, non-runtime audit history; its uncertain remove.bg account tier does
+not apply to the current local replacement.

@@ -1,10 +1,11 @@
 # Final runtime matrix
 
-Date: 2026-08-07
+Date: 2026-08-08
 Branch: `feat/final-polish-gauntlet`
-Build source: current working tree after the release-route safety correction,
-course definition version 2, and `npm run build`.
-Preview: Vite production preview at `http://127.0.0.1:5192`
+Build source: current working tree after the clean local RockerKaki promotion,
+camera rail-clearance correction, Big Air HUD readability pass, course
+definition version 2, and `npm run build`.
+Preview: Vite production preview at `http://127.0.0.1:5193`
 Placement server: Vite development server at `http://127.0.0.1:5191` (the
 placement harness requires source-module imports and explicitly rejects a
 production bundle).
@@ -18,14 +19,14 @@ WSL runner: Ubuntu 22.04, Node `v22.22.1`, Vite `8.1.5`.
 | Check | Command | Exit | Evidence |
 | --- | --- | ---: | --- |
 | Production build | `npm run build` | 0 | command output; `dist/` |
-| Production boot smoke | `npm run smoke:browser -- --url http://127.0.0.1:5192 --out reports/final-gauntlet/final-runtime/browser-smoke` | 0 | [`browser-smoke/report.json`](browser-smoke/report.json) |
+| Production boot smoke | `npm run smoke:browser -- --url http://127.0.0.1:5193 --out reports/final-gauntlet/rockerkaki-clean/final-browser-smoke` | 0 | [`final-browser-smoke/report.json`](../rockerkaki-clean/final-browser-smoke/report.json) |
 | Summit placement | `node.exe tools/snow-burgers/validate-placement-windows.cjs --url http://127.0.0.1:5191 --course summit-line --seeds 100 --out reports/final-gauntlet/final-runtime/placement/summit.json` | 0 | [`placement/summit.json`](placement/summit.json) |
 | Pinecone placement | same harness, `--course pinecone-pass` | 0 | [`placement/pinecone.json`](placement/pinecone.json) |
 | Glacier placement | same harness, `--course glacier-gorge` | 0 | [`placement/glacier.json`](placement/glacier.json) |
 | Midnight placement | same harness, `--course midnight-resort` | 0 | [`placement/midnight.json`](placement/midnight.json) |
 | Whiteout placement | same harness, `--course whiteout-ridge --required cheese,onion,patty,tomato,lettuce` | 0 | [`placement/whiteout.json`](placement/whiteout.json) |
 | Big Air placement | same harness, `--course big-air-basin --required cheese,onion,patty,tomato,lettuce` | 0 | [`placement/big-air.json`](placement/big-air.json) |
-| Twelve event runs | `node.exe tools/snow-burgers/playthrough-windows.cjs --url "http://127.0.0.1:5192/?course=<course>&event=<event>&autopause=off" --out reports/final-gauntlet/final-runtime/events/<event> --seeds 1 --limit 180 --vehicle <registered vehicle> --width 2560 --height 1440` | 0 for all 12 | per-event reports and captures below |
+| Twelve event runs | `node.exe tools/snow-burgers/playthrough-windows.cjs --url "http://127.0.0.1:5193/?course=<course>&event=<event>&autopause=off" --out reports/final-gauntlet/final-runtime/events/<event> --seeds 1 --limit 180 --vehicle <registered vehicle> --width 2560 --height 1440` | 0 for all 12 | per-event reports and captures below |
 
 The placement sweep intentionally uses the development server because its
 independent validator imports the source placement module after the real GPU
@@ -48,18 +49,18 @@ every event contains a signature jump.
 
 | Course | Event | Vehicle | Ingredients | Time | Medal | Flight HUD | Evidence |
 | --- | --- | --- | ---: | ---: | --- | --- | --- |
-| Summit Line | The Summit Stack (`summit-stack`) | classic | 4/4 | 31.48 s | Gold | no | [`event report`](events/summit-stack/playthrough-report.json) |
+| Summit Line | The Summit Stack (`summit-stack`) | classic | 4/4 | 31.53 s | Gold | no | [`event report`](events/summit-stack/playthrough-report.json) |
 | Summit Line | Summit Gold (`summit-gold`) | classic | 2/2 | 31.04 s | Gold | no | [`event report`](events/summit-gold/playthrough-report.json) |
-| Summit Line | Rocket Reheat (`rocket-reheat`) | rocket chair | 4/4 | 28.00 s | Gold | no | [`event report`](events/rocket-reheat/playthrough-report.json) |
+| Summit Line | Rocket Reheat (`rocket-reheat`) | rocket chair | 4/4 | 27.99 s | Gold | no | [`event report`](events/rocket-reheat/playthrough-report.json) |
 | Pinecone Pass | The Timber Melt (`timber-melt`) | classic | 4/4 | 36.25 s | Gold | no | [`event report`](events/timber-melt/playthrough-report.json) |
 | Pinecone Pass | Branch Manager (`branch-manager`) | classic | 4/4 | 36.25 s | none | no | [`event report`](events/branch-manager/playthrough-report.json) |
-| Glacier Gorge | The Blue Plate (`blue-plate`) | classic | 4/4 | 39.14 s | Gold | no | [`event report`](events/blue-plate/playthrough-report.json) |
+| Glacier Gorge | The Blue Plate (`blue-plate`) | classic | 4/4 | 39.15 s | Gold | no | [`event report`](events/blue-plate/playthrough-report.json) |
 | Glacier Gorge | Handle With Care (`handle-with-care`) | classic | 4/4 | 39.14 s | Gold | no | [`event report`](events/handle-with-care/playthrough-report.json) |
-| Midnight Resort | The Night Shift (`night-shift`) | classic | 4/4 | 34.69 s | Gold | no | [`event report`](events/night-shift/playthrough-report.json) |
-| Midnight Resort | Park Order (`park-order`) | classic | 4/4 | 34.69 s | none | no | [`event report`](events/park-order/playthrough-report.json) |
+| Midnight Resort | The Night Shift (`night-shift`) | classic | 4/4 | 34.68 s | Gold | no | [`event report`](events/night-shift/playthrough-report.json) |
+| Midnight Resort | Park Order (`park-order`) | classic | 4/4 | 34.68 s | none | no | [`event report`](events/park-order/playthrough-report.json) |
 | Whiteout Ridge | The Avalanche Special (`avalanche-special`) | classic | 5/5 | 45.64 s | Gold | no | [`event report`](events/avalanche-special/playthrough-report.json) |
-| Whiteout Ridge | Five Alarm (`five-alarm`) | rocket chair | 5/5 | 43.12 s | Gold | no | [`event report`](events/five-alarm/playthrough-report.json) |
-| Big Air Basin | The Big Air Stack (`big-air-basin-stack`) | classic | 4/4 | 45.42 s | Gold | no | [`event report`](events/big-air-basin-stack/playthrough-report.json) |
+| Whiteout Ridge | Five Alarm (`five-alarm`) | rocket chair | 5/5 | 42.97 s | Gold | no | [`event report`](events/five-alarm/playthrough-report.json) |
+| Big Air Basin | The Big Air Stack (`big-air-basin-stack`) | classic | 4/4 | 45.42 s | Gold | yes | [`event report`](events/big-air-basin-stack/playthrough-report.json) |
 
 Raw event screenshots are retained in the local gauntlet workspace beside each
 matching `events/<event-id>/` report, including title, pickups, assembly,

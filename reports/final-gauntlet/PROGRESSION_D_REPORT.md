@@ -31,7 +31,7 @@ separate. No progression/endgame P0/P1 remains in the accepted slice.
 
 - D-focused tests (`tests/progression.test.mjs`, `tests/save-v2.test.mjs`): 26
   passed, 0 failed. The full suite at D2 time was 157 passed, 0 failed; the
-  final converged package rerun passes 182/182.
+  final converged package rerun passes 183/183.
 - `npm run build`: passed; only the existing large Babylon chunk warning.
 - Historical D2 browser smoke snapshot: `reports/browser-smoke-local/report.json`
   recorded zero console/page errors for that accepted boot/presentation scope;

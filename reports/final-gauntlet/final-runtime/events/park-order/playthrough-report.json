@@ -1,6 +1,6 @@
 {
   "tool": "tools/snow-burgers/playthrough-windows.cjs",
-  "url": "http://127.0.0.1:5192/?course=midnight-resort&event=park-order&autopause=off",
+  "url": "http://127.0.0.1:5193/?course=midnight-resort&event=park-order&autopause=off",
   "viewport": {
     "width": 2560,
     "height": 1440
@@ -60,29 +60,29 @@
       "blocked": null,
       "result": {
         "completed": true,
-        "time": 34.69,
+        "time": 34.68,
         "medal": null,
         "style": 32,
         "integrity": 100,
         "stars": 3,
         "grade": "Lodge Special",
         "splits": {
-          "cheese": 3.4363000000119075,
-          "patty": 9.093300000011874,
-          "tomato": 26.373500000000607,
-          "lettuce": 31.35010000002466
+          "cheese": 3.4336000000238283,
+          "patty": 9.08849999999995,
+          "tomato": 26.37119999998845,
+          "lettuce": 31.348399999976827
         },
         "detail": {
           "airTime": 0,
           "airShare": 0,
           "carve": 0.148,
           "pace": 1,
-          "pipeTime": 3.08,
+          "pipeTime": 3.09,
           "routeRisk": 0.413,
           "landings": 0,
           "hardLandings": 0,
           "worstLanding": 0,
-          "distance": 628
+          "distance": 628.1
         },
         "bigAirFlight": null,
         "rocket": 0,

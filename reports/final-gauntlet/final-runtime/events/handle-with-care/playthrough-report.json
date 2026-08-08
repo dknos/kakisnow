@@ -1,6 +1,6 @@
 {
   "tool": "tools/snow-burgers/playthrough-windows.cjs",
-  "url": "http://127.0.0.1:5192/?course=glacier-gorge&event=handle-with-care&autopause=off",
+  "url": "http://127.0.0.1:5193/?course=glacier-gorge&event=handle-with-care&autopause=off",
   "viewport": {
     "width": 2560,
     "height": 1440
@@ -67,10 +67,10 @@
         "stars": 4,
         "grade": "Summit Stack",
         "splits": {
-          "cheese": 6.130699999988035,
-          "patty": 19.325599999994353,
-          "tomato": 28.001599999994696,
-          "lettuce": 33.19319999998893
+          "cheese": 6.133999999999982,
+          "patty": 19.329000000000054,
+          "tomato": 27.999300000012177,
+          "lettuce": 33.195199999988574
         },
         "detail": {
           "airTime": 0,

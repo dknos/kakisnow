@@ -1,6 +1,6 @@
 {
   "tool": "tools/snow-burgers/playthrough-windows.cjs",
-  "url": "http://127.0.0.1:5192/?course=summit-line&event=summit-gold&autopause=off",
+  "url": "http://127.0.0.1:5193/?course=summit-line&event=summit-gold&autopause=off",
   "viewport": {
     "width": 2560,
     "height": 1440
@@ -33,7 +33,7 @@
         "cheese",
         "lettuce"
       ],
-      "lastZ": 551.8,
+      "lastZ": 551.9,
       "flightHud": {
         "on": false,
         "text": "Big Air flight\n    AIR · 0.00 S"
@@ -51,8 +51,8 @@
         "stars": 4,
         "grade": "Summit Stack",
         "splits": {
-          "cheese": 8.905299999982088,
-          "lettuce": 24.208599999994505
+          "cheese": 8.9101000000238,
+          "lettuce": 24.207399999976413
         },
         "detail": {
           "airTime": 0,

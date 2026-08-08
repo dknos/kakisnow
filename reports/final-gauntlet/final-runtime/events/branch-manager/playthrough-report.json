@@ -1,6 +1,6 @@
 {
   "tool": "tools/snow-burgers/playthrough-windows.cjs",
-  "url": "http://127.0.0.1:5192/?course=pinecone-pass&event=branch-manager&autopause=off",
+  "url": "http://127.0.0.1:5193/?course=pinecone-pass&event=branch-manager&autopause=off",
   "viewport": {
     "width": 2560,
     "height": 1440
@@ -49,7 +49,7 @@
         "tomato",
         "lettuce"
       ],
-      "lastZ": 600.1,
+      "lastZ": 600.2,
       "flightHud": {
         "on": false,
         "text": "Big Air flight\n    AIR · 0.00 S"
@@ -67,10 +67,10 @@
         "stars": 2,
         "grade": "Sloppy Stack",
         "splits": {
-          "cheese": 5.328999999999973,
-          "patty": 13.238000000000063,
-          "tomato": 21.383000000000337,
-          "lettuce": 28.87720000001846
+          "cheese": 5.331899999976143,
+          "patty": 13.24229999995229,
+          "tomato": 21.389899999976375,
+          "lettuce": 28.879899999976626
         },
         "detail": {
           "airTime": 0,
@@ -82,7 +82,7 @@
           "landings": 0,
           "hardLandings": 0,
           "worstLanding": 0,
-          "distance": 676.1
+          "distance": 676
         },
         "bigAirFlight": null,
         "rocket": 0,

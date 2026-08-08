@@ -1,6 +1,6 @@
 {
   "tool": "tools/snow-burgers/playthrough-windows.cjs",
-  "url": "http://127.0.0.1:5192/?course=whiteout-ridge&event=five-alarm&autopause=off",
+  "url": "http://127.0.0.1:5193/?course=whiteout-ridge&event=five-alarm&autopause=off",
   "viewport": {
     "width": 2560,
     "height": 1440
@@ -57,7 +57,7 @@
         "tomato",
         "lettuce"
       ],
-      "lastZ": 592.1,
+      "lastZ": 592.2,
       "flightHud": {
         "on": false,
         "text": "Big Air flight\n    AIR · 0.00 S"
@@ -68,33 +68,33 @@
       "blocked": null,
       "result": {
         "completed": true,
-        "time": 43.12,
+        "time": 42.97,
         "medal": "gold",
-        "style": 29,
+        "style": 32,
         "integrity": 100,
         "stars": 4,
         "grade": "Summit Stack",
         "splits": {
-          "cheese": 3.3834999999999833,
-          "onion": 9.236199999988063,
-          "patty": 17.746599999994167,
-          "tomato": 26.929099999994524,
-          "lettuce": 34.97769999998879
+          "cheese": 3.3841000000238335,
+          "onion": 9.23919999998805,
+          "patty": 17.64200000000003,
+          "tomato": 26.823899999976504,
+          "lettuce": 34.87439999997678
         },
         "detail": {
-          "airTime": 0,
-          "airShare": 0,
-          "carve": 0.189,
+          "airTime": 1.13,
+          "airShare": 0.026,
+          "carve": 0.19,
           "pace": 1,
           "pipeTime": 0,
           "routeRisk": 0.5,
-          "landings": 0,
+          "landings": 3,
           "hardLandings": 0,
-          "worstLanding": 0,
-          "distance": 848
+          "worstLanding": 0.98,
+          "distance": 848.1
         },
         "bigAirFlight": null,
-        "rocket": 74,
+        "rocket": 71,
         "notMeasured": []
       }
     }
@@ -103,9 +103,10 @@
     "00-title",
     "001-pickup-1-cheese",
     "001-pickup-2-onion",
-    "001-pickup-3-patty",
-    "001-pickup-4-tomato",
-    "001-pickup-5-lettuce",
+    "001-airborne-context",
+    "001-pickup-4-patty",
+    "001-pickup-5-tomato",
+    "001-pickup-6-lettuce",
     "001-assembly",
     "001-results"
   ],

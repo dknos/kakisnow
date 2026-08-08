@@ -1,6 +1,6 @@
 {
   "tool": "tools/snow-burgers/perf-game-layer-windows.cjs",
-  "url": "http://127.0.0.1:5192/?course=big-air-basin&mode=free-ride",
+  "url": "http://127.0.0.1:5193/?course=big-air-basin&mode=free-ride",
   "seconds": 10,
   "viewport": {
     "width": 2560,
@@ -8,27 +8,27 @@
   },
   "note": "Uncapped rAF presentation intervals in headless Windows Chrome. Useful for the delta between the two samples, not as an absolute frame cost.",
   "freeRideLab": {
-    "frames": 3967,
-    "mean": 2.52,
+    "frames": 3998,
+    "mean": 2.5,
     "median": 2.5,
-    "p95": 3.1,
-    "p99": 3.6,
-    "max": 5.1,
+    "p95": 3.2,
+    "p99": 3.8,
+    "max": 4.9,
     "drawCalls": 577,
-    "submittedTriangles": 2583404
+    "submittedTriangles": 2475116
   },
   "burgerRun": {
-    "frames": 2863,
-    "mean": 3.491,
+    "frames": 2816,
+    "mean": 3.549,
     "median": 3.5,
-    "p95": 4.4,
-    "p99": 5.4,
-    "max": 10.4,
+    "p95": 4.8,
+    "p99": 6.1,
+    "max": 11.3,
     "drawCalls": 635,
-    "submittedTriangles": 2594737
+    "submittedTriangles": 2486449
   },
   "gameTriangles": 2417,
   "gameMeshes": 44,
   "consoleErrors": [],
-  "deltaMeanMs": 0.971
+  "deltaMeanMs": 1.049
 }

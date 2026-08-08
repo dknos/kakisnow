@@ -28,9 +28,10 @@ branch; production deployment and merge remain owner-authorized steps.
   ambience, UI and master controls.
 - Promoted thirteen local procedural ingredient, burger, rocket-chair, camp and
   dressing derivatives with exact runtime/source hashes, source records and a
-  fixed expected-runtime manifest. Their conditional output terms are recorded
-  without asserting copyrightability, exclusivity or blanket commercial
-  clearance; the RockerKaki/remove.bg record remains the known strict blocker.
+  fixed expected-runtime manifest. Added a clean local procedural RockerKaki
+  source from Blender primitives and a 64×64 palette, with no imported
+  geometry/texture, network input, or remove.bg step; source and rig hashes are
+  recorded in `art/generated-assets/rockerkaki/GENERATION_RECORD.json`.
 - Added structured social-preview source/edited/runtime hashes, generation
   command record, terms links, disclosure and owner visual-review state.
 
@@ -50,15 +51,18 @@ branch; production deployment and merge remain owner-authorized steps.
   blockers is never represented as a plain release `pass`.
 - Recorded Windows Chrome/WebGPU event, camera, placement and presentation-
   interval evidence. See `GAUNTLET_PROGRESS.html` and `reports/`.
-- Revalidated the converged package with 182/182 tests, twelve of twelve
+- Revalidated the converged package with 183/183 tests, twelve of twelve
   production event completions, 600/600 real-heightfield placement seeds, and
-  a 74.560-second independently accepted gameplay showreel.
+  a 72.240-second independently accepted gameplay showreel recaptured on the
+  clean final RockerKaki runtime.
+- Made the Big Air live telemetry readable against bright landing snow and
+  retained the landing grade in the measured airtime/distance/peak strip.
 - Refreshed the transitive Vite/PostCSS `nanoid` lock from 3.3.16 to 3.3.18;
   the final clean install reports zero npm audit vulnerabilities.
 
-### Remaining before a commercial-ready release
+### Remaining release review gates
 
-- The RockerKaki remove.bg processing step is still an unresolved commercial
-  redistribution gate.
-- Exact target GPU profiling, physical controller/touch review, human audio
-  listening, and human colour-vision review remain documented gates.
+- Physical controller/touch ergonomics, human audio listening, human
+  colour-vision review, and exact target-GPU profiling remain owner/device
+  checks. Automated WebGPU and presentation-interval evidence does not claim
+  those physical certifications.

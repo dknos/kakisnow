@@ -1,0 +1,113 @@
+{
+  "url": "http://127.0.0.1:5193/?mode=free-ride",
+  "topology": {
+    "centre": {
+      "0": -0.022,
+      "62": 2.365,
+      "76": 0.231,
+      "82": -0.468,
+      "89": 0.102,
+      "186": -1.793,
+      "205": -1.848,
+      "214": 0.248,
+      "223": 3.81,
+      "280": 1.437,
+      "320": 0.295,
+      "360": 2.515,
+      "410": 0.247,
+      "440": -3.072,
+      "472": -4.857,
+      "480": -1.966,
+      "520": -0.366
+    },
+    "pipes": [
+      {
+        "z": 320,
+        "left": 4.908,
+        "centre": 0.295,
+        "right": 4.908
+      },
+      {
+        "z": 430,
+        "left": 4.882,
+        "centre": 0.667,
+        "right": 4.882
+      }
+    ],
+    "minHeight": -14.585033416748047,
+    "maxHeight": 16.969100952148438,
+    "maxTwoMetreDrop": 1.095
+  },
+  "rig": {
+    "rigged": true,
+    "boneCount": 9,
+    "boneNames": [
+      "pelvis",
+      "spine",
+      "chest",
+      "neck",
+      "head",
+      "arm.L",
+      "arm.R",
+      "leg.L",
+      "leg.R"
+    ],
+    "jointDrivers": 8,
+    "hasIndices": true,
+    "hasWeights": true,
+    "animationGroups": [
+      "RockerBreath"
+    ]
+  },
+  "rideAnimation": {
+    "armRadians": 0.0005143842897315742,
+    "rootTravel": 0.030657436594089402,
+    "tiltTravel": 0.17742940965138998
+  },
+  "spaceJump": {
+    "grounded": false,
+    "airborne": true,
+    "clearance": 1.3373165150186102,
+    "verticalVelocity": 1.0876499995589257,
+    "hud": "AIR · 1.3 M",
+    "rigPose": "air",
+    "visualPitch": -0.12928014896629797,
+    "visualYaw": 0.16679326048567558,
+    "visualRoll": 0.036457479502460866
+  },
+  "landingAnimation": {
+    "pose": 0.7241050000220536,
+    "state": "land"
+  },
+  "naturalJump": {
+    "z": 53.64993224250955,
+    "y": 5.696996518897184,
+    "groundY": 3.1214041506057955,
+    "clearance": 2.575592368291389,
+    "verticalVelocity": 3.436443073418853,
+    "speed": 19.431599224027334,
+    "jumpCount": 1
+  },
+  "traverse": {
+    "finishZ": 522.7056916344312,
+    "minForwardSpeed": 13.167121378487023,
+    "maxStalledSeconds": 0,
+    "jumps": 31,
+    "samples": 54
+  },
+  "runtime": {
+    "adapter": {},
+    "fps": 59.98800239666042,
+    "render": [
+      1920,
+      1080
+    ],
+    "hero": "rockerkaki",
+    "hud": {
+      "feature": "AIR · 0.6 M",
+      "distance": "520 / 520 M"
+    }
+  },
+  "consoleErrors": [],
+  "gpuErrors": []
+}

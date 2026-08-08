@@ -1,6 +1,6 @@
 {
   "tool": "tools/snow-burgers/playthrough-windows.cjs",
-  "url": "http://127.0.0.1:5192/?course=pinecone-pass&event=timber-melt&autopause=off",
+  "url": "http://127.0.0.1:5193/?course=pinecone-pass&event=timber-melt&autopause=off",
   "viewport": {
     "width": 2560,
     "height": 1440
@@ -49,7 +49,7 @@
         "tomato",
         "lettuce"
       ],
-      "lastZ": 600.2,
+      "lastZ": 600.1,
       "flightHud": {
         "on": false,
         "text": "Big Air flight\n    AIR · 0.00 S"
@@ -62,27 +62,27 @@
         "completed": true,
         "time": 36.25,
         "medal": "gold",
-        "style": 27,
+        "style": 29,
         "integrity": 100,
         "stars": 4,
         "grade": "Summit Stack",
         "splits": {
-          "cheese": 5.325499999999978,
-          "patty": 13.235400000006022,
-          "tomato": 21.38000000000026,
-          "lettuce": 28.875400000006458
+          "cheese": 5.330300000011899,
+          "patty": 13.238300000011902,
+          "tomato": 21.38590000003598,
+          "lettuce": 28.878800000012355
         },
         "detail": {
-          "airTime": 0,
-          "airShare": 0,
-          "carve": 0.119,
+          "airTime": 0.73,
+          "airShare": 0.02,
+          "carve": 0.12,
           "pace": 1,
           "pipeTime": 0,
           "routeRisk": 0.413,
-          "landings": 0,
+          "landings": 1,
           "hardLandings": 0,
-          "worstLanding": 0,
-          "distance": 676.1
+          "worstLanding": 0.81,
+          "distance": 676
         },
         "bigAirFlight": null,
         "rocket": 0,
@@ -96,8 +96,9 @@
     "00-title",
     "001-pickup-1-cheese",
     "001-pickup-2-patty",
-    "001-pickup-3-tomato",
-    "001-pickup-4-lettuce",
+    "001-airborne-context",
+    "001-pickup-4-tomato",
+    "001-pickup-5-lettuce",
     "001-assembly",
     "001-results"
   ],

@@ -145,5 +145,5 @@ allocation contract.
   pause/focus transitions remain release acceptance checks on physical
   speakers/headphones. Automated captions and bus tests do not substitute for
   human listening.
-- The packaged 74.560-second gameplay showreel has no audio stream. It proves
+- The packaged 72.240-second gameplay showreel has no audio stream. It proves
   visual state and pacing only and is not cited as mix or soundtrack evidence.

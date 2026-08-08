@@ -1,6 +1,6 @@
 {
   "tool": "tools/snow-burgers/playthrough-windows.cjs",
-  "url": "http://127.0.0.1:5192/?course=summit-line&event=rocket-reheat&autopause=off",
+  "url": "http://127.0.0.1:5193/?course=summit-line&event=rocket-reheat&autopause=off",
   "viewport": {
     "width": 2560,
     "height": 1440
@@ -49,7 +49,7 @@
         "tomato",
         "lettuce"
       ],
-      "lastZ": 551.9,
+      "lastZ": 551.8,
       "flightHud": {
         "on": false,
         "text": "Big Air flight\n    AIR · 0.00 S"
@@ -60,17 +60,17 @@
       "blocked": null,
       "result": {
         "completed": true,
-        "time": 28,
+        "time": 27.99,
         "medal": "gold",
         "style": 38,
         "integrity": 100,
         "stars": 4,
         "grade": "Summit Stack",
         "splits": {
-          "cheese": 6.791300000011877,
-          "patty": 12.44970000001791,
-          "tomato": 17.734500000000168,
-          "lettuce": 23.322200000018245
+          "cheese": 6.783700000047647,
+          "patty": 12.44880000001186,
+          "tomato": 17.7327000000477,
+          "lettuce": 23.312800000012096
         },
         "detail": {
           "airTime": 0,
@@ -82,7 +82,7 @@
           "landings": 0,
           "hardLandings": 0,
           "worstLanding": 0,
-          "distance": 548.1
+          "distance": 548
         },
         "bigAirFlight": null,
         "rocket": 67,

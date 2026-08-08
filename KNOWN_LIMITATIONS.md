@@ -20,10 +20,10 @@ promise that an unmeasured behavior is finished.
 
 ## Provenance and release scope
 
-- RockerKaki's source chain includes an unresolved remove.bg account/plan
-  question. Until the account tier is confirmed or that processing step is
-  replaced with a clean owner-controlled derivative, commercial
-  redistribution remains blocked.
+- The active RockerKaki runtime source is a clean owner-controlled Blender
+  primitive replacement with a local palette and no remove.bg/network/imported
+  geometry or texture step. The former Grok/remove.bg/Tencent chain remains
+  documented as rejected, non-runtime audit history in `ASSETS.md`.
 - The thirteen promoted Snow-Burgers ingredient, burger, rocket-chair, camp
   and dressing derivatives are checked by the structured expected-runtime
   manifest with exact runtime/source hashes. Their local procedural generation
@@ -47,12 +47,16 @@ promise that an unmeasured behavior is finished.
   accessibility/control, release-gating, showreel, and final integration
   reviews cover the converged product. Those automated and critic passes do
   not replace the physical/human sign-offs listed above.
-- The current branch is reviewable work in progress. No merge, Pages publish
+- The current branch is a reviewable release candidate. No merge, Pages publish
   or public release is implied by this document.
-- A 74.560-second 1280×720 VP8 showreel is captured and independently passes
+- A 72.240-second 1280×720 VP8 showreel is captured and independently passes
   the 60–90 second duration, required-beat, transition, and error gates. It has
   no audio stream and is visual presentation evidence only.
+- In the darkest Midnight/Whiteout chase views, RockerKaki's small outfit and
+  guitar details reduce to silhouette. The pale rear hair streak, horns, board,
+  route, and HUD remain readable; the independent runtime critic classified
+  this as a non-blocking P2 presentation limitation.
 - Physical controller and touch-device ergonomics, human audio listening,
   human colour-vision review, and exact target-GPU certification remain release
-  gates. The strict validator intentionally exits 1 for exactly the
-  RockerKaki/remove.bg hero-provenance record.
+  gates. These are external device/human checks, not unresolved runtime asset
+  provenance.

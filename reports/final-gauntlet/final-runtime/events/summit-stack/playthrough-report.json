@@ -1,6 +1,6 @@
 {
   "tool": "tools/snow-burgers/playthrough-windows.cjs",
-  "url": "http://127.0.0.1:5192/?course=summit-line&event=summit-stack&autopause=off",
+  "url": "http://127.0.0.1:5193/?course=summit-line&event=summit-stack&autopause=off",
   "viewport": {
     "width": 2560,
     "height": 1440
@@ -60,28 +60,28 @@
       "blocked": null,
       "result": {
         "completed": true,
-        "time": 31.48,
+        "time": 31.53,
         "medal": "gold",
-        "style": 37,
-        "integrity": 100,
+        "style": 40,
+        "integrity": 36,
         "stars": 4,
         "grade": "Summit Stack",
         "splits": {
-          "cheese": 8.90599999999997,
-          "patty": 14.930700000017968,
-          "tomato": 20.53970000001815,
-          "lettuce": 26.47960000002427
+          "cheese": 8.903699999988053,
+          "patty": 14.932899999976142,
+          "tomato": 20.588699999988258,
+          "lettuce": 26.531800000012314
         },
         "detail": {
-          "airTime": 0,
-          "airShare": 0,
-          "carve": 0.14,
+          "airTime": 0.89,
+          "airShare": 0.028,
+          "carve": 0.139,
           "pace": 1,
-          "pipeTime": 6.13,
+          "pipeTime": 6.14,
           "routeRisk": 0.4,
-          "landings": 0,
-          "hardLandings": 0,
-          "worstLanding": 0,
+          "landings": 1,
+          "hardLandings": 1,
+          "worstLanding": 1.5,
           "distance": 548
         },
         "bigAirFlight": null,
@@ -96,8 +96,9 @@
     "00-title",
     "001-pickup-1-cheese",
     "001-pickup-2-patty",
-    "001-pickup-3-tomato",
-    "001-pickup-4-lettuce",
+    "001-airborne-context",
+    "001-pickup-4-tomato",
+    "001-pickup-5-lettuce",
     "001-assembly",
     "001-results"
   ],

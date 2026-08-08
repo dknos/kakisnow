@@ -1,8 +1,8 @@
 # Final camera matrix
 
-Date: 2026-08-07
+Date: 2026-08-08
 Branch: `feat/final-polish-gauntlet`
-Build: converged production preview at `http://127.0.0.1:5192`
+Build: clean-hero final production preview at `http://127.0.0.1:5193`
 Runtime: installed Windows Chrome/WebGPU
 Result: **PASS**
 
@@ -33,20 +33,21 @@ not a claim that scripted staging replaces unrestricted human play.
 | Camera below terrain | 0 frames | 0 | pass |
 | Camera inside sampled solid | 0 frames | 0 | pass |
 | Alternating arm-distance windows | 0 | 0 | pass |
-| Camera translation rate | 105.645 m/s, Midnight rail correction | 140 m/s | pass |
-| Yaw rate | 0.338 rad/s | 16 rad/s | pass |
-| Pitch rate | 1.370 rad/s | 16 rad/s | pass |
-| Spring distance rate | 20.469 m/s, Glacier finish | 90 m/s | pass |
-| Obstacle-arm compression | 8.413 m, Midnight rail | measured, no intersection | pass |
+| Camera translation rate | 112.683 m/s, Midnight rail correction | 140 m/s | pass |
+| Yaw rate | 0.248 rad/s | 16 rad/s | pass |
+| Pitch rate | 1.421 rad/s | 16 rad/s | pass |
+| Spring distance rate | 19.464 m/s, Big Air finish | 90 m/s | pass |
+| Obstacle-arm compression | 8.494 m, Midnight rail | measured, no intersection | pass |
 | Console errors | 0 | 0 | pass |
 | WebGPU validation errors | 0 | 0 | pass |
 | Failed requests | 0 | 0 | pass |
 
 The live snowcat reached a normalized proximity of `0.664` (approximately
 20.2 m from the rider under the harness's 60 m scale). The staged avalanche
-held a minimum measured lead of `18.023 m`. All four Big Air aspect/motion
+held a minimum measured lead of `18.019 m`. All four Big Air aspect/motion
 scenarios entered both authoritative flight and predictive-framing states;
-the minimum sampled camera clearance above terrain was `0.434 m`.
+the minimum sampled camera clearance above terrain was `0.367 m`. The nearest
+sampled solid clearance was `0.3066 m` against the `0.30 m` rejection volume.
 
 ## Pixel inspection
 
@@ -72,8 +73,9 @@ Representative compressed evidence:
 
 The complete per-frame record is
 [`camera-matrix-report.json`](camera-matrix-report.json). Raw PNGs remain local
-under `captures/`; the review branch should carry the compact representative
-WebPs rather than all redundant source frames.
+under the exact-build report's `captures/`; the review
+branch carries compact representative WebPs rather than all redundant source
+frames.
 
 ## Limits
 

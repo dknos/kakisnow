@@ -1,6 +1,6 @@
 {
   "generatedBy": "tools/validate-release.mjs",
-  "generatedAt": "2026-08-08T02:26:20.605Z",
+  "generatedAt": "2026-08-08T14:47:54.096Z",
   "strict": false,
   "checks": [
     "registry",
@@ -12,13 +12,8 @@
     "events": 12,
     "tapes": 18
   },
-  "status": "report-only-with-blockers",
-  "blockers": [
-    {
-      "name": "assets.hero-provenance",
-      "message": "RockerKaki still has an unresolved remove.bg commercial-use record"
-    }
-  ],
+  "status": "report-only-pass",
+  "blockers": [],
   "reportPath": "reports/release-validation-report-only.json",
   "checksRun": [
     {
@@ -71,8 +66,9 @@
     },
     {
       "name": "assets.hero-provenance",
-      "status": "warning",
-      "message": "RockerKaki still has an unresolved remove.bg commercial-use record"
+      "status": "pass",
+      "generationRecord": "art/generated-assets/rockerkaki/GENERATION_RECORD.json",
+      "inputs": 0
     },
     {
       "name": "docs.required",
@@ -173,11 +169,6 @@
       "status": "pass"
     }
   ],
-  "warnings": [
-    {
-      "name": "assets.hero-provenance",
-      "message": "RockerKaki still has an unresolved remove.bg commercial-use record"
-    }
-  ],
+  "warnings": [],
   "errors": []
 }

@@ -1,6 +1,6 @@
 {
   "tool": "tools/snow-burgers/perf-game-layer-windows.cjs",
-  "url": "http://127.0.0.1:5192/?course=whiteout-ridge&mode=free-ride",
+  "url": "http://127.0.0.1:5193/?course=whiteout-ridge&mode=free-ride",
   "seconds": 10,
   "viewport": {
     "width": 2560,
@@ -8,27 +8,27 @@
   },
   "note": "Uncapped rAF presentation intervals in headless Windows Chrome. Useful for the delta between the two samples, not as an absolute frame cost.",
   "freeRideLab": {
-    "frames": 5413,
-    "mean": 1.847,
+    "frames": 5338,
+    "mean": 1.873,
     "median": 1.8,
     "p95": 2.6,
     "p99": 3.2,
-    "max": 8.5,
+    "max": 9,
     "drawCalls": 402,
-    "submittedTriangles": 2165896
+    "submittedTriangles": 2057608
   },
   "burgerRun": {
-    "frames": 3653,
-    "mean": 2.736,
+    "frames": 3627,
+    "mean": 2.756,
     "median": 2.7,
-    "p95": 3.5,
-    "p99": 4.3,
-    "max": 10.3,
+    "p95": 3.6,
+    "p99": 4.7,
+    "max": 10.4,
     "drawCalls": 522,
-    "submittedTriangles": 2184571
+    "submittedTriangles": 2076283
   },
   "gameTriangles": 3117,
   "gameMeshes": 54,
   "consoleErrors": [],
-  "deltaMeanMs": 0.889
+  "deltaMeanMs": 0.883
 }

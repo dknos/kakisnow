@@ -1,6 +1,6 @@
 {
   "tool": "tools/snow-burgers/playthrough-windows.cjs",
-  "url": "http://127.0.0.1:5192/?course=big-air-basin&event=big-air-basin-stack&autopause=off",
+  "url": "http://127.0.0.1:5193/?course=big-air-basin&event=big-air-basin-stack&autopause=off",
   "viewport": {
     "width": 2560,
     "height": 1440
@@ -52,11 +52,11 @@
       "lastZ": 564,
       "flightHud": {
         "on": false,
-        "text": "Big Air flight\n    AIR 2.54 S · 49.4 M · PEAK 19.0 M"
+        "text": "Big Air flight\n    AIR 2.53 S · 49.3 M · PEAK 18.6 M"
       },
       "flightHudSeen": {
         "on": true,
-        "text": "Big Air flight\n    AIR 2.54 S · 49.4 M · PEAK 19.0 M"
+        "text": "Big Air flight\n    AIR 2.53 S · 49.3 M · PEAK 18.6 M"
       },
       "airborneObserved": false,
       "fuelAtFinish": 1,
@@ -65,34 +65,34 @@
         "completed": true,
         "time": 45.42,
         "medal": "gold",
-        "style": 44,
-        "integrity": 73,
+        "style": 47,
+        "integrity": 75,
         "stars": 4,
         "grade": "Summit Stack",
         "splits": {
-          "cheese": 5.25820000001786,
-          "patty": 12.59490000000591,
-          "tomato": 21.746400000006098,
-          "lettuce": 40.350700000018705
+          "cheese": 5.254299999952308,
+          "patty": 12.601899999976128,
+          "tomato": 21.744099999964405,
+          "lettuce": 40.34719999998894
         },
         "detail": {
-          "airTime": 3.45,
-          "airShare": 0.076,
+          "airTime": 4.47,
+          "airShare": 0.098,
           "carve": 0.025,
           "pace": 1,
           "pipeTime": 20.2,
           "routeRisk": 0.375,
-          "landings": 6,
+          "landings": 7,
           "hardLandings": 2,
           "worstLanding": 1.5,
-          "distance": 860
+          "distance": 860.1
         },
         "bigAirFlight": {
           "vehicle": "classic-snowboard",
-          "airtime": 2.54,
-          "distance": 49.4,
+          "airtime": 2.53,
+          "distance": 49.3,
           "maxHeight": 2.1,
-          "maxClearance": 19,
+          "maxClearance": 18.6,
           "trick": null,
           "trickScore": 0,
           "landingGrade": "sketchy",
@@ -108,8 +108,8 @@
   "screenshots": [
     "00-title",
     "001-pickup-1-cheese",
-    "001-pickup-2-patty",
     "001-airborne-context",
+    "001-pickup-3-patty",
     "001-pickup-4-tomato",
     "001-big-air-flight",
     "001-pickup-6-lettuce",

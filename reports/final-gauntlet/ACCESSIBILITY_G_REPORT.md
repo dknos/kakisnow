@@ -46,7 +46,7 @@ Status: **independent PASS — automated/runtime evidence accepted; live device 
 ## Deterministic evidence
 
 The focused G critic run passed 180/180 tests and build. The final converged
-package rerun passes 182/182; `npm run build` passes.
+package rerun passes 183/183; `npm run build` passes.
 Focused coverage includes radial pad behavior,
 keyboard conflicts and reserved keys, corrupt-map recovery, reset, input-family
 hysteresis and identity classification, settings bounds, source-release clearing,

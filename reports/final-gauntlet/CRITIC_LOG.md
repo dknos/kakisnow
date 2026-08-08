@@ -522,5 +522,86 @@ player-facing defect requiring revision.
 
 Disposition: PASS. Physical gamepad/touch, human ride-feel/listening/
 colour-vision/reduced-motion comfort, and exact target-GPU certification remain
-external gates. RockerKaki/remove.bg remains a rights blocker, not an
-integration defect.
+external gates. The former RockerKaki/remove.bg chain is retained only as
+rejected, non-runtime audit history; the clean local source supersedes it and
+passes strict provenance validation.
+
+## Clean RockerKaki replacement — source, rig, and runtime gauntlet
+
+Intent: remove the last active rights ambiguity without replacing RockerKaki's
+identity or weakening the KAKISNOW runtime.
+
+The builder produced a local Blender-primitives source, locally authored 64×64
+palette, deterministic source/rigged GLBs, exact rig validator, and fail-closed
+release-provenance gate. Empty external geometry/texture/network inputs are
+recorded in the generation record. Two clean Blender processes produced
+byte-identical GLBs. Khronos validation initially exposed one skinned-mesh
+hierarchy warning; the builder changed the mesh and armature to sibling scene
+roots, regenerated both files, and the fresh final reports reached zero errors,
+warnings, infos, and hints.
+
+Independent provenance, event, and runtime critics then checked the actual
+generation record, runtime manifest, GLBs, turntable pixels, downhill run,
+twelve-event matrix, camera matrix, and performance reports. A one-frame
+Midnight thin-rail clearance miss found by the exact camera suite was corrected
+by increasing the camera probe radius from 0.34 m to 0.38 m; the repeated matrix
+passed 20/20 with 0.306583 m minimum solid clearance against the 0.30 m bar.
+
+Disposition: PASS. The only remaining visual note is non-blocking P2 loss of
+small dark outfit/guitar detail in the darkest chase views; the pale hair
+streak, horns, board, route, HUD, and silhouette remain readable.
+
+## Final clean-hero showreel — Big Air correction loop
+
+Intent: prove the whole product journey in 60–90 seconds and show a real Big Air
+landing rather than ending on an unsupported label.
+
+The first clean-hero reel was rejected because it cut during the rocket-chair
+flight. Extending a timer exposed a staged trick-input crash. Removing the
+redundant trick input exposed a short pre-table settling hop that satisfied the
+old telemetry flag before the signature flight landed. The harness was changed
+to require an active signature flight, at least 30 m measured distance,
+`z > 330`, grounded non-crash touchdown, and live grade/telemetry DOM. Pixel
+critique then rejected the technically present 11 px strip as unreadable at
+native 720p. The shipped HUD was revised to a high-contrast, two-line 13–16 px
+broadcast strip with an explicit `LAND <GRADE>` read, and the general landing
+toast was enlarged.
+
+Fresh independent frame inspection accepted the final artifact:
+
+- 72.240 seconds, 1280×720 VP8 at 25 fps, 3,985,681 bytes;
+- SHA-256 `f47257d3de0b0450caed897749d9908274805f329f85b451d31cda42c2c37f57`;
+- title, order, riding/carve, pickup, trick, burger finish/results, avalanche,
+  rocket-chair takeoff/flight, actual touchdown/runout, readable AIR seconds/
+  distance/PEAK, explicit `LAND SKETCHY`, Burger Book totals, and Tour Complete;
+- zero manifest console errors, failed requests, WebGPU validation errors, or
+  device loss.
+
+Disposition: PASS after repeated independent rejection and correction. The
+WebM is silent visual evidence and retains ordinary motion-compression/fine-
+detail limits; neither is represented as audio or target-GPU certification.
+
+## Final integration/smoothing critic v2 — clean release candidate
+
+Intent: inspect the fully converged clean-hero tree and its actual product
+journey, pixels, video, measurements, provenance, and release package without
+relying on an earlier subsystem decision.
+
+The fresh critic independently verified 183/183 tests, strict release
+validation, all 12 registered event completions, 600/600 placement seeds, the
+20-scenario/2,235-frame camera matrix, the final 72.240-second showreel, the
+authored WebGPU-unavailable presentation, clean RockerKaki front/chase pixels,
+Burger Book totals, Tour Complete, 100%, continued play, notices, and CI/release
+documentation. It found no P0/P1 player-facing or release-integrity defect.
+
+The largest remaining release-integrity limitation is the already disclosed
+conditional output basis for the thirteen procedural replacement GLBs and
+social preview; the package does not overstate that basis as blanket commercial
+clearance. A minor P2 evidence-freshness note remains: the tracked Big Air
+event JSON records the in-flight strip before the later `LAND <GRADE>` wording,
+while its authoritative `bigAirFlight.landingGrade` field and the final
+showreel directly prove the shipped landing state.
+
+Disposition: PASS — **READY WITH DOCUMENTED LIMITATIONS**. The P2 JSON timing
+note does not justify another player-facing correction loop; the exact landing
+presentation is already captured and independently accepted.

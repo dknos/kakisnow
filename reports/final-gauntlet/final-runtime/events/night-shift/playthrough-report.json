@@ -1,6 +1,6 @@
 {
   "tool": "tools/snow-burgers/playthrough-windows.cjs",
-  "url": "http://127.0.0.1:5192/?course=midnight-resort&event=night-shift&autopause=off",
+  "url": "http://127.0.0.1:5193/?course=midnight-resort&event=night-shift&autopause=off",
   "viewport": {
     "width": 2560,
     "height": 1440
@@ -60,24 +60,24 @@
       "blocked": null,
       "result": {
         "completed": true,
-        "time": 34.69,
+        "time": 34.68,
         "medal": "gold",
         "style": 32,
         "integrity": 100,
         "stars": 4,
         "grade": "Summit Stack",
         "splits": {
-          "cheese": 3.437599999994021,
-          "patty": 9.090800000011873,
-          "tomato": 26.373900000006504,
-          "lettuce": 31.35050000000072
+          "cheese": 3.4382000000476745,
+          "patty": 9.091100000023797,
+          "tomato": 26.37270000004808,
+          "lettuce": 31.34950000000071
         },
         "detail": {
           "airTime": 0,
           "airShare": 0,
           "carve": 0.148,
           "pace": 1,
-          "pipeTime": 3.09,
+          "pipeTime": 3.08,
           "routeRisk": 0.413,
           "landings": 0,
           "hardLandings": 0,

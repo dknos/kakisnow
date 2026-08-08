@@ -1,6 +1,6 @@
 {
   "tool": "tools/snow-burgers/playthrough-windows.cjs",
-  "url": "http://127.0.0.1:5192/?course=glacier-gorge&event=blue-plate&autopause=off",
+  "url": "http://127.0.0.1:5193/?course=glacier-gorge&event=blue-plate&autopause=off",
   "viewport": {
     "width": 2560,
     "height": 1440
@@ -49,7 +49,7 @@
         "tomato",
         "lettuce"
       ],
-      "lastZ": 592.1,
+      "lastZ": 592.2,
       "flightHud": {
         "on": false,
         "text": "Big Air flight\n    AIR · 0.00 S"
@@ -60,17 +60,17 @@
       "blocked": null,
       "result": {
         "completed": true,
-        "time": 39.14,
+        "time": 39.15,
         "medal": "gold",
         "style": 25,
         "integrity": 100,
         "stars": 4,
         "grade": "Summit Stack",
         "splits": {
-          "cheese": 6.135200000017851,
-          "patty": 19.330099999994378,
-          "tomato": 27.999800000012506,
-          "lettuce": 33.19570000001866
+          "cheese": 6.133200000047652,
+          "patty": 19.32970000004779,
+          "tomato": 28.00020000004812,
+          "lettuce": 33.196200000048236
         },
         "detail": {
           "airTime": 0,
@@ -82,7 +82,7 @@
           "landings": 0,
           "hardLandings": 0,
           "worstLanding": 0,
-          "distance": 728
+          "distance": 728.1
         },
         "bigAirFlight": null,
         "rocket": 0,
